@@ -1,0 +1,329 @@
+/* Parabola: the design system's tokens and CSS utilities, the one source of
+   truth for its look (showcase: /parabola). Self-contained: an app imports it
+   once, after Tailwind:
+
+     @import "tailwindcss";
+     @import "@beltechi/parabola/tokens.css";
+
+   Every token lives in the `ds` namespace: CSS variables are `--ds-*` and the
+   Tailwind utilities they feed are `*-ds-*` (`bg-ds-bg`, `text-ds-fg-muted`,
+   `rounded-ds-lg`, `shadow-ds-raised`, `z-(--ds-z-tray)`). Values are set on
+   :root and .dark below; nothing else should hard-code a colour. After
+   changing one, run `npm run check:parabola`. */
+
+/* Dark theme: a `dark` class on an ancestor (next-themes puts it on <html>). */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--ds-font);
+
+  /* Parabola palette (see :root / .dark for the values, and /parabola/colours/main). */
+  --color-ds-bg: var(--ds-bg);
+  --color-ds-fg: var(--ds-fg);
+  --color-ds-fg-muted: var(--ds-fg-muted);
+  --color-ds-fg-subtle: var(--ds-fg-subtle);
+  --color-ds-border: var(--ds-border);
+  --color-ds-surface-subtle: var(--ds-surface-subtle);
+  --color-ds-field: var(--ds-field);
+  --color-ds-surface: var(--ds-surface);
+  --color-ds-surface-inverse: var(--ds-surface-inverse);
+  --color-ds-error: var(--ds-error);
+  --color-ds-highlight: var(--ds-highlight);
+
+  /* Parabola accents, for content (category colours): `bg-ds-accent-red` …
+     See :root and accents.ts. */
+  --color-ds-accent-red: var(--ds-accent-red);
+  --color-ds-accent-orange: var(--ds-accent-orange);
+  --color-ds-accent-green: var(--ds-accent-green);
+  --color-ds-accent-teal: var(--ds-accent-teal);
+  --color-ds-accent-sky: var(--ds-accent-sky);
+  --color-ds-accent-blue: var(--ds-accent-blue);
+  --color-ds-accent-violet: var(--ds-accent-violet);
+  --color-ds-accent-pink: var(--ds-accent-pink);
+  --color-ds-accent-stone: var(--ds-accent-stone);
+
+  /* Parabola elevation: `shadow-ds-raised` for anything floating above the
+     page (trays, menus, the date picker). */
+  --shadow-ds-raised: var(--ds-shadow-raised);
+
+  /* Parabola corners: sm for marks (checkbox), control for the small things
+     (the small button and nav item, pills, a field's clear button: under
+     36px, so squarer than the pill; a 12px corner would round them fully),
+     md for rows and thumbnails inside a surface, lg for fields, trays and
+     list rows. Default-size buttons and nav items are fully rounded
+     (`rounded-full`). */
+  /* Parabola spacing (values in :root): `gap-ds-20`, `pt-ds-160`… */
+  --spacing-ds-4: var(--ds-space-4);
+  --spacing-ds-8: var(--ds-space-8);
+  --spacing-ds-16: var(--ds-space-16);
+  --spacing-ds-20: var(--ds-space-20);
+  --spacing-ds-40: var(--ds-space-40);
+  --spacing-ds-80: var(--ds-space-80);
+  --spacing-ds-160: var(--ds-space-160);
+
+  --radius-ds-sm: 4px;
+  --radius-ds-control: 8px;
+  --radius-ds-md: 12px;
+  --radius-ds-lg: 16px;
+
+  /* Parabola type scale (Figma: Folio Dharmify 693:5061), named for the
+     element each style is for: text-display, text-h1 … text-h3, text-p, text-prose,
+     text-small. All medium; the only text sizes the site and admin should use. 14px
+     (`text-small`) is the floor: there is no smaller size. See /parabola/fonts/type-scale. */
+  /* Display: for editorial headlines on large screens (page and post titles
+     from `lg`; H1 below). Tighter leading, as big type needs; default tracking. */
+  --text-display: 60px;
+  --text-display--line-height: 64px;
+  --text-display--letter-spacing: 0;
+  --text-display--font-weight: 500;
+  --text-h1: 36px;
+  --text-h1--line-height: 48px;
+  --text-h1--font-weight: 500;
+  --text-h2: 24px;
+  --text-h2--line-height: 30px;
+  --text-h2--font-weight: 500;
+  --text-h3: 18px;
+  --text-h3--line-height: 26px;
+  --text-h3--font-weight: 500;
+  --text-p: 16px;
+  --text-p--line-height: 22px;
+  --text-p--font-weight: 500;
+  /* Prose: for paragraphs people read (post text, feed descriptions), a size
+     up from P with a line height of about 1.55 for comfortable reading. P stays
+     compact for interface text: buttons, fields, menus, list rows, labels. */
+  --text-prose: 18px;
+  --text-prose--line-height: 28px;
+  --text-prose--font-weight: 500;
+  --text-small: 14px;
+  --text-small--line-height: 18px;
+  --text-small--font-weight: 500;
+}
+
+/* Parabola focus (tokens: --ds-focus, --ds-focus-width, --ds-focus-offset).
+   `ds-focus` is for controls: a ring just outside the edge, keyboard focus only,
+   as browsers intend. `ds-focus-within` is for fields and field-shaped
+   triggers (select, date picker): their own outline turns the focus colour
+   while you type in them, tab to them or have their tray open, unless the
+   field is in its error state, which stays red. `data-focus` forces either on, for
+   previewing the state on /parabola. */
+@utility ds-focus {
+  outline: none;
+  &:focus-visible,
+  &[data-focus] {
+    outline: var(--ds-focus-width) solid var(--ds-focus);
+    outline-offset: var(--ds-focus-offset);
+  }
+}
+
+/* `ds-focus-stretched` is for a link or button stretched over a larger
+   parent with `after:absolute after:inset-0` (a whole-row link in a list
+   row): the ring draws on the stretched area, not the text. */
+@utility ds-focus-stretched {
+  outline: none;
+  &:focus-visible::after {
+    outline: var(--ds-focus-width) solid var(--ds-focus);
+    outline-offset: var(--ds-focus-offset);
+  }
+}
+
+/* Parabola nav fade: the soft wash behind a bar that floats over scrolling
+   content (the admin editor's top bar, the posts list header with its
+   search). The page colour at 70% fading to nothing, top to bottom, so
+   content dissolves beneath the controls instead of being cut off. One
+   style for every floating bar, with or without a sub-nav: the bar sets its
+   own height (pad it below the controls for the length of the fade); it
+   also blurs what's behind it, progressively. The
+   bar should be `pointer-events-none` with its controls turned back on, so
+   clicks reach the content through the fade. */
+@utility ds-nav-fade {
+  /* A positioned bar: the two blur layers below sit behind its controls. */
+  isolation: isolate;
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ds-bg) 70%, transparent),
+    transparent
+  );
+
+  /* Apple-style progressive blur: a heavy blur that dies out by 60% of the
+     bar's height, and a light one that carries on to the bottom edge, each
+     masked so the blur ramps in with no visible seam. */
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  &::before {
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
+    mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
+  }
+  &::after {
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+  }
+}
+
+/* Parabola hover: lays the hover wash over the control's own background, so
+   one rule works for every surface and theme (tokens: --ds-hover,
+   --ds-hover-inverse). */
+@utility ds-hover {
+  &:hover {
+    background-image: linear-gradient(var(--ds-hover), var(--ds-hover));
+  }
+}
+
+@utility ds-hover-inverse {
+  &:hover {
+    background-image: linear-gradient(var(--ds-hover-inverse), var(--ds-hover-inverse));
+  }
+}
+
+/* Parabola fields fill a container that's one field wide (a dialog, a side
+   panel, a sign-in card) instead of taking the standard field width. */
+@utility ds-fields-fill {
+  --ds-field-width: 100%;
+}
+
+@utility ds-focus-within {
+  &:not([data-invalid]):has(:is(input, textarea):focus),
+  &:not([data-invalid]):has([data-field-trigger]:focus-visible),
+  &:not([data-invalid]):focus-visible,
+  &:not([data-invalid])[data-state="open"],
+  &:not([data-invalid])[data-focus] {
+    border-color: var(--ds-focus);
+  }
+}
+
+:root {
+  /* Type: the system UI face (Figma specifies Inter). The scale is the
+     `text-*` tokens above. */
+  --ds-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Parabola palette (Figma: Folio Dharmify). Ten colours per theme;
+     every component draws from these and nothing else.
+       bg / fg          page and primary text
+       fg-muted         labels, secondary copy, meta (counts beside a label)
+       fg-subtle        placeholders, unchecked marks, disabled text
+       border           field outlines
+       surface-subtle   groupings (cards, containers): between bg and surface
+       field            the fill inside fields: a step past surface-subtle, so a
+                        field still reads on a card, and lighter than a button
+       surface          buttons (at 70%, so the blur reads) and image
+                        placeholders; on white a 70% button lands on #EBE9E4
+       surface-inverse  selected buttons; translucency baked in
+       error            invalid field outline and its message
+       highlight        the tag/pill accent: its text, on its own solid tint */
+  --ds-bg: #FFFFFF;
+  --ds-fg: #000000;
+  --ds-fg-muted: #595959;
+  --ds-fg-subtle: #78716C;
+  --ds-border: #D6D3D1;
+  --ds-surface-subtle: #FAFAF9;
+  --ds-field: #F7F5F2;
+  --ds-surface: #E2DFD9;
+  --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
+  /* Derived from the palette (not new colours): hover washes, a thin layer
+     of the text colour over default buttons and of the page colour over
+     inverted (selected) ones, so hover always moves a button away from its
+     resting shade in either theme. */
+  --ds-hover: color-mix(in srgb, var(--ds-fg) 12%, transparent);
+  --ds-hover-inverse: color-mix(in srgb, var(--ds-bg) 18%, transparent);
+  /* Error: shadcn's destructive red (#E7000B light, #FF6467 dark). */
+  --ds-error: oklch(0.577 0.245 27.325);
+  /* Highlight: Tailwind purple 700 in light mode (purple 600 from Figma
+     699:6599 only reaches 4:1 on its own tint; 700 clears AA at 5:1), 300
+     in dark. */
+  --ds-highlight: #7E22CE;
+  /* The highlight pill's background: solid (Tailwind purple 100, 900 in
+     dark), not a translucent tint, so it holds its colour on any surface,
+     including a selected (inverse) list row. */
+  --ds-highlight-tint: #F3E8FF;
+
+  /* Accents (not UI colours): what content wears, e.g. a category's tile
+     and dot. Nine shadcn/Tailwind 500 shades, which all carry white text,
+     the same in both themes, so .dark has no copies. Mirrored in
+     accents.ts for pickers. */
+  --ds-accent-red: #EF4444;
+  --ds-accent-orange: #F97316;
+  --ds-accent-green: #22C55E;
+  --ds-accent-teal: #14B8A6;
+  --ds-accent-sky: #0EA5E9;
+  --ds-accent-blue: #3B82F6;
+  --ds-accent-violet: #8B5CF6;
+  --ds-accent-pink: #EC4899;
+  --ds-accent-stone: #78716C;
+
+  /* Focus: the ring on controls reached by keyboard (Tab), and a field's
+     outline while you type in it. Follows the text colour, so it inverts
+     with the theme. The 2px offset leaves a gap of page colour between ring
+     and control, so it reads on inverse (selected) surfaces too. */
+  --ds-focus: var(--ds-fg);
+  --ds-focus-width: 2px;
+  --ds-focus-offset: 2px;
+
+  /* Elevation (not a colour): the one shadow for raised surfaces. */
+  --ds-shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.06);
+
+  /* Spacing: the only distances, named by their size, so the same gap
+     means the same thing on every page. Use the utilities (`gap-ds-20`,
+     `px-ds-20`, `pt-ds-160`, `space-y-ds-40`). Mirrored as numbers in
+     spacing.ts for layouts that do arithmetic.
+       4     a title and its meta line (a post's categories)
+       8     the lines of one text group; a header's date, title, categories
+       16    a picture and the text under it (a post tile's image and title)
+       20    the gutter: between pictures and tiles, across and down; groups
+             in a column (a title and its button); the page's side margin
+       40    between blocks: a post's text and galleries, a collection's
+             intro and its feed, the More section and the footer
+       80    between a text column and the content beside it; between the
+             sections of a page
+       160   between a page's main content and what follows it (More) */
+  --ds-space-4: 4px;
+  --ds-space-8: 8px;
+  --ds-space-16: 16px;
+  --ds-space-20: 20px;
+  --ds-space-40: 40px;
+  --ds-space-80: 80px;
+  --ds-space-160: 160px;
+
+  /* Field width: the one width of a field (the DsField, and any input,
+     select, date picker, search, textarea or multi-select on its own), so a
+     field dropped on a page is already its size and a form is a row of
+     fields that left-aligns and wraps (DS_FIELDS_CLASS). 320px holds about
+     35 characters of text-p (a title, an email, a URL) and is a phone's
+     width, so it needs no second size on small screens; a field also stops
+     at its container's edge. Containers one field wide (dialogs, side
+     panels, a sign-in card) make fields fill them with `ds-fields-fill`. */
+  --ds-field-width: 320px;
+
+  /* Stacking, lowest to highest; use as `z-(--ds-z-nav)`. The frosted post
+     overlay sits at 50, under the nav; the gallery lightbox (100+) above all. */
+  --ds-z-nav: 60;
+  --ds-z-menu: 70;
+  --ds-z-tray: 80;
+  --ds-z-tooltip: 90;
+}
+
+.dark {
+  --ds-bg: #121110;
+  --ds-fg: #FFFFFF;
+  --ds-fg-muted: #A0A0A0;
+  --ds-fg-subtle: #A8A29E;
+  --ds-border: #44403C;
+  --ds-surface-subtle: #1A1918;
+  --ds-field: #211F1E;
+  --ds-surface: #302E2C;
+  /* Selected buttons invert against the page, as the nav pills always have. */
+  --ds-surface-inverse: rgb(255 255 255 / 0.8);
+  --ds-error: oklch(0.704 0.191 22.216);
+  --ds-highlight: #D8B4FE;
+  --ds-highlight-tint: #581C87;
+  /* Dark pages need a stronger shadow to read at all. */
+  --ds-shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
+}
