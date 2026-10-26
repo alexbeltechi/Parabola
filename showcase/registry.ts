@@ -5,6 +5,7 @@ import {
   LayoutPanelTop,
   House,
   Image as ImageIcon,
+  Info,
   ListTree,
   Mail,
   Ruler,
@@ -143,6 +144,7 @@ export const DS_TIERS: DsTier[] = [
             component: S.MultiSelectField,
           },
           { slug: "date-picker", label: "Date picker", component: S.DateField },
+          { slug: "copy", label: "Copy", component: S.CopyField },
           { slug: "form", label: "Form", component: S.FieldsForm },
         ],
       },
@@ -189,6 +191,15 @@ export const DS_TIERS: DsTier[] = [
         pages: [
           { slug: "media-tile", label: "Media tile", component: S.MediaTile },
           { slug: "placeholder", label: "Placeholder", component: S.Placeholder },
+        ],
+      },
+      {
+        slug: "states",
+        label: "States",
+        icon: Info,
+        pages: [
+          { slug: "empty-state", label: "Empty state", component: S.EmptyState },
+          { slug: "info-card", label: "Info card", component: S.InfoCard },
         ],
       },
     ],

@@ -1,11 +1,11 @@
 {
   "name": "@beltechi/parabola",
   "version": "0.1.0",
-  "description": "Parabola, the design system behind beltechi-cms: tokens, primitives, components and blocks for React and Tailwind CSS v4.",
+  "description": "Parabola, the design system behind Dharmify: tokens, primitives, components and blocks for React and Tailwind CSS v4.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexbeltechi/beltechi.com.git",
+    "url": "https://github.com/alexbeltechi/dharmify.git",
     "directory": "packages/parabola"
   },
   "publishConfig": {
@@ -60,11 +60,23 @@
     "tailwindcss": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "@tiptap/extension-placeholder": { "optional": true },
-    "@tiptap/extension-table": { "optional": true },
-    "@tiptap/pm": { "optional": true },
-    "@tiptap/react": { "optional": true },
-    "@tiptap/starter-kit": { "optional": true },
-    "next": { "optional": true }
+    "@tiptap/extension-placeholder": {
+      "optional": true
+    },
+    "@tiptap/extension-table": {
+      "optional": true
+    },
+    "@tiptap/pm": {
+      "optional": true
+    },
+    "@tiptap/react": {
+      "optional": true
+    },
+    "@tiptap/starter-kit": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
   }
 }

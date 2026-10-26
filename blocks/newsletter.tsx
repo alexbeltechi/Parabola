@@ -10,7 +10,7 @@ export interface DsNewsletterBlockProps {
   /** One line under the heading: what people get and how often. */
   text?: string;
   buttonLabel?: string;
-  /** The list the sign-up asks for ("beltechi", "y3k"); the CMS decides what that means. */
+  /** The list the sign-up asks for ("news", "studio"); the CMS decides what that means. */
   list?: string;
   /** Where the sign-up came from, for the list's records. Defaults to the page's path. */
   source?: string;

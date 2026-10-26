@@ -184,6 +184,13 @@
   }
 }
 
+/* From 1024px fields take the standard width; below it they fill the row. */
+@media (min-width: 1024px) {
+  :root {
+    --ds-field-width: 320px;
+  }
+}
+
 /* Parabola fields fill a container that's one field wide (a dialog, a side
    panel, a sign-in card) instead of taking the standard field width. */
 @utility ds-fields-fill {
@@ -296,11 +303,12 @@
      select, date picker, search, textarea or multi-select on its own), so a
      field dropped on a page is already its size and a form is a row of
      fields that left-aligns and wraps (DS_FIELDS_CLASS). 320px holds about
-     35 characters of text-p (a title, an email, a URL) and is a phone's
-     width, so it needs no second size on small screens; a field also stops
-     at its container's edge. Containers one field wide (dialogs, side
-     panels, a sign-in card) make fields fill them with `ds-fields-fill`. */
-  --ds-field-width: 320px;
+     35 characters of text-p (a title, an email, a URL). Below 1024px (where
+     the admin takes its phone layout) fields run the full width instead,
+     edge to edge; buttons keep their own width. Containers one field wide
+     (dialogs, side panels, a sign-in card) make fields fill them with
+     `ds-fields-fill`. */
+  --ds-field-width: 100%;
 
   /* Stacking, lowest to highest; use as `z-(--ds-z-nav)`. The frosted post
      overlay sits at 50, under the nav; the gallery lightbox (100+) above all. */
