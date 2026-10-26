@@ -1046,7 +1046,7 @@ export function InfoCard() {
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       <DsInfoCard title="Set up with AI">
-        <DsCopyField className="w-full" value="Set up Dharmify for me. Follow SETUP.md in the Dharmify folder." />
+        <DsCopyField className="w-full" value="Set up Darmio for me. Follow SETUP.md in the Darmio folder." />
       </DsInfoCard>
       <DsInfoCard title="Not live yet">
         <p>Changes to a published post wait until you publish them.</p>
@@ -1060,13 +1060,13 @@ export function CopyField() {
   return (
     <div className={DS_FIELDS_CLASS}>
       <DsField label="Prompt">
-        <DsCopyField value="Set up Dharmify for me. Follow SETUP.md in the Dharmify folder: it says what to ask me and what to do." />
+        <DsCopyField value="Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do." />
       </DsField>
       <DsField label="Command">
         <DsCopyField mono value="npm run reset-password -- you@example.com" />
       </DsField>
       <DsField label="Prompt, wrapped" description="wrap: the whole text, the box growing downward; past ten lines it's cut short.">
-        <DsCopyField wrap value="Set up Dharmify for me. Follow SETUP.md in the Dharmify folder: it says what to ask me and what to do." />
+        <DsCopyField wrap value="Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do." />
       </DsField>
     </div>
   );

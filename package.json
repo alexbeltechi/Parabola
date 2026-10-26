@@ -1,11 +1,11 @@
 {
   "name": "@beltechi/parabola",
   "version": "0.1.0",
-  "description": "Parabola, the design system behind Dharmify: tokens, primitives, components and blocks for React and Tailwind CSS v4.",
+  "description": "Parabola, the design system behind Darmio: tokens, primitives, components and blocks for React and Tailwind CSS v4.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexbeltechi/dharmify.git",
+    "url": "https://github.com/alexbeltechi/darmio.git",
     "directory": "packages/parabola"
   },
   "publishConfig": {
