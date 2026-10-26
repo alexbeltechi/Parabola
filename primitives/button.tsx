@@ -15,8 +15,9 @@ import { DsLink, type DsLinkProps } from "../provider";
  *   (Publish, Save).
  * - danger: solid `ds-error`, for a confirmed destructive action (Delete).
  * - text: no surface at rest, for quiet actions like "Read more" or a row's
- *   ⋮. Hovering shows the default button's surface, so it still reads as a
- *   button; it has the same padding as the others to give that room.
+ *   ⋮. Hovering looks like a default button hovered (its surface plus the
+ *   hover tint), so it reads as a button on any background; it has the same
+ *   padding as the others to give that room.
  *
  * Sizes, for every variant, labelled or icon-only:
  * - default: 36px tall, fully rounded, 12px side padding (36px square icon-only).
@@ -57,7 +58,9 @@ export const dsButtonVariants = cva(
         default: "backdrop-blur-[24px] bg-ds-surface/70 text-ds-fg ds-hover disabled:text-ds-fg-subtle",
         primary: "backdrop-blur-[24px] bg-ds-fg text-ds-bg ds-hover-inverse disabled:opacity-40",
         danger: "backdrop-blur-[24px] bg-ds-error text-ds-bg ds-hover-inverse disabled:opacity-40",
-        text: "text-ds-fg hover:bg-ds-surface/70 disabled:bg-transparent disabled:text-ds-fg-subtle",
+        // Hover looks like a default button's hover (surface plus the hover tint), so it
+        // still shows on a surface of its own, like a hovered card.
+        text: "text-ds-fg hover:bg-ds-surface/70 ds-hover disabled:bg-transparent disabled:bg-none disabled:text-ds-fg-subtle",
       },
       size: {
         default: "gap-2 rounded-full text-p",
