@@ -184,12 +184,6 @@
   }
 }
 
-/* From 1024px fields take the standard width; below it they fill the row. */
-@media (min-width: 1024px) {
-  :root {
-    --ds-field-width: 320px;
-  }
-}
 
 /* Parabola fields fill a container that's one field wide (a dialog, a side
    panel, a sign-in card) instead of taking the standard field width. */
@@ -316,6 +310,15 @@
   --ds-z-menu: 70;
   --ds-z-tray: 80;
   --ds-z-tooltip: 90;
+}
+
+/* From 1024px fields take the standard width; below it they fill the row.
+   After the :root block above (it sets the phone default): the two have
+   the same weight, so the later one wins. */
+@media (min-width: 1024px) {
+  :root {
+    --ds-field-width: 320px;
+  }
 }
 
 .dark {
