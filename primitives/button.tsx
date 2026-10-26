@@ -14,8 +14,9 @@ import { DsLink, type DsLinkProps } from "../provider";
  * - primary: the same shape, solid `ds-fg`; the one main action on a screen
  *   (Publish, Save).
  * - danger: solid `ds-error`, for a confirmed destructive action (Delete).
- * - text: the label, icons and meta with no surface or padding, for inline
- *   actions like "Read more" or "Show options".
+ * - text: no surface at rest, for quiet actions like "Read more" or a row's
+ *   ⋮. Hovering shows the default button's surface, so it still reads as a
+ *   button; it has the same padding as the others to give that room.
  *
  * Sizes, for every variant, labelled or icon-only:
  * - default: 36px tall, fully rounded, 12px side padding (36px square icon-only).
@@ -39,7 +40,8 @@ import { DsLink, type DsLinkProps } from "../provider";
  *
  * Colours are palette tokens only (tokens.css), so light and dark come for free.
  */
-const FILLED: ("default" | "primary" | "danger")[] = ["default", "primary", "danger"];
+// Every variant takes the same padding: the text one shows a surface on hover.
+const PADDED: ("default" | "primary" | "danger" | "text")[] = ["default", "primary", "danger", "text"];
 
 export const dsButtonVariants = cva(
   [
@@ -55,7 +57,7 @@ export const dsButtonVariants = cva(
         default: "backdrop-blur-[24px] bg-ds-surface/70 text-ds-fg ds-hover disabled:text-ds-fg-subtle",
         primary: "backdrop-blur-[24px] bg-ds-fg text-ds-bg ds-hover-inverse disabled:opacity-40",
         danger: "backdrop-blur-[24px] bg-ds-error text-ds-bg ds-hover-inverse disabled:opacity-40",
-        text: "text-ds-fg hover:opacity-70 disabled:text-ds-fg-subtle",
+        text: "text-ds-fg hover:bg-ds-surface/70 disabled:bg-transparent disabled:text-ds-fg-subtle",
       },
       size: {
         default: "gap-2 rounded-full text-p",
@@ -74,8 +76,8 @@ export const dsButtonVariants = cva(
       },
     },
     compoundVariants: [
-      { variant: FILLED, size: "default", className: "h-9 px-3" },
-      { variant: FILLED, size: "small", className: "h-6 px-2" },
+      { variant: PADDED, size: "default", className: "h-9 px-3" },
+      { variant: PADDED, size: "small", className: "h-6 px-2" },
       // Icon-only is square at either size, text variant included (its hit area).
       { iconOnly: true, size: "default", className: "size-9 px-0" },
       { iconOnly: true, size: "small", className: "size-6 px-0" },
@@ -87,7 +89,7 @@ export const dsButtonVariants = cva(
       {
         variant: "text",
         destructive: true,
-        className: "text-ds-error disabled:text-ds-error/50",
+        className: "text-ds-error hover:bg-ds-error/10 disabled:text-ds-error/50",
       },
       {
         variant: "primary",
