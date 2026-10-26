@@ -7,14 +7,20 @@ import { DS_FIELD_BOX_CLASS, DS_FIELD_INPUT_CLASS } from "./field";
 import { dsToast } from "./toast";
 
 /**
- * Parabola copy field: a read-only value in the field's box, cut short with
- * an ellipsis, and a copy button inside it on the right that copies the
- * whole value (a prompt, a command, a link, a key). Clicking the text
- * selects it all, for copying by hand.
+ * Parabola copy field: a read-only value in the field's box and a copy
+ * button inside it on the right that copies the whole value (a prompt, a
+ * command, a link, a key). Clicking the text selects it all, for copying by
+ * hand.
+ *
+ * Two versions: one line, cut short with an ellipsis (the default), or
+ * `wrap`, where the text runs onto as many lines as it needs and the box
+ * grows downward, so a prompt can be read before it's copied. A very long
+ * value stops at ten lines with an ellipsis; the copy is still whole.
  */
 export function DsCopyField({
   value,
   mono,
+  wrap,
   className,
   "aria-label": ariaLabel,
   ...props
@@ -22,6 +28,8 @@ export function DsCopyField({
   value: string;
   /** Set it in the monospace face, for commands and code. */
   mono?: boolean;
+  /** Show the whole text over several lines (up to ten) instead of one cut-short line. */
+  wrap?: boolean;
 }) {
   const [copied, setCopied] = React.useState(false);
 
@@ -36,15 +44,29 @@ export function DsCopyField({
     );
 
   return (
-    <div data-slot="ds-copy-field" data-copied={copied || undefined} className={cn(DS_FIELD_BOX_CLASS, "pr-2", className)} {...props}>
-      <input
-        readOnly
-        value={value}
-        title={value}
-        aria-label={ariaLabel ?? "Text to copy"}
-        onFocus={(e) => e.currentTarget.select()}
-        className={cn(DS_FIELD_INPUT_CLASS, "truncate", mono && "font-mono text-small")}
-      />
+    <div
+      data-slot="ds-copy-field"
+      data-copied={copied || undefined}
+      className={cn(DS_FIELD_BOX_CLASS, "pr-2", wrap && "h-auto items-start py-2", className)}
+      {...props}
+    >
+      {wrap ? (
+        <p
+          aria-label={ariaLabel ?? "Text to copy"}
+          className={cn("min-w-0 flex-1 select-all whitespace-pre-wrap break-words line-clamp-10", mono && "font-mono text-small")}
+        >
+          {value}
+        </p>
+      ) : (
+        <input
+          readOnly
+          value={value}
+          title={value}
+          aria-label={ariaLabel ?? "Text to copy"}
+          onFocus={(e) => e.currentTarget.select()}
+          className={cn(DS_FIELD_INPUT_CLASS, "truncate", mono && "font-mono text-small")}
+        />
+      )}
       <button
         type="button"
         onClick={copy}

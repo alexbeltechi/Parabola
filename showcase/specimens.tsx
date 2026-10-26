@@ -1055,7 +1055,7 @@ export function InfoCard() {
   );
 }
 
-/** Fields › Copy: a read-only value, cut short, with a copy button inside. */
+/** Fields › Copy: a read-only value with a copy button inside, on one cut-short line or wrapped. */
 export function CopyField() {
   return (
     <div className={DS_FIELDS_CLASS}>
@@ -1064,6 +1064,9 @@ export function CopyField() {
       </DsField>
       <DsField label="Command">
         <DsCopyField mono value="npm run reset-password -- you@example.com" />
+      </DsField>
+      <DsField label="Prompt, wrapped" description="wrap: the whole text, the box growing downward; past ten lines it's cut short.">
+        <DsCopyField wrap value="Set up Dharmify for me. Follow SETUP.md in the Dharmify folder: it says what to ask me and what to do." />
       </DsField>
     </div>
   );
