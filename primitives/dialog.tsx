@@ -5,6 +5,7 @@ import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { X } from "lucide-react";
 import { cn } from "../cn";
 import { DsButton } from "./button";
+import { DsField, DsInput } from "./field";
 
 /**
  * Parabola dialog: a modal question that needs an answer before you carry on
@@ -88,6 +89,9 @@ export function DsDialogActions({ className, ...props }: React.ComponentProps<"d
  * The common case: a question with one action and Cancel. The action is the
  * primary button, or red with `destructive`. It stays open while `loading`,
  * so close it yourself when the work is done.
+ *
+ * `confirmWord`: for what can't be undone, a field asks you to type that word
+ * (e.g. "delete") and the action stays off until you have.
  */
 export function DsConfirmDialog({
   open,
@@ -99,6 +103,7 @@ export function DsConfirmDialog({
   cancelLabel = "Cancel",
   destructive,
   loading,
+  confirmWord,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -109,11 +114,34 @@ export function DsConfirmDialog({
   cancelLabel?: React.ReactNode;
   destructive?: boolean;
   loading?: boolean;
+  /** A word to type before the action turns on, e.g. "delete". */
+  confirmWord?: string;
 }) {
+  const [typed, setTyped] = React.useState("");
+  // Start empty each time it opens.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setTyped("");
+  }
+  const ready = !confirmWord || typed.trim().toLowerCase() === confirmWord.toLowerCase();
+
   return (
     <DsDialog open={open} onOpenChange={(next) => !loading && onOpenChange(next)} title={title} description={description}>
+      {confirmWord && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (ready && !loading) onConfirm();
+          }}
+        >
+          <DsField label={`Type ${confirmWord} to confirm`}>
+            <DsInput value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" autoFocus />
+          </DsField>
+        </form>
+      )}
       <DsDialogActions>
-        <DsButton variant="primary" destructive={destructive} loading={loading} onClick={onConfirm}>
+        <DsButton variant="primary" destructive={destructive} loading={loading} disabled={!ready} onClick={onConfirm}>
           {confirmLabel}
         </DsButton>
         <AlertDialog.Cancel asChild>
@@ -133,6 +161,8 @@ type ConfirmOptions = {
   description?: React.ReactNode;
   confirmLabel: React.ReactNode;
   destructive?: boolean;
+  /** A word to type before the action turns on, for what can't be undone. */
+  confirmWord?: string;
 };
 
 /**
@@ -166,6 +196,7 @@ export function useDsConfirm(): [(options: ConfirmOptions) => Promise<boolean>, 
       description={pending?.description}
       confirmLabel={pending?.confirmLabel ?? ""}
       destructive={pending?.destructive}
+      confirmWord={pending?.confirmWord}
       onConfirm={() => settle(true)}
     />
   );

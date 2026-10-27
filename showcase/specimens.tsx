@@ -851,7 +851,7 @@ export function Toast() {
 }
 
 export function Dialog() {
-  const [o, setO] = useState({ destructive: true, description: true, threeActions: false });
+  const [o, setO] = useState({ destructive: true, description: true, typeToConfirm: false, threeActions: false });
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   return (
@@ -888,6 +888,7 @@ export function Dialog() {
               }
               confirmLabel={o.destructive ? "Delete" : "Publish"}
               destructive={o.destructive}
+              confirmWord={o.typeToConfirm ? "delete" : undefined}
               onConfirm={close}
             />
           )}
@@ -896,7 +897,7 @@ export function Dialog() {
       controls={
         <Controls
           options={o}
-          labels={{ destructive: "Destructive", description: "Description", threeActions: "Three actions" }}
+          labels={{ destructive: "Destructive", description: "Description", typeToConfirm: "Type to confirm", threeActions: "Three actions" }}
           onChange={setO}
         />
       }
