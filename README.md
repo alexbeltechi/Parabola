@@ -23,7 +23,7 @@ identical, promote it to a component then, not before.
 ## Installing
 
 Parabola is an npm package, `@beltechi/parabola`, published by version from
-`packages/parabola` in the beltechi-cms workspace. Install it and pin a
+`packages/parabola` in the Darmio workspace. Install it and pin a
 version; never copy the folder. Nothing checks for a newer version at run
 time: upgrading is a `package.json` change.
 
