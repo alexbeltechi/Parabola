@@ -57,6 +57,7 @@ import { DsPlaceholder } from "../components/placeholder";
 import { DsEmptyState } from "../components/empty-state";
 import { DsInfoCard } from "../components/info-card";
 import { DsCopyField } from "../primitives/copy-field";
+import { DsProgress } from "../primitives/progress";
 import { useDsOptionsSlot } from "./ds-shell";
 
 const CATEGORIES = ["Design", "Product", "Design Systems", "Photography", "Portrait", "Still life"].map((label) => ({
@@ -850,7 +851,7 @@ export function Toast() {
 }
 
 export function Dialog() {
-  const [o, setO] = useState({ destructive: true, description: true, threeActions: false });
+  const [o, setO] = useState({ destructive: true, description: true, typeToConfirm: false, threeActions: false });
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   return (
@@ -887,6 +888,7 @@ export function Dialog() {
               }
               confirmLabel={o.destructive ? "Delete" : "Publish"}
               destructive={o.destructive}
+              confirmWord={o.typeToConfirm ? "delete" : undefined}
               onConfirm={close}
             />
           )}
@@ -895,7 +897,7 @@ export function Dialog() {
       controls={
         <Controls
           options={o}
-          labels={{ destructive: "Destructive", description: "Description", threeActions: "Three actions" }}
+          labels={{ destructive: "Destructive", description: "Description", typeToConfirm: "Type to confirm", threeActions: "Three actions" }}
           onChange={setO}
         />
       }
@@ -1037,6 +1039,23 @@ export function EmptyState() {
       <div className="flex h-64 flex-col rounded-ds-lg border border-ds-border">
         <DsEmptyState>Choose a post or create a new one</DsEmptyState>
       </div>
+    </div>
+  );
+}
+
+/** Components › States › Progress: how much is used or done; rounded track, straight-edged fill. Bar alone, or with a title, meta and description. */
+export function Progress() {
+  return (
+    <div className="flex w-full max-w-md flex-col gap-ds-40">
+      <DsProgress
+        value={8}
+        title="Storage"
+        meta="82 MB of 1 GB free"
+        description="214 media items, counted by the CMS."
+      />
+      {[0, 45, 100].map((value) => (
+        <DsProgress key={value} value={value} label={`${value}% done`} />
+      ))}
     </div>
   );
 }
