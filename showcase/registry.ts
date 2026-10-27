@@ -200,6 +200,7 @@ export const DS_TIERS: DsTier[] = [
         pages: [
           { slug: "empty-state", label: "Empty state", component: S.EmptyState },
           { slug: "info-card", label: "Info card", component: S.InfoCard },
+          { slug: "progress", label: "Progress", component: S.Progress },
         ],
       },
     ],

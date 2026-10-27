@@ -57,6 +57,7 @@ import { DsPlaceholder } from "../components/placeholder";
 import { DsEmptyState } from "../components/empty-state";
 import { DsInfoCard } from "../components/info-card";
 import { DsCopyField } from "../primitives/copy-field";
+import { DsProgress } from "../primitives/progress";
 import { useDsOptionsSlot } from "./ds-shell";
 
 const CATEGORIES = ["Design", "Product", "Design Systems", "Photography", "Portrait", "Still life"].map((label) => ({
@@ -1037,6 +1038,23 @@ export function EmptyState() {
       <div className="flex h-64 flex-col rounded-ds-lg border border-ds-border">
         <DsEmptyState>Choose a post or create a new one</DsEmptyState>
       </div>
+    </div>
+  );
+}
+
+/** Components › States › Progress: how much is used or done; rounded track, straight-edged fill. */
+export function Progress() {
+  return (
+    <div className="flex w-full max-w-md flex-col gap-ds-40">
+      {[0, 8, 45, 100].map((value) => (
+        <div key={value} className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="text-p text-ds-fg">Storage</span>
+            <span className="text-p text-ds-fg-muted">{value}%</span>
+          </div>
+          <DsProgress value={value} label="Storage used" />
+        </div>
+      ))}
     </div>
   );
 }
