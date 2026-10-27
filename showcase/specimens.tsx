@@ -1042,18 +1042,18 @@ export function EmptyState() {
   );
 }
 
-/** Components › States › Progress: how much is used or done; rounded track, straight-edged fill. */
+/** Components › States › Progress: how much is used or done; rounded track, straight-edged fill. Bar alone, or with a title, meta and description. */
 export function Progress() {
   return (
     <div className="flex w-full max-w-md flex-col gap-ds-40">
-      {[0, 8, 45, 100].map((value) => (
-        <div key={value} className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="text-p text-ds-fg">Storage</span>
-            <span className="text-p text-ds-fg-muted">{value}%</span>
-          </div>
-          <DsProgress value={value} label="Storage used" />
-        </div>
+      <DsProgress
+        value={8}
+        title="Storage"
+        meta="82 MB of 1 GB free"
+        description="214 media items, counted by the CMS."
+      />
+      {[0, 45, 100].map((value) => (
+        <DsProgress key={value} value={value} label={`${value}% done`} />
       ))}
     </div>
   );
