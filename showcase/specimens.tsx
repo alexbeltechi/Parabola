@@ -1053,6 +1053,17 @@ export function Progress() {
         meta="82 MB of 1 GB free"
         description="214 media items, counted by the CMS."
       />
+      <DsProgress
+        max={1024}
+        title="Split by project"
+        meta="412 MB of 1 GB"
+        segments={[
+          { value: 230, label: "My site", meta: "230 MB" },
+          { value: 140, label: "Y3K Club", meta: "140 MB" },
+          { value: 42, label: "Studio North", meta: "42 MB" },
+        ]}
+        description="Segments take Parabola's accents in order, with a legend."
+      />
       {[0, 45, 100].map((value) => (
         <DsProgress key={value} value={value} label={`${value}% done`} />
       ))}
