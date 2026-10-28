@@ -298,8 +298,8 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
 }
 
 /**
- * The theme's actions, top right of every /parabola page (DsCanvas): Undo
- * (its icon and label) and Redo (icon only), one change at a time and off
+ * The theme's actions, top right of every /parabola page (DsCanvas), after
+ * the page's own (`leading`: Collapse all): Undo and Redo (icons), one change at a time and off
  * when there's none; Save, which keeps the changes without touching the
  * website; Publish (after a confirm), which saves them and puts the open
  * theme on the website; and, last, a ⋮ menu to restore Parabola's defaults
@@ -307,7 +307,7 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
  * each after a confirm and with Undo in the toast that follows. Nothing
  * restored is live until it's published.
  */
-export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNode }) {
+export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
   const { theme, setTheme, entry, dirty, unpublished, saving, canSave, save, publish, canUndo, canRedo, undo, redo, backToParabola } =
     useThemeEditor();
   const pathname = usePathname();
@@ -335,10 +335,9 @@ export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNod
 
   return (
     <div className="flex shrink-0 items-center gap-ds-8">
-      <DsButton variant="text" iconLeft={Undo2} onClick={undo} disabled={!canUndo || saving}>
-        Undo
-      </DsButton>
-      <DsButton variant="text" iconLeft={Redo2} aria-label="Redo" onClick={redo} disabled={!canRedo || saving} />
+      {leading}
+      <DsButton variant="text" iconLeft={Undo2} aria-label="Undo" title="Undo" onClick={undo} disabled={!canUndo || saving} />
+      <DsButton variant="text" iconLeft={Redo2} aria-label="Redo" title="Redo" onClick={redo} disabled={!canRedo || saving} />
       {canSave && (
         <>
           {/* Save keeps the changes; Publish puts the open theme on the website. */}
@@ -350,7 +349,6 @@ export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNod
           </DsButton>
         </>
       )}
-      {beforeMenu}
       <DsDropdown>
         <DsDropdownTrigger asChild>
           <DsButton variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />

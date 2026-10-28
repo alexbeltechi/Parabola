@@ -235,9 +235,9 @@ export function DsCanvas({
               <p className="text-small text-ds-fg-subtle">{group}</p>
               <h1 className="text-p text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
             </div>
-            {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are; Collapse all / Expand all just before the ⋮. */}
+            {/* Collapse all / Expand all first, then the theme's Undo, Redo, Save, Publish and ⋮ menu, wherever you are. */}
             <ThemeHeaderActions
-              beforeMenu={
+              leading={
                 <DsButton
                   variant="text"
                   iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}

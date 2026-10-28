@@ -4,10 +4,9 @@ import * as React from "react";
 import { ChevronRight, Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
-import { DsCopyField } from "../primitives/copy-field";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
-import { DsField, DsInput } from "../primitives/field";
+import { DsField, DsInput, DsTextarea } from "../primitives/field";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
 import { dsToast } from "../primitives/toast";
@@ -15,7 +14,7 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsColourTokens, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
@@ -133,12 +132,73 @@ function SectionRestore({
 /** The theme dropdown's last option, which adds a theme rather than opening one. */
 const ADD_THEME = "__add-theme";
 
+/**
+ * The open theme as code, folded at the panel's foot: its settings (the
+ * picks for light and dark alike) and, under `tokens`, every colour it gives
+ * in light and in dark. Copy it to keep or share; paste one in and it's
+ * applied at once, here or on another Parabola site (the tokens are there to
+ * read; the settings make them).
+ */
+function ThemeCode({ theme, setTheme }: { theme: DsThemeConfig; setTheme: (theme: DsThemeConfig) => void }) {
+  const code = React.useMemo(
+    () =>
+      JSON.stringify(
+        { ...theme, tokens: { light: dsColourTokens(theme.colours, "light"), dark: dsColourTokens(theme.colours, "dark") } },
+        null,
+        2
+      ),
+    [theme]
+  );
+  const [text, setText] = React.useState(code);
+  const [invalid, setInvalid] = React.useState(false);
+  // A change made anywhere else shows here.
+  const [shown, setShown] = React.useState(code);
+  if (code !== shown) {
+    setShown(code);
+    setText(code);
+    setInvalid(false);
+  }
+  return (
+    <DsAccordion
+      title="Code"
+      defaultOpen={false}
+      actions={
+        <DsButton
+          size="small"
+          variant="text"
+          iconLeft={Copy}
+          aria-label="Copy the theme as code"
+          onClick={() => navigator.clipboard.writeText(code).then(() => dsToast.success("Theme copied"))}
+        />
+      }
+    >
+      <DsTextarea
+        aria-label="The theme as code"
+        className="w-full font-mono"
+        rows={12}
+        spellCheck={false}
+        value={text}
+        invalid={invalid}
+        onChange={(e) => {
+          setText(e.target.value);
+          try {
+            setTheme(parseDsThemeConfig(JSON.parse(e.target.value)));
+            setInvalid(false);
+          } catch {
+            setInvalid(true);
+          }
+        }}
+      />
+    </DsAccordion>
+  );
+}
+
 /** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   theme: null,
-  surface: "theme colour",
+  surface: "primary colour",
   text: null,
-  button: "typography",
+  button: "secondary colour",
   accent: "buttons",
 };
 
@@ -235,7 +295,7 @@ function ThemeNameDialog({
  * Theme: Parabola's home screen for making a theme, in the manner of
  * shadcn's create page (decisions, 2026-10-28). The page is a site's page
  * wearing the open theme (its nav, a post's opening, buttons, a list of
- * writing, one card on the surface), the theme as data last; the panel on
+ * writing, one card on the surface); the panel on
  * the right holds the theme's main choices: which theme (the site's reads
  * "(default)"; Parabola itself never changes, a change to it opens a copy,
  * Custom, to create), light or dark for the preview, the five colours, the
@@ -301,8 +361,10 @@ export function ThemeSection() {
 
       {/* A card above the fold, on the surface, with the big marketing buttons. */}
       <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
-        <h3 className="text-h3 text-ds-fg">The studio notebook</h3>
-        <p className="text-p text-ds-fg-muted">One letter a season: what I made, what I dropped and why.</p>
+        <div className="flex flex-col gap-ds-4">
+          <h3 className="text-h3 text-ds-fg">The studio notebook</h3>
+          <p className="text-p text-ds-fg-muted">One letter a season: what I made, what I dropped and why.</p>
+        </div>
         <div className="@max-2xl:ds-fields-fill">
           <DsInput aria-label="Email" placeholder="you@example.com" />
         </div>
@@ -344,14 +406,6 @@ export function ThemeSection() {
           <DsButton variant="text">Preview</DsButton>
         </div>
       </section>
-
-    <DsField
-        label={`${entry.name} as data`}
-        description="Paste it into another Parabola site, or hand it to an agent."
-        className="w-full pt-ds-20"
-      >
-        <DsCopyField mono wrap className="w-full" value={JSON.stringify(theme)} />
-      </DsField>
 
       <InPanel>
         <PanelSection
@@ -411,7 +465,7 @@ export function ThemeSection() {
           </div>
           <ColourChoice
             kind="theme"
-            label="Theme colour"
+            label="Primary colour"
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}
@@ -425,7 +479,7 @@ export function ThemeSection() {
           />
           <ColourChoice
             kind="text"
-            label="Typography"
+            label="Secondary colour"
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}
@@ -491,6 +545,7 @@ export function ThemeSection() {
           </DsField>
         </PanelSection>
 
+        <ThemeCode theme={theme} setTheme={setTheme} />
       </InPanel>
 
       {/* At the panel's foot while Custom, the working copy, is open: name it a theme of its own. */}
