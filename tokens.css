@@ -27,6 +27,8 @@
   --color-ds-field: var(--ds-field);
   --color-ds-surface: var(--ds-surface);
   --color-ds-surface-inverse: var(--ds-surface-inverse);
+  --color-ds-button: var(--ds-button);
+  --color-ds-on-button: var(--ds-on-button);
   --color-ds-error: var(--ds-error);
   --color-ds-highlight: var(--ds-highlight);
 
@@ -269,6 +271,10 @@
   --ds-field: #F7F5F2;
   --ds-surface: #E2DFD9;
   --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
+  /* Solid buttons and selected states, and what's on them: the text and the
+     page by default; a theme's button colour sets its own (colours.ts). */
+  --ds-button: var(--ds-fg);
+  --ds-on-button: var(--ds-bg);
   /* Derived from the palette (not new colours): hover washes, a thin layer
      of the text colour over default buttons and of the page colour over
      inverted (selected) ones, so hover always moves a button away from its

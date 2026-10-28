@@ -54,10 +54,11 @@ function useDarkMode(): boolean {
 }
 
 /**
- * One of the theme's three colours in the panel, for the light or the dark
+ * One of the theme's four colours in the panel, for the light or the dark
  * theme (whichever the page is in): its name, then the colour picker sitting
  * on the colour it is now (Parabola's own until you move it), where you drag
- * or type a hex and see it change at once. In dark, "Based on light theme"
+ * or type a hex and see it change at once. Buttons start "Based on
+ * typography", until the picker gives them their own. In dark, "Based on light theme"
  * (on by default) keeps it the light one's counterpart; moving the picker
  * gives it a dark colour of its own and turns that off.
  */
@@ -79,6 +80,16 @@ function ColourChoice({
   return (
     <div className="flex flex-col gap-ds-8">
       <span className="text-p text-ds-fg">{label}</span>
+      {/* Buttons follow the typography until they're given a colour of their own. */}
+      {kind === "button" && mode === "light" && (
+        <label className="inline-flex items-center gap-ds-8 self-start">
+          <DsCheckbox
+            checked={colour.light === null}
+            onCheckedChange={(on) => set({ light: on ? null : dsColourShown(colours, kind, "light") })}
+          />
+          <span className="text-p text-ds-fg">Based on typography</span>
+        </label>
+      )}
       {mode === "dark" && (
         <label className="inline-flex items-center gap-ds-8 self-start">
           <DsCheckbox
@@ -331,8 +342,15 @@ export function ThemeSection() {
             onChange={(colours) => setTheme({ ...theme, colours })}
           />
           <ColourChoice
-            kind="ui"
-            label="Fonts and UI"
+            kind="text"
+            label="Typography"
+            colours={theme.colours}
+            mode={mode}
+            onChange={(colours) => setTheme({ ...theme, colours })}
+          />
+          <ColourChoice
+            kind="button"
+            label="Buttons"
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}

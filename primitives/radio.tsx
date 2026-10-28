@@ -6,16 +6,16 @@ import { cn } from "../cn";
 
 /**
  * Parabola radio: the checkbox's single-choice twin. A 16px circle with the
- * same 2px `ds-fg-subtle` outline; selected fills with `ds-surface-inverse`
- * and a 6px dot in the page colour. Like the checkbox it takes clicks across
+ * same 2px `ds-fg-subtle` outline; selected fills with `ds-button` and a 6px
+ * dot in `ds-on-button`. Like the checkbox it takes clicks across
  * 24px. Arrow keys move between options.
  */
 const CIRCLE_CLASS = cn(
   "grid size-4 shrink-0 place-content-center rounded-full border-2 border-ds-fg-subtle transition-colors",
-  "data-[state=checked]:border-transparent data-[state=checked]:bg-ds-surface-inverse"
+  "data-[state=checked]:border-transparent data-[state=checked]:bg-ds-button"
 );
 
-const DOT = <span className="block size-1.5 rounded-full bg-ds-bg" />;
+const DOT = <span className="block size-1.5 rounded-full bg-ds-on-button" />;
 
 export function DsRadioGroup({
   className,

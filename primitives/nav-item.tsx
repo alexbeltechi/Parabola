@@ -29,7 +29,7 @@ export const dsNavItemVariants = cva(
         small: "h-6 gap-1 rounded-ds-control px-2 text-small",
       },
       selected: {
-        true: "bg-ds-surface-inverse text-ds-bg ds-hover-inverse",
+        true: "bg-ds-button text-ds-on-button ds-hover-inverse",
         false: "text-ds-fg hover:bg-ds-surface/70 data-[state=open]:bg-ds-surface/70",
       },
     },

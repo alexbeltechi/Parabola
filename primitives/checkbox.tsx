@@ -9,13 +9,13 @@ import { cn } from "../cn";
  * Parabola checkbox (Figma: Folio Dharmify 706:8558): the Radix primitive
  * shadcn's Checkbox wraps, drawn from palette tokens only. 16px box, 4px
  * corners. Unchecked is a 2px `ds-fg-subtle` outline; checked fills with
- * `ds-surface-inverse` (the selected-button colour) and a 12px check in the
- * page colour. The box draws at 16px but takes clicks across 24px. Pair it
+ * `ds-button` (the selected-button colour) and a 12px check in
+ * `ds-on-button`. The box draws at 16px but takes clicks across 24px. Pair it
  * with a label.
  */
 const BOX_CLASS = cn(
   "grid size-4 shrink-0 place-content-center rounded-ds-sm border-2 border-ds-fg-subtle transition-colors",
-  "data-[state=checked]:border-transparent data-[state=checked]:bg-ds-surface-inverse data-[state=checked]:text-ds-bg",
+  "data-[state=checked]:border-transparent data-[state=checked]:bg-ds-button data-[state=checked]:text-ds-on-button",
   "[&_svg]:size-3"
 );
 

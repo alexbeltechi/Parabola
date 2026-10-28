@@ -1,18 +1,22 @@
 /**
- * The three colours a theme picks (theme.ts; decisions, 2026-10-28):
+ * The four colours a theme picks (theme.ts; decisions, 2026-10-28):
  *
  * - the **theme colour**: the website's background, Parabola's white (and
  *   charcoal in dark) by default; any colour, a bright yellow included.
  *   Cards, fields, side panels and borders are shades of it.
- * - **fonts and UI**: the text, and the quiet text, borders and surface
+ * - **typography**: the text, and the quiet text, borders and surface
  *   shades drawn from it. Parabola's own is black or white, whichever reads
  *   on the theme colour, with Stone's warm greys on the default page
  *   (tokens.css; `npm run check:parabola` checks).
+ * - **buttons**: the solid buttons (Publish) and selected states (the
+ *   current nav item, a pressed button, a checked box, the dark pill), with
+ *   black or white on them, whichever reads. By default the typography's.
  * - the **accent colour**: Parabola's one highlight, for the few things that
  *   need attention (a highlight pill), and its tint. Parabola's own is Purple
  *   on its own page, and on a theme colour that colour's complement.
  *
- * Each is picked for the light theme (or left as Parabola's). In the dark
+ * Each is picked for the light theme (or left as Parabola's; buttons as
+ * the typography's). In the dark
  * theme each is, by default, based on the light one: its counterpart
  * (`dsCounterpart`), the same hue at the other end of light, so the two
  * always contrast; or a colour picked for dark on its own.
@@ -186,16 +190,17 @@ export const DS_DEFAULT_ACCENT_COLOUR = "purple";
 
 /**
  * One of a theme's colours: picked for the light theme (null: Parabola's
- * own), and for the dark one (null: based on the light one). A light pick is
+ * own, or for buttons the typography's), and for the dark one (null: based on the light one). A light pick is
  * a hex; older themes may hold a preset's id (Slate, Blue), which still works.
  */
 export type DsThemeColour = { light: string | null; dark: string | null };
-export type DsColourKind = "theme" | "ui" | "accent";
+export type DsColourKind = "theme" | "text" | "button" | "accent";
 export type DsThemeColours = Record<DsColourKind, DsThemeColour>;
 
 export const DS_DEFAULT_COLOURS: DsThemeColours = {
   theme: { light: null, dark: null },
-  ui: { light: null, dark: null },
+  text: { light: null, dark: null },
+  button: { light: null, dark: null },
   accent: { light: null, dark: null },
 };
 
@@ -356,10 +361,10 @@ function hexIn(colour: DsThemeColour, mode: "light" | "dark"): string | null {
  * everything on a card reads as it does on the page.
  */
 export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"): Record<string, string> {
-  const base = dsIsHex(colours.ui.light) || !colours.ui.light ? DS_DEFAULT_BASE_COLOUR : colours.ui.light;
+  const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
   const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
   const page = hexIn(colours.theme, mode);
-  const text = hexIn(colours.ui, mode);
+  const text = hexIn(colours.text, mode);
   if (page || text) {
     const bg = page ?? tokens.bg;
     const fg = text ?? (dsLuminance(bg) > 0.18 ? BLACK : WHITE);
@@ -373,10 +378,14 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "surface-subtle": card,
       field: dsMix(fg, card, 0.03),
       surface: dsMix(fg, card, 0.11),
-      // Selected states (a current nav item, a pressed button, a checked box) in the text colour, solid as Publish is.
+      // Toasts and tooltips in the text colour, solid.
       "surface-inverse": fg,
     });
   }
+  // Buttons and selected states: their own colour with black or white on it, or the text on the page.
+  const button = hexIn(colours.button, mode);
+  tokens.button = button ?? tokens.fg;
+  tokens["on-button"] = button ? (dsLuminance(button) > 0.18 ? BLACK : WHITE) : tokens.bg;
   const accent =
     mode === "dark" && colours.accent.dark
       ? { highlight: colours.accent.dark, tint: dsMix(colours.accent.dark, tokens.bg, 0.3) }
@@ -388,10 +397,11 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   return tokens;
 }
 
-/** What one of a theme's colours is in light or dark, as a hex: the page, the text or the highlight. */
+const SHOWN: Record<DsColourKind, string> = { theme: "bg", text: "fg", button: "button", accent: "highlight" };
+
+/** What one of a theme's colours is in light or dark, as a hex: the page, the text, the buttons or the highlight. */
 export function dsColourShown(colours: DsThemeColours, kind: DsColourKind, mode: "light" | "dark"): string {
-  const tokens = dsColourTokens(colours, mode);
-  return tokens[kind === "theme" ? "bg" : kind === "ui" ? "fg" : "highlight"];
+  return dsColourTokens(colours, mode)[SHOWN[kind]];
 }
 
 /**

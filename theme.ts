@@ -204,15 +204,18 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
       ? (coloursRaw.background as Record<string, unknown>).light
       : coloursRaw.background;
   const colours: DsThemeColours =
-    coloursRaw.theme || coloursRaw.ui
+    coloursRaw.theme || coloursRaw.text || coloursRaw.ui
       ? {
           theme: colour(coloursRaw.theme),
-          ui: colour(coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
+          // Typography was "fonts and UI" for a day.
+          text: colour(coloursRaw.text ?? coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
+          button: colour(coloursRaw.button),
           accent: colour(coloursRaw.accent, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR),
         }
       : {
           theme: { light: hex(legacyBackground), dark: null },
-          ui: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
+          text: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
+          button: { light: null, dark: null },
           accent: { light: lightPick(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR), dark: null },
         };
 

@@ -204,7 +204,7 @@ export function DsDatePicker(allProps: {
                       className={cn(
                         "grid size-9 place-content-center rounded-ds-pill text-p transition-colors ds-focus",
                         selected
-                          ? "bg-ds-surface-inverse text-ds-bg ds-hover-inverse"
+                          ? "bg-ds-button text-ds-on-button ds-hover-inverse"
                           : cn(
                               "ds-hover",
                               sameDay(day, today) && "bg-ds-surface/70",

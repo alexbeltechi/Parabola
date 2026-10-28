@@ -9,7 +9,7 @@ import { cn } from "../cn";
  * and after the label, 4px from it. The pill itself isn't interactive; give
  * it `onRemove` and its trailing × becomes a real button.
  *
- * - dark: `ds-surface-inverse` with page-coloured text, e.g. "Draft".
+ * - dark: `ds-button` with `ds-on-button` text, e.g. "Published".
  * - light: `ds-surface`, the same stone as the default button.
  * - highlight: `ds-highlight` text on its solid light tint, e.g. "Claude".
  */
@@ -22,7 +22,7 @@ export const dsPillVariants = cva(
   {
     variants: {
       variant: {
-        dark: "bg-ds-surface-inverse text-ds-bg",
+        dark: "bg-ds-button text-ds-on-button",
         light: "bg-ds-surface/70 text-ds-fg",
         highlight: "bg-(--ds-highlight-tint) text-ds-highlight",
       },
