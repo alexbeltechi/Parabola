@@ -7,7 +7,6 @@ import { ChevronDown, MoreVertical, Redo2, RotateCcw, Undo2 } from "lucide-react
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog } from "../primitives/dialog";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
-import { DsPill } from "../primitives/pill";
 import { dsToast } from "../primitives/toast";
 import { cn } from "../cn";
 import { useDsThemeLibrary } from "../provider";
@@ -261,8 +260,6 @@ export function ThemeHeaderActions() {
 
   return (
     <div className="flex shrink-0 items-center gap-ds-8">
-      {/* The theme open for editing, so every page says which one it changes. */}
-      <DsPill title="The theme you're editing">{entry.name}</DsPill>
       <DsButton iconLeft={Undo2} onClick={undo} disabled={!canUndo || saving}>
         Undo
       </DsButton>

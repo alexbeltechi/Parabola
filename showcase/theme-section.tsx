@@ -92,8 +92,9 @@ function ThemeNameDialog({
 
 /**
  * Theme: Parabola's home screen for making a theme, in the manner of
- * shadcn's create page (decisions, 2026-10-28). The page is a grid of
- * Parabola's pieces wearing the open theme; the panel on the right holds the
+ * shadcn's create page (decisions, 2026-10-28). The page is Parabola's
+ * pieces wearing the open theme, one card under another at the CMS's
+ * reading width (600px), the theme as data last; the panel on the right holds the
  * theme's main choices: which theme (Default and any added; Add theme
  * copies the open one under a new name), light or dark, the base and
  * secondary colours, the Heading and Font families' fonts, and the icon
@@ -113,8 +114,8 @@ export function ThemeSection() {
   const body = theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    <div className="flex w-full max-w-5xl flex-col gap-ds-40">
-      <div className="grid gap-ds-20 md:grid-cols-2">
+    // One column at the reading width the CMS uses (600px), each card as tall as what's in it.
+    <div className="flex w-full max-w-[600px] flex-col gap-ds-20">
         <Tile label="Type">
           <p className="text-display text-ds-fg">Ars longa</p>
           <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
@@ -123,13 +124,15 @@ export function ThemeSection() {
           </p>
           <p className="text-small text-ds-fg-muted">Small, the floor</p>
         </Tile>
-        <Tile label="Buttons and pills">
+        <Tile label="Buttons">
           <div className="flex flex-wrap items-center gap-ds-8">
             <DsButton variant="primary">Publish</DsButton>
             <DsButton>Save</DsButton>
             <DsButton variant="text">Writing</DsButton>
             <DsThemeToggle variant="text" />
           </div>
+        </Tile>
+        <Tile label="Pills">
           <div className="flex flex-wrap items-center gap-ds-8">
             <DsPill variant="highlight">New</DsPill>
             <DsPill>Draft</DsPill>
@@ -166,9 +169,12 @@ export function ThemeSection() {
             <p>Changes to a published post wait until you publish them.</p>
           </DsInfoCard>
         </Tile>
-      </div>
 
-      <DsField label={`${entry.name} as data`} description="Paste it into another Parabola site, or hand it to an agent." className="w-full">
+      <DsField
+        label={`${entry.name} as data`}
+        description="Paste it into another Parabola site, or hand it to an agent."
+        className="w-full pt-ds-20"
+      >
         <DsCopyField mono wrap className="w-full" value={JSON.stringify(theme)} />
       </DsField>
 

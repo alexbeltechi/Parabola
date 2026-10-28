@@ -10,7 +10,7 @@ import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsToaster } from "../primitives/toast";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
-import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions } from "./theme-editor";
+import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -167,30 +167,48 @@ export function DsShell({ children }: { children: React.ReactNode }) {
  * properties panel: collapsible sections of controls; under the content below
  * `lg`). Pages put things there with `InPanel` (theme-editor.tsx).
  */
-export function DsCanvas({ group, title, children }: { group: string; title: string; children: React.ReactNode }) {
+/** The open theme's name, as the Theme page's title. */
+function ThemeTitle() {
+  return <>{useThemeEditor().entry.name}</>;
+}
+
+export function DsCanvas({
+  group,
+  title,
+  themeTitle = false,
+  children,
+}: {
+  group: string;
+  title: string;
+  /** Show the open theme's name as the title (the Theme page: "Theme" over "Parabola"). */
+  themeTitle?: boolean;
+  children: React.ReactNode;
+}) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   return (
     <PanelSlotContext.Provider value={slot}>
       <div className="flex flex-1 flex-col lg:flex-row">
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Pinned over the page on the canvas's own colour, so the page never shows
-            through behind the title and the theme's actions. Below md it sits under
-            the fixed nav bar (76px), its colour reaching up behind the bar. */}
-        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 bg-ds-surface-subtle px-6 pt-6 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:before:hidden">
+            through behind the title and the theme's actions. Below md it sits right
+            under the fixed nav bar (76px, its colour reaching up behind the bar),
+            with no padding of its own above. */}
+        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:pt-6 md:before:hidden">
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-small text-ds-fg-subtle">{group}</p>
-            <h1 className="text-h3 text-ds-fg">{title}</h1>
+            <h1 className="text-h3 text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
           </div>
           {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
           <ThemeHeaderActions />
         </header>
         <div className="flex flex-1 items-center justify-center px-6 py-12">{children}</div>
       </div>
-      {/* The page's properties; hidden while it has none. */}
+      {/* The page's properties; hidden while it has none. A rule between sections,
+          so folded ones still read as separate. */}
       <aside
         ref={setSlot}
         aria-label="Properties"
-        className="flex flex-col gap-ds-20 border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
+        className="flex flex-col gap-ds-20 border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
       />
       </div>
     </PanelSlotContext.Provider>

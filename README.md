@@ -133,16 +133,16 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   (Instrument Sans, Medium).
 - **Icons**: the library, Lucide for now.
 
-Themes are kept in a **library** (`DsThemeLibrary`): Default and any added,
-one of them in use. A style's weight snaps to the nearest one its family's
+Themes are kept in a **library** (`DsThemeLibrary`): Parabola (the default)
+and any added, one of them in use. A style's weight snaps to the nearest one its family's
 font has (`dsNearestWeight`). The tokens a theme sets are `--ds-*` variables
 (`--ds-bg`… `--ds-highlight`, `--ds-family-<id>`, `--ds-font-<style>`,
 `--ds-text-<style>`, `--ds-text-<style>-leading`, `--ds-weight-<style>`), light
 on `:root` and dark on `.dark`, so a theme changes them at run time. Make
-themes on `/parabola`: Theme (a grid of pieces, and the main choices in the
-panel on the right) and Typography (Font families, Type scale), with the
-open theme's name, Undo, Redo, Publish and a ⋮ menu to restore defaults top
-right on every page. An app applies the theme in use once, in its `<head>`:
+themes on `/parabola`: Theme (the pieces in one 600px column, and the main
+choices in the panel on the right) and Typography (Font families, Type
+scale), with Undo, Redo, Publish and a ⋮ menu to restore defaults top right
+on every page. An app applies the theme in use once, in its `<head>`:
 
 ```tsx
 <DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its Google fonts */}
