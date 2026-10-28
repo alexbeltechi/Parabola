@@ -24,13 +24,13 @@ import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
 
 /**
  * One card of the preview: a few words on what it shows, then the pieces
- * themselves, on the page colour with no outline, floating on the canvas,
- * so pieces that sit on a surface of their own (the info card) stand out.
+ * themselves, on the theme's surface with no outline, floating on the
+ * canvas in the theme colour, as a site's cards sit on its page.
  * Fields fill it unless it's wide.
  */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="@container rounded-ds-lg bg-ds-bg p-ds-20">
+    <section className="@container rounded-ds-lg bg-ds-surface-subtle p-ds-20">
       {/* Fields fill the tile while it's narrow (under 672px), as on a phone; a wider tile gives them their usual width. */}
       <div className="flex flex-col gap-ds-16 @max-2xl:ds-fields-fill">
         <p className="text-small text-ds-fg-muted">{label}</p>
@@ -41,10 +41,11 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
 }
 
 /**
- * One of the theme's four colours in the panel, for the light or the dark
+ * One of the theme's five colours in the panel, for the light or the dark
  * theme (whichever the page is in): its name, then the colour picker sitting
  * on the colour it is now (Parabola's own until you move it). A colour based
- * on another (buttons on the typography, until given their own; in dark,
+ * on another (the surface on the theme colour, buttons on the typography,
+ * the accent on the buttons, until given their own; in dark,
  * each on the light one, by default) shows only that tick and a brightness
  * bar, to make it lighter or darker than what it's based on; untick it and
  * the picker comes back, starting from the colour it was.
@@ -67,7 +68,7 @@ function ColourChoice({
   const shown = dsColourShown(colours, kind, mode);
   const pick = mode === "light" ? "light" : "dark";
   const shiftKey = mode === "light" ? "lightShift" : "darkShift";
-  const basedOn = mode === "dark" ? "light theme" : kind === "button" ? "typography" : null;
+  const basedOn = mode === "dark" ? "light theme" : LIGHT_BASIS[kind];
   const based = basedOn !== null && colour[pick] === null;
   const shift = colour[shiftKey] ?? 0;
   // What it's based on, before the shift, for the bar's middle.
@@ -104,6 +105,15 @@ function ColourChoice({
     </div>
   );
 }
+
+/** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
+const LIGHT_BASIS: Record<DsColourKind, string | null> = {
+  theme: null,
+  surface: "theme colour",
+  text: null,
+  button: "typography",
+  accent: "buttons",
+};
 
 /**
  * The theme's radius: None, Small, Medium, Large and Custom in one row, the
@@ -333,6 +343,13 @@ export function ThemeSection() {
           <ColourChoice
             kind="theme"
             label="Theme colour"
+            colours={theme.colours}
+            mode={mode}
+            onChange={(colours) => setTheme({ ...theme, colours })}
+          />
+          <ColourChoice
+            kind="surface"
+            label="Surface"
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}

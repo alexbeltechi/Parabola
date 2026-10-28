@@ -118,13 +118,12 @@ namespace, short and brand-free, so a rename never touches code:
 A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
 - **Colours** (`colours.ts`, `DsThemeColours`): the theme colour (the
-  website's background; cards, fields, panels and borders are shades of
-  it), typography (the text, and the quiet text, borders and shades drawn
+  website's background), the surface (cards, panels and fields; a shade of
+  the theme colour by default), typography (the text, and the quiet text, borders and shades drawn
   from it; Parabola's is black or white, whichever reads on the page),
   buttons (`ds-button` and `ds-on-button`: solid buttons and selected
   states; the typography's by default) and
-  the accent colour (the highlight; Parabola's own is Purple, or the theme
-  colour's complement once one is picked). Each is Parabola's own (null) or a
+  the accent colour (the highlight; the buttons' by default). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one (its
   counterpart, `dsCounterpart`) unless a dark colour is picked for it. A
   colour based on another can be shifted lighter or darker (`lightShift`,

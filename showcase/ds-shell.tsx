@@ -211,7 +211,7 @@ export function DsCanvas({
             around it stays Parabola's own, in the UI's mode. */}
         <div
           data-ds-mode={previewMode}
-          className={`${DS_THEME_SCOPE} flex min-w-0 items-center justify-center bg-ds-surface-subtle px-6 py-12 lg:col-start-1 lg:row-start-2`}>
+          className={`${DS_THEME_SCOPE} flex min-w-0 items-center justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2`}>
           <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
         </div>
         {/* The page's properties; hidden while it has none. A rule between sections,

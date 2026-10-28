@@ -210,7 +210,8 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
       ...(darkShift && { darkShift: darkShift.value }),
     };
   };
-  // Older themes: a base colour, an accent (once "secondary"), a background (once light and dark apart) and a surface, which goes.
+  // Older themes: a base colour, an accent (once "secondary"), a background (once light and dark apart) and a surface, which goes (the new
+  // surface starts from the theme colour).
   const legacyBackground =
     coloursRaw.background && typeof coloursRaw.background === "object"
       ? (coloursRaw.background as Record<string, unknown>).light
@@ -219,6 +220,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     coloursRaw.theme || coloursRaw.text || coloursRaw.ui
       ? {
           theme: colour(coloursRaw.theme),
+          surface: colour(coloursRaw.surface),
           // Typography was "fonts and UI" for a day.
           text: colour(coloursRaw.text ?? coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
           button: colour(coloursRaw.button),
@@ -226,6 +228,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
         }
       : {
           theme: { light: hex(legacyBackground), dark: null },
+          surface: { light: null, dark: null },
           text: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
           button: { light: null, dark: null },
           accent: { light: lightPick(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR), dark: null },

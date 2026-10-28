@@ -285,14 +285,13 @@
   --ds-hover-inverse: color-mix(in srgb, var(--ds-bg) 18%, transparent);
   /* Error: shadcn's destructive red (#E7000B light, #FF6467 dark). */
   --ds-error: oklch(0.577 0.245 27.325);
-  /* Highlight: Tailwind purple 700 in light mode (purple 600 from Figma
-     699:6599 only reaches 4:1 on its own tint; 700 clears AA at 5:1), 300
-     in dark. */
-  --ds-highlight: #7E22CE;
-  /* The highlight pill's background: solid (Tailwind purple 100, 900 in
-     dark), not a translucent tint, so it holds its colour on any surface,
+  /* Highlight: by default the buttons' colour, the text's (colours.ts:
+     a theme's accent is based on its buttons until given its own). */
+  --ds-highlight: #000000;
+  /* The highlight pill's background: solid (the highlight at 14% on the
+     page), not a translucent tint, so it holds its colour on any surface,
      including a selected (inverse) list row. */
-  --ds-highlight-tint: #F3E8FF;
+  --ds-highlight-tint: #DBDBDB;
 
   /* Accents (not UI colours): what content wears, e.g. a category's tile
      and dot. Nine shadcn/Tailwind 500 shades, which all carry white text,
@@ -388,8 +387,8 @@
   /* Selected buttons invert against the page, as the nav pills always have. */
   --ds-surface-inverse: rgb(255 255 255 / 0.8);
   --ds-error: oklch(0.704 0.191 22.216);
-  --ds-highlight: #D8B4FE;
-  --ds-highlight-tint: #581C87;
+  --ds-highlight: #FFFFFF;
+  --ds-highlight-tint: #333231;
   /* Dark pages need a stronger shadow to read at all. */
   --ds-shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
 }
