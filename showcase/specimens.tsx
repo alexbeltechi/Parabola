@@ -56,6 +56,7 @@ import { DsNewsletterBlock } from "../blocks/newsletter";
 import { DsPlaceholder } from "../components/placeholder";
 import { DsEmptyState } from "../components/empty-state";
 import { DsInfoCard } from "../components/info-card";
+import { DsLinkList } from "../components/link-list";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsProgress } from "../primitives/progress";
 import { useDsOptionsSlot } from "./ds-shell";
@@ -1067,6 +1068,30 @@ export function Progress() {
       {[0, 45, 100].map((value) => (
         <DsProgress key={value} value={value} label={`${value}% done`} />
       ))}
+    </div>
+  );
+}
+
+/** Components › Links › Link list: plain with a "more" link (a home page's writing), and divided (a links page). */
+export function LinkList() {
+  return (
+    <div className="flex w-full max-w-[661px] flex-col gap-ds-40">
+      <DsLinkList
+        items={[
+          { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
+          { label: "Keep fewer moments", href: "#", meta: "2026 · 1 min" },
+          { label: "Make the small version first", href: "#", meta: "2025 · 1 min" },
+        ]}
+        more={{ label: "All 19 posts", href: "#" }}
+      />
+      <DsLinkList
+        divided
+        items={[
+          { label: "YouTube", href: "https://youtube.com", meta: "@you" },
+          { label: "Newsletter", href: "#", meta: "a few letters a year" },
+          { label: "Instagram", href: "https://instagram.com", meta: "@you" },
+        ]}
+      />
     </div>
   );
 }

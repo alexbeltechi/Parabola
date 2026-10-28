@@ -6,6 +6,7 @@ import {
   House,
   Image as ImageIcon,
   Info,
+  Link as LinkIcon,
   ListTree,
   Mail,
   Ruler,
@@ -192,6 +193,12 @@ export const DS_TIERS: DsTier[] = [
           { slug: "media-tile", label: "Media tile", component: S.MediaTile },
           { slug: "placeholder", label: "Placeholder", component: S.Placeholder },
         ],
+      },
+      {
+        slug: "links",
+        label: "Links",
+        icon: LinkIcon,
+        pages: [{ slug: "link-list", label: "Link list", component: S.LinkList }],
       },
       {
         slug: "states",

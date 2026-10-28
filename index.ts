@@ -77,3 +77,4 @@ export { DsMediaTile } from "./components/media-tile";
 export { DsPlaceholder } from "./components/placeholder";
 export { DsEmptyState } from "./components/empty-state";
 export { DsInfoCard } from "./components/info-card";
+export { DsLinkList, type DsLinkListItem } from "./components/link-list";

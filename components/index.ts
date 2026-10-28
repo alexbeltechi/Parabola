@@ -7,3 +7,4 @@ export { DsMediaTile } from "./media-tile";
 export { DsPlaceholder } from "./placeholder";
 export { DsEmptyState } from "./empty-state";
 export { DsInfoCard } from "./info-card";
+export { DsLinkList, type DsLinkListItem } from "./link-list";

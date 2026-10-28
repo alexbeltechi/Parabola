@@ -32,7 +32,8 @@ import { DsLink, type DsLinkProps } from "../provider";
  * red button is the `danger` variant. There's no warning (yellow) style.
  *
  * State (props, not variants); on the default variant both are drawn in
- * `ds-surface-inverse`:
+ * `ds-surface-inverse`, on the text variant as its hover surface (a ghost
+ * nav's current page):
  * - `pressed`: a toggle that's on; sets `aria-pressed`.
  * - `current`: the link to the page you're on; sets `aria-current="page"`.
  *
@@ -103,6 +104,11 @@ export const dsButtonVariants = cva(
         variant: "default",
         inverse: true,
         className: "bg-ds-surface-inverse text-ds-bg ds-hover-inverse disabled:text-ds-bg disabled:opacity-40",
+      },
+      {
+        variant: "text",
+        inverse: true,
+        className: "bg-ds-surface/70 text-ds-fg",
       },
     ],
     defaultVariants: { variant: "default", size: "default" },
