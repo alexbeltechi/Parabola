@@ -17,7 +17,7 @@ import {
  *   many more as a theme adds, each a name and a font, the font one of
  *   Parabola's (fonts.ts) or one added to the theme (`customFonts`);
  * - the type scale: for each text style, its name, which family it's set
- *   in (headings in Secondary, the rest in Primary, by default), its weight,
+ *   in (Display to H2 in Secondary, the rest in Primary, by default), its weight,
  *   size and line height.
  *
  * Colours, corners and the rest join it later; an older theme without them
@@ -36,9 +36,10 @@ export const DS_PRIMARY_FAMILY = "primary";
 
 /**
  * Each style's default name, family, weight, size and line height (px), as
- * tokens.css sets them (`npm run check:parabola` checks): headings in the
- * secondary family (Instrument Serif, which has one weight), the rest in the
- * primary at Medium (decisions, 2026-10-28).
+ * tokens.css sets them (`npm run check:parabola` checks): Display to H2 in
+ * the secondary family (Instrument Serif, which has one weight); H3, the
+ * small heading, and the rest in the primary at Medium (decisions,
+ * 2026-10-28).
  */
 export const DS_TEXT_STYLE_DEFAULTS: Record<
   DsTextStyle,
@@ -47,7 +48,7 @@ export const DS_TEXT_STYLE_DEFAULTS: Record<
   display: { label: "Display", family: "secondary", weight: 400, size: 60, lineHeight: 64, use: "Editorial headlines on large screens" },
   h1: { label: "H1", family: "secondary", weight: 400, size: 36, lineHeight: 48, use: "Page and post titles" },
   h2: { label: "H2", family: "secondary", weight: 400, size: 24, lineHeight: 30, use: "Sections" },
-  h3: { label: "H3", family: "secondary", weight: 400, size: 18, lineHeight: 26, use: "Small headings, the site's name" },
+  h3: { label: "H3", family: "primary", weight: 500, size: 18, lineHeight: 26, use: "Small headings, the site's name" },
   p: { label: "P", family: "primary", weight: 500, size: 16, lineHeight: 22, use: "Interface text: buttons, fields, lists" },
   prose: { label: "Prose", family: "primary", weight: 500, size: 18, lineHeight: 28, use: "Paragraphs people read" },
   small: { label: "Small", family: "primary", weight: 500, size: 14, lineHeight: 18, use: "Meta and descriptions; the floor" },

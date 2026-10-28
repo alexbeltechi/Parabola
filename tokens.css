@@ -206,8 +206,8 @@
      Primary (--ds-family-primary) and Secondary (--ds-family-secondary) to
      start (a theme can add more: --ds-family-<id>), and for each text style
      its family, size, line height and weight. These are
-     the defaults: headings (Display to H3) in Instrument Serif, Regular,
-     everything else in Instrument Sans, Medium; a theme overrides them on
+     the defaults: Display to H2 in Instrument Serif, Regular, everything
+     else (H3 included) in Instrument Sans, Medium; a theme overrides them on
      :root (DsThemeStyle). An app that hosts the font files sets
      --ds-font-instrument-sans / -serif to its family names. */
   --ds-family-primary: var(--ds-font-instrument-sans, "Instrument Sans"), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -225,10 +225,10 @@
   --ds-text-h2: 24px;
   --ds-text-h2-leading: 30px;
   --ds-weight-h2: 400;
-  --ds-font-h3: var(--ds-family-secondary);
+  --ds-font-h3: var(--ds-family-primary);
   --ds-text-h3: 18px;
   --ds-text-h3-leading: 26px;
-  --ds-weight-h3: 400;
+  --ds-weight-h3: 500;
   --ds-font-p: var(--ds-family-primary);
   --ds-text-p: 16px;
   --ds-text-p-leading: 22px;

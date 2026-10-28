@@ -125,8 +125,8 @@ A theme is data (`theme.ts`). For now it's typography:
   link: `dsCustomFontFromInput`). Each font lists its weights.
 - **The type scale**: for each text style (`DS_TEXT_STYLES`, Display to
   Small) its name, family, weight, size and line height. By default Display
-  to H3 are Secondary (Instrument Serif, Regular) and the rest Primary
-  (Instrument Sans, Medium); tokens.css holds the defaults.
+  to H2 are Secondary (Instrument Serif, Regular) and the rest, H3 included,
+  Primary (Instrument Sans, Medium); tokens.css holds the defaults.
 
 A style's weight snaps to the nearest one its family's font has
 (`dsNearestWeight`), so nothing is faked. The type tokens are `--ds-*`
