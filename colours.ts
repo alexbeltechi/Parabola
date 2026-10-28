@@ -486,9 +486,9 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "surface-inverse": fg,
     });
   }
-  // Cards, side panels and fields: their own colour; or, based on the theme colour (in dark, on the light one's
+  // Cards and side panels: their own colour; or, based on the primary colour (in dark, on the light one's
   // counterpart), that colour made lighter or darker by the bar, Parabola's own step (a shade toward the text)
-  // until it's moved. Fields and quiet surfaces follow it.
+  // until it's moved.
   const surface = colours.surface;
   const lightCard = dsIsHex(surface.light) ? surface.light : null;
   const cardShift = mode === "light" ? surface.lightShift : surface.darkShift;
@@ -496,10 +496,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   const card =
     (mode === "light" ? lightCard : surface.dark) ??
     (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
-  if (card) {
-    tokens["surface-subtle"] = card;
-    tokens.surface = dsMix(tokens.fg, card, 0.11);
-  }
+  // Only the cards: secondary buttons, pills and hovers (`surface`) stay with the page.
+  if (card) tokens["surface-subtle"] = card;
   // Buttons and selected states: their own colour with black or white on it, or the text on the page.
   const button = hexIn(colours.button, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg, 2));
   tokens.button = button ?? tokens.fg;
