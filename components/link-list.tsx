@@ -19,8 +19,8 @@ const isExternal = (href: string) => /^(https?:)?\/\//.test(href) || href.starts
  * colour, underlined in the border colour, the underline darkening on hover;
  * its meta sits on the right in P, subtle. Links off the site open in a new
  * tab with a small ↗. `divided` puts rules between the rows (a links page);
- * `more` ends the list with one muted link and an arrow, a little apart
- * ("All 19 posts", "Learn more about me").
+ * `more` ends the list with one muted link and an arrow, tucked under the
+ * last row ("All 19 posts", "Learn more about me").
  *
  * Distinct from the link inside prose (the page colour, a solid underline):
  * this one is a list of places to go, so it reads quieter.
@@ -37,7 +37,7 @@ export function DsLinkList({
   more?: { label: string; href: string };
 }) {
   return (
-    <div data-slot="ds-link-list" className={cn("flex flex-col gap-ds-16", className)} {...props}>
+    <div data-slot="ds-link-list" className={cn("flex flex-col gap-ds-8", className)} {...props}>
       <ul className={cn("flex flex-col", divided && "divide-y divide-ds-border border-y border-ds-border")}>
         {items.map((item) => {
           const external = isExternal(item.href);
@@ -71,7 +71,7 @@ export function DsLinkList({
       {more && (
         <DsLink
           href={more.href}
-          className="inline-flex items-center gap-1 self-start pt-ds-8 text-p text-ds-fg-muted transition-colors hover:text-ds-fg"
+          className="inline-flex items-center gap-1 self-start text-p text-ds-fg-muted transition-colors hover:text-ds-fg"
         >
           {more.label}
           <ArrowRight aria-hidden className="size-4" />

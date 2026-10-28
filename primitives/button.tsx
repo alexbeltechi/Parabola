@@ -14,10 +14,11 @@ import { DsLink, type DsLinkProps } from "../provider";
  * - primary: the same shape, solid `ds-fg`; the one main action on a screen
  *   (Publish, Save).
  * - danger: solid `ds-error`, for a confirmed destructive action (Delete).
- * - text: no surface at rest, for quiet actions like "Read more" or a row's
- *   ⋮. Hovering looks like a default button hovered (its surface plus the
- *   hover tint), so it reads as a button on any background; it has the same
- *   padding as the others to give that room.
+ * - text: the ghost button. No surface at rest, for quiet actions like
+ *   "Read more", a row's ⋮ or a site's nav. Hovering lays a light surface
+ *   (`ds-surface` at 40%) under it, lighter than a default button so a row
+ *   of them stays calm (decisions, 2026-10-28); it has the same padding as
+ *   the others to give that room.
  *
  * Sizes, for every variant, labelled or icon-only:
  * - default: 36px tall, fully rounded, 12px side padding (36px square icon-only).
@@ -32,8 +33,7 @@ import { DsLink, type DsLinkProps } from "../provider";
  * red button is the `danger` variant. There's no warning (yellow) style.
  *
  * State (props, not variants); on the default variant both are drawn in
- * `ds-surface-inverse`, on the text variant as its hover surface (a ghost
- * nav's current page):
+ * `ds-surface-inverse`, on the text variant as its hover surface:
  * - `pressed`: a toggle that's on; sets `aria-pressed`.
  * - `current`: the link to the page you're on; sets `aria-current="page"`.
  *
@@ -59,9 +59,8 @@ export const dsButtonVariants = cva(
         default: "backdrop-blur-[24px] bg-ds-surface/70 text-ds-fg ds-hover disabled:text-ds-fg-subtle",
         primary: "backdrop-blur-[24px] bg-ds-fg text-ds-bg ds-hover-inverse disabled:opacity-40",
         danger: "backdrop-blur-[24px] bg-ds-error text-ds-bg ds-hover-inverse disabled:opacity-40",
-        // Hover looks like a default button's hover (surface plus the hover tint), so it
-        // still shows on a surface of its own, like a hovered card.
-        text: "text-ds-fg hover:bg-ds-surface/70 ds-hover disabled:bg-transparent disabled:bg-none disabled:text-ds-fg-subtle",
+        // The ghost: one light surface on hover, no tint, the same as when it's current.
+        text: "text-ds-fg hover:bg-ds-surface/40 disabled:bg-transparent disabled:text-ds-fg-subtle",
       },
       size: {
         default: "gap-2 rounded-full text-p",
@@ -108,7 +107,7 @@ export const dsButtonVariants = cva(
       {
         variant: "text",
         inverse: true,
-        className: "bg-ds-surface/70 text-ds-fg",
+        className: "bg-ds-surface/40 text-ds-fg",
       },
     ],
     defaultVariants: { variant: "default", size: "default" },
