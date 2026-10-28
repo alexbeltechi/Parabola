@@ -257,8 +257,9 @@
        fg-subtle        placeholders, unchecked marks, disabled text
        border           field outlines
        surface-subtle   groupings (cards, containers): between bg and surface
-       field            the fill inside fields: a step past surface-subtle, so a
-                        field still reads on a card, and lighter than a button
+       field            the fill inside fields: solid, white on a light page (a
+                        step lighter than the cards on a dark one), so a field
+                        reads as a place to type on the page and on a card
        surface          buttons (at 70%, so the blur reads) and image
                         placeholders; on paper a 70% button lands on #E9E6E0
        surface-inverse  selected buttons; translucency baked in
@@ -268,9 +269,9 @@
   --ds-fg: #000000;
   --ds-fg-muted: #595959;
   --ds-fg-subtle: #78716C;
-  --ds-border: #D6D3D1;
+  --ds-border: #DCD9D2;
   --ds-surface-subtle: #EFECE4;
-  --ds-field: #E8E5DD;
+  --ds-field: #FFFFFF;
   --ds-surface: #E2DFD9;
   --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
   /* Solid buttons and selected states, and what's on them: the text and the

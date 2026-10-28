@@ -46,6 +46,7 @@ import { DsSelect } from "../primitives/select";
 import { DS_ACCENTS } from "../accents";
 import { DsSwitch } from "../primitives/switch";
 import { DsToast, DsToastAction, dsToast } from "../primitives/toast";
+import { DsTopBar } from "../primitives/top-bar";
 import { DsTooltip } from "../primitives/tooltip";
 import { cn } from "../cn";
 import { DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
@@ -724,6 +725,43 @@ export function NavFade() {
         </div>
       }
       controls={<Controls options={o} labels={{ subnav: "Sub-nav" }} onChange={setO} />}
+    />
+  );
+}
+
+export function TopBar() {
+  const [o, setO] = useState({ solid: true, transparent: false, blur: false, filters: false });
+  const surface = o.blur ? "blur" : o.transparent ? "transparent" : "solid";
+  const rows = Array.from({ length: 12 }, (_, i) => `Row ${i + 1}`);
+  return (
+    <Specimen
+      wide
+      preview={
+        <div className="relative h-[360px] w-full max-w-[420px] overflow-y-auto rounded-ds-lg border border-ds-border bg-ds-bg">
+          <DsTopBar surface={surface} className={cn(o.filters && "pb-3")}>
+            <div className="flex items-center gap-2 px-5 py-3">
+              <h1 className="min-w-0 flex-1 truncate text-p text-ds-fg">Posts</h1>
+              <DsButton iconLeft={Plus}>Post</DsButton>
+              <DsButton iconLeft={MoreVertical} aria-label="More" />
+            </div>
+            {o.filters && <DsSearch aria-label="Search" className="mx-5 w-auto" />}
+          </DsTopBar>
+          <ul className="flex flex-col px-5 pb-5">
+            {rows.map((row) => (
+              <li key={row} className="py-3 text-p text-ds-fg-muted">
+                {row}
+              </li>
+            ))}
+          </ul>
+        </div>
+      }
+      controls={
+        <Controls
+          options={o}
+          labels={{ solid: "Solid", transparent: "Transparent", blur: "Blur", filters: "Filters row" }}
+          onChange={(next) => setO(exclusive(o, next, ["solid", "transparent", "blur"]))}
+        />
+      }
     />
   );
 }

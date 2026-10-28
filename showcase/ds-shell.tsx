@@ -10,6 +10,7 @@ import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsToaster } from "../primitives/toast";
+import { DsTopBar } from "../primitives/top-bar";
 import { DS_THEME_SCOPE } from "../theme";
 import { DsModeScope } from "../provider";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
@@ -223,14 +224,16 @@ export function DsCanvas({
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 self-start bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle border-b border-ds-border md:top-0 md:pt-6 md:before:hidden lg:col-span-2 lg:row-start-1">
-          <div className="flex min-w-0 flex-col gap-1">
-            <p className="text-small text-ds-fg-subtle">{group}</p>
-            <h1 className="text-h3 text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
+        <DsTopBar className="top-[76px] self-start bg-ds-surface-subtle before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:before:hidden lg:col-span-2 lg:row-start-1">
+          <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
+            <div className="flex min-w-0 flex-col">
+              <p className="text-small text-ds-fg-subtle">{group}</p>
+              <h1 className="text-p text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
+            </div>
+            {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
+            <ThemeHeaderActions />
           </div>
-          {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
-          <ThemeHeaderActions />
-        </header>
+        </DsTopBar>
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
             around it stays Parabola's own, in the UI's mode. */}
         <div

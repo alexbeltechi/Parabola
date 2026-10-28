@@ -146,6 +146,7 @@ export { DsRadioGroup, DsRadio, DsRadioMark } from "./primitives/radio";
 export { DsSelect, type DsSelectOption } from "./primitives/select";
 export { DsSidePanel } from "./primitives/side-panel";
 export { DsSwitch } from "./primitives/switch";
+export { DsTopBar, type DsTopBarSurface } from "./primitives/top-bar";
 export { DsThemeToggle } from "./primitives/theme-toggle";
 export { DsToaster, DsToast, DsToastAction, dsToast } from "./primitives/toast";
 export { DsCopyField } from "./primitives/copy-field";

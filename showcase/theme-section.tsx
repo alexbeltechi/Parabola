@@ -14,13 +14,13 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
 import { DsLink } from "../provider";
-import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
-import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
+import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
+import { DS_BODY_FAMILY, DS_DEFAULT_THEME, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY, parseDsThemeConfig, type DsThemeConfig } from "../theme";
 import { InPanel, InPanelFooter, PanelSection, useThemeEditor } from "./theme-editor";
 
 /**
@@ -53,6 +53,8 @@ function ColourChoice({
   const shiftKey = mode === "light" ? "lightShift" : "darkShift";
   const basedOn = mode === "dark" ? "light theme" : LIGHT_BASIS[kind];
   const based = basedOn !== null && colour[pick] === null;
+  // Not set by you: Parabola's own, or based on another. Its picker shows faint until it's touched.
+  const unset = colour[pick] === null;
   // What it's based on, for the bar's middle, and how much lighter or darker it is than that.
   const unshifted = dsColourShown({ ...colours, [kind]: { ...colour, [shiftKey]: 0 } }, kind, mode);
   const at = (amount: number) => dsShift(unshifted, amount);
@@ -86,11 +88,47 @@ function ColourChoice({
           thumb={shown}
         />
       )}
-      {/* Faint while it's based on something; touching it gives the colour its own, from where it is. */}
-      <div className={cn(based && "opacity-30 transition-opacity hover:opacity-60")}>
+      {/* Faint until you set it (Parabola's own, or based on something); touching it gives the colour its own, from where it is. */}
+      <div className={cn(unset && "opacity-30 transition-opacity hover:opacity-60")}>
         <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
       </div>
     </div>
+  );
+}
+
+/**
+ * A panel section's ⋮, at its header's right: Restore puts that part of the
+ * open theme back to Parabola's, with Undo in the toast.
+ */
+function SectionRestore({
+  section,
+  theme,
+  setTheme,
+  restore,
+}: {
+  section: string;
+  theme: DsThemeConfig;
+  setTheme: (theme: DsThemeConfig) => void;
+  restore: (theme: DsThemeConfig) => DsThemeConfig;
+}) {
+  return (
+    <DsDropdown>
+      <DsDropdownTrigger asChild>
+        <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${section}`} />
+      </DsDropdownTrigger>
+      <DsDropdownContent align="end">
+        <DsDropdownItem
+          iconLeft={RotateCcw}
+          onSelect={() => {
+            const before = theme;
+            setTheme(restore(theme));
+            dsToast(`${section} restored`, { action: { label: "Undo", onClick: () => setTheme(before) } });
+          }}
+        >
+          Restore
+        </DsDropdownItem>
+      </DsDropdownContent>
+    </DsDropdown>
   );
 }
 
@@ -334,7 +372,7 @@ export function ThemeSection() {
                   Duplicate
                 </DsDropdownItem>
                 <DsDropdownItem iconLeft={RotateCcw} onSelect={() => setRestoring(true)}>
-                  Restore to Parabola
+                  Restore
                 </DsDropdownItem>
                 <DsDropdownItem
                   tone="danger"
@@ -361,7 +399,10 @@ export function ThemeSection() {
           />
         </PanelSection>
 
-        <PanelSection title="Colours">
+        <PanelSection
+          title="Colours"
+          actions={<SectionRestore section="Colours" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, colours: DS_DEFAULT_COLOURS })} />}
+        >
           <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
             {/* The preview's mode only; the UI's is the sidebar's toggle. */}
             <DsButton iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
@@ -408,7 +449,17 @@ export function ThemeSection() {
           />
         </PanelSection>
 
-        <PanelSection title="Type">
+        <PanelSection
+          title="Type"
+          actions={
+            <SectionRestore
+              section="Type"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => parseDsThemeConfig({ ...t, families: DS_DEFAULT_THEME.families, hiddenFonts: [] })}
+            />
+          }
+        >
           {heading && (
             <DsField label={heading.label}>
               <DsSelect options={fontOptions} value={heading.font} onValueChange={(font) => setFamilyFont(heading.id, font)} />
@@ -426,11 +477,17 @@ export function ThemeSection() {
           </DsLink>
         </PanelSection>
 
-        <PanelSection title="Radius">
+        <PanelSection
+          title="Radius"
+          actions={<SectionRestore section="Radius" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS })} />}
+        >
           <RadiusChoice radius={theme.radius} onChange={(radius) => setTheme({ ...theme, radius })} />
         </PanelSection>
 
-        <PanelSection title="Icons">
+        <PanelSection
+          title="Icons"
+          actions={<SectionRestore section="Icons" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, icons: DS_DEFAULT_THEME.icons })} />}
+        >
           <DsField label="Icon library">
             <DsSelect
               options={DS_ICON_LIBRARIES.map((l) => ({ value: l.id, label: l.ready ? l.label : `${l.label} (soon)`, disabled: !l.ready }))}

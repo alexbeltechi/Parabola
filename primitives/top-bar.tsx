@@ -1,0 +1,38 @@
+import * as React from "react";
+import { cn } from "../cn";
+
+/**
+ * Parabola top bar: the bar pinned to the top of a page, holding its title
+ * and actions in rows (a title row, then a search or filters row if the page
+ * has one). Rows set their own sides (`px-5`) and are compact: 12px above
+ * and below (`py-3`), as on /parabola and every admin page. Three surfaces:
+ *
+ * - solid (the default): the page colour, a rule under it; content scrolls
+ *   away beneath it.
+ * - transparent: nothing behind it, for a bar over a picture or the page's
+ *   own top.
+ * - blur: the nav fade (`ds-nav-fade`), content blurring away beneath it;
+ *   clicks pass through the fade's empty space to the content.
+ */
+export type DsTopBarSurface = "solid" | "transparent" | "blur";
+
+const SURFACES: Record<DsTopBarSurface, string> = {
+  solid: "border-b border-ds-border bg-ds-bg",
+  transparent: "",
+  blur: "pointer-events-none ds-nav-fade pb-5 [&>*]:pointer-events-auto",
+};
+
+export function DsTopBar({
+  surface = "solid",
+  className,
+  ...props
+}: React.ComponentProps<"header"> & { surface?: DsTopBarSurface }) {
+  return (
+    <header
+      data-slot="ds-top-bar"
+      data-surface={surface}
+      className={cn("sticky top-0 z-20 flex flex-col", SURFACES[surface], className)}
+      {...props}
+    />
+  );
+}

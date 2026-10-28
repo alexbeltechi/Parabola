@@ -23,7 +23,7 @@ export const ROLES: Role[] = [
     colours: [
       { name: "Background", token: "--ds-bg", light: hex("#FAF7EF"), dark: hex("#121110") },
       { name: "Surface subtle", token: "--ds-surface-subtle", light: hex("#EFECE4"), dark: hex("#1A1918") },
-      { name: "Field", token: "--ds-field", light: hex("#E8E5DD"), dark: hex("#211F1E") },
+      { name: "Field", token: "--ds-field", light: hex("#FFFFFF"), dark: hex("#211F1E") },
       { name: "Surface", token: "--ds-surface", light: hex("#E2DFD9"), dark: hex("#302E2C") },
       {
         name: "Surface inverse",
@@ -45,7 +45,7 @@ export const ROLES: Role[] = [
   {
     role: "Border",
     note: "Field outlines and dividers",
-    colours: [{ name: "Border", token: "--ds-border", light: hex("#D6D3D1"), dark: hex("#44403C") }],
+    colours: [{ name: "Border", token: "--ds-border", light: hex("#DCD9D2"), dark: hex("#44403C") }],
   },
   {
     role: "Feedback",

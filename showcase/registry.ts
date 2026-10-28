@@ -184,6 +184,7 @@ export const DS_TIERS: DsTier[] = [
           { slug: "divider", label: "Divider", component: S.Divider },
           { slug: "list-row", label: "List row", component: S.ListRow },
           { slug: "nav-fade", label: "Nav fade", component: S.NavFade },
+          { slug: "top-bar", label: "Top bar", component: S.TopBar },
         ],
       },
     ],

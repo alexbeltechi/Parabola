@@ -51,9 +51,9 @@ export const DS_BASE_COLOURS: DsBaseColour[] = [
       bg: "#FAF7EF",
       "fg-muted": "#595959",
       "fg-subtle": "#78716C",
-      border: "#D6D3D1",
+      border: "#DCD9D2",
       "surface-subtle": "#EFECE4",
-      field: "#E8E5DD",
+      field: "#FFFFFF",
       surface: "#E2DFD9",
       "surface-inverse": "rgb(48 46 44 / 0.7)",
     },
@@ -396,6 +396,14 @@ export function dsCounterpart(hex: string): string {
 }
 
 /**
+ * A field's fill: solid, so it reads as a place to type wherever it sits.
+ * White on a light page; on a dark one a step lighter than the cards.
+ */
+function fieldOn(card: string, page: string, text: string): string {
+  return dsLuminance(page) > 0.18 ? WHITE : dsMix(text, card, 0.06);
+}
+
+/**
  * A colour in a theme as a hex, or null for Parabola's own as it is: the one
  * picked for this theme; else what it's based on (in dark, the light one's
  * counterpart; otherwise `auto`, Parabola's own or, for buttons, the
@@ -437,9 +445,9 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       fg,
       "fg-muted": dsMix(fg, bg, 0.7),
       "fg-subtle": dsMix(fg, bg, 0.52),
-      border: dsMix(fg, bg, 0.2),
+      border: dsMix(fg, bg, 0.12),
       "surface-subtle": card,
-      field: dsMix(fg, card, 0.03),
+      field: fieldOn(card, bg, fg),
       surface: dsMix(fg, card, 0.11),
       // Toasts and tooltips in the text colour, solid.
       "surface-inverse": fg,
@@ -457,7 +465,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
   if (card) {
     tokens["surface-subtle"] = card;
-    tokens.field = dsMix(tokens.fg, card, 0.03);
+    tokens.field = fieldOn(card, tokens.bg, tokens.fg);
     tokens.surface = dsMix(tokens.fg, card, 0.11);
   }
   // Buttons and selected states: their own colour with black or white on it, or the text on the page.
