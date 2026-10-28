@@ -16,6 +16,7 @@ import {
   DS_DEFAULT_HEADING_FONT,
   DS_FONTS,
   dsCustomFont,
+  dsGoogleFontsUrl,
   dsNearestWeight,
   type DsCustomFont,
   type DsFont,
@@ -359,6 +360,70 @@ const SCOPE_DERIVED: Record<string, string> = {
   "--ds-hover-inverse": "color-mix(in srgb, var(--ds-bg) 18%, transparent)",
   "--ds-focus": "var(--ds-fg)",
 };
+
+/** Each colour token's role, in plain words, for an export a person or an AI reads. */
+const COLOUR_ROLES: [token: string, role: string][] = [
+  ["bg", "page background"],
+  ["fg", "text"],
+  ["fg-muted", "secondary text"],
+  ["fg-subtle", "quiet text (captions, placeholders)"],
+  ["border", "borders and field outlines"],
+  ["surface-subtle", "cards and panels"],
+  ["field", "input fields"],
+  ["surface", "secondary buttons and image placeholders"],
+  ["surface-inverse", "toasts and tooltips"],
+  ["button", "primary buttons and selected states"],
+  ["on-button", "text on primary buttons"],
+  ["highlight", "accent (highlight pills, what needs attention)"],
+  ["highlight-tint", "accent background"],
+];
+
+/**
+ * A theme as one export a person or an AI can read and build from (a
+ * prompt: "build me a website in this theme") and Parabola can read back:
+ * what it is, every colour by its role in light and dark, the fonts by name
+ * with a Google Fonts link and each text style's size, line height and
+ * weight, the corners in pixels, and, under `settings`, the theme itself
+ * (`parseDsThemeExport` reads that back).
+ */
+export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
+  const colours = (mode: "light" | "dark") => {
+    const tokens = dsColourTokens(theme.colours, mode);
+    return Object.fromEntries(COLOUR_ROLES.map(([token, role]) => [role, tokens[token]]));
+  };
+  const familyFont = (id: string) => dsThemeFont(theme, dsFamily(theme, id).font);
+  const px = dsRadiusPx(theme.radius);
+  const round = (n: number) => (n >= 9999 ? "fully round" : `${n}px`);
+  return {
+    about: `"${name}", a website theme made with Parabola. Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
+    name,
+    colours: { light: colours("light"), dark: colours("dark") },
+    typography: {
+      fonts: Object.fromEntries(theme.families.map((f) => [f.label, familyFont(f.id).label])),
+      googleFonts: dsGoogleFontsUrl(theme.families.map((f) => familyFont(f.id))),
+      styles: Object.fromEntries(
+        DS_TEXT_STYLES.map((s) => {
+          const t = theme.type[s];
+          return [t.label, { font: familyFont(t.family).label, size: `${t.size}px`, lineHeight: `${t.lineHeight}px`, weight: t.weight }];
+        })
+      ),
+    },
+    corners: {
+      "cards and panels": round(px.lg),
+      "fields and menus": round(px.md),
+      "small buttons and pills": round(px.control),
+      "smallest (tags, swatches)": round(px.sm),
+      buttons: round(px.pill),
+    },
+    settings: theme,
+  };
+}
+
+/** A theme from an export (its `settings`), or from the settings alone. */
+export function parseDsThemeExport(value: unknown): DsThemeConfig {
+  const raw = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+  return parseDsThemeConfig(raw.settings ?? raw);
+}
 
 /** The tokens tokens.css's `.dark` changes that a theme doesn't set: a scope sets them for its own mode. */
 const SCOPE_MODE: Record<"light" | "dark", Record<string, string>> = {

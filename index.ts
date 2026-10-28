@@ -54,6 +54,8 @@ export {
   dsThemeFonts,
   dsThemeVars,
   parseDsThemeConfig,
+  parseDsThemeExport,
+  dsThemeExport,
   parseDsThemeLibrary,
   type DsFontFamily,
   type DsTextStyle,

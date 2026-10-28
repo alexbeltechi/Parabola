@@ -14,12 +14,21 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsColourTokens, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
-import { DS_BODY_FAMILY, DS_DEFAULT_THEME, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY, parseDsThemeConfig, type DsThemeConfig } from "../theme";
+import {
+  DS_BODY_FAMILY,
+  DS_DEFAULT_THEME,
+  DS_DEFAULT_THEME_ID,
+  DS_HEADING_FAMILY,
+  dsThemeExport,
+  parseDsThemeConfig,
+  parseDsThemeExport,
+  type DsThemeConfig,
+} from "../theme";
 import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
 
 /**
@@ -133,22 +142,14 @@ function SectionRestore({
 const ADD_THEME = "__add-theme";
 
 /**
- * The open theme as code, folded at the panel's foot: its settings (the
- * picks for light and dark alike) and, under `tokens`, every colour it gives
- * in light and in dark. Copy it to keep or share; paste one in and it's
- * applied at once, here or on another Parabola site (the tokens are there to
- * read; the settings make them).
+ * The open theme as code, folded at the panel's foot: a full export
+ * (`dsThemeExport`) a person or an AI can build from as it is (every colour
+ * by its role in light and dark, the fonts, the type scale, the corners) and
+ * Parabola can read back. Copy it to keep it, share it or hand it to a
+ * prompt; paste one in (or just its settings) and it's applied at once.
  */
-function ThemeCode({ theme, setTheme }: { theme: DsThemeConfig; setTheme: (theme: DsThemeConfig) => void }) {
-  const code = React.useMemo(
-    () =>
-      JSON.stringify(
-        { ...theme, tokens: { light: dsColourTokens(theme.colours, "light"), dark: dsColourTokens(theme.colours, "dark") } },
-        null,
-        2
-      ),
-    [theme]
-  );
+function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: string; setTheme: (theme: DsThemeConfig) => void }) {
+  const code = React.useMemo(() => JSON.stringify(dsThemeExport(theme, name), null, 2), [theme, name]);
   const [text, setText] = React.useState(code);
   const [invalid, setInvalid] = React.useState(false);
   // A change made anywhere else shows here.
@@ -182,7 +183,7 @@ function ThemeCode({ theme, setTheme }: { theme: DsThemeConfig; setTheme: (theme
         onChange={(e) => {
           setText(e.target.value);
           try {
-            setTheme(parseDsThemeConfig(JSON.parse(e.target.value)));
+            setTheme(parseDsThemeExport(JSON.parse(e.target.value)));
             setInvalid(false);
           } catch {
             setInvalid(true);
@@ -545,7 +546,7 @@ export function ThemeSection() {
           </DsField>
         </PanelSection>
 
-        <ThemeCode theme={theme} setTheme={setTheme} />
+        <ThemeCode theme={theme} name={entry.name} setTheme={setTheme} />
       </InPanel>
 
       {/* At the panel's foot while Custom, the working copy, is open: name it a theme of its own. */}
