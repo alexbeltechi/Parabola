@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Moon, MoreVertical, Pencil, Plus, Sun, Trash2 } from "lucide-react";
+import { Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
 import { DsButton } from "../primitives/button";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
@@ -9,6 +9,7 @@ import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from
 import { DsField, DsInput } from "../primitives/field";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
+import { dsToast } from "../primitives/toast";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
@@ -92,6 +93,9 @@ function ColourChoice({
     </div>
   );
 }
+
+/** The theme dropdown's last option, which adds a theme rather than opening one. */
+const ADD_THEME = "__add-theme";
 
 /** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
@@ -217,11 +221,13 @@ export function ThemeSection() {
     addTheme,
     renameTheme,
     removeTheme,
+    backToParabola,
     previewMode: mode,
     setPreviewMode,
   } = useThemeEditor();
   const [naming, setNaming] = React.useState<"add" | "rename" | "create" | null>(null);
   const [confirmSave, setConfirmSave] = React.useState(false);
+  const [restoring, setRestoring] = React.useState(false);
 
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({ ...theme, families: theme.families.map((f) => (f.id === familyId ? { ...f, font } : f)) });
@@ -313,26 +319,22 @@ export function ThemeSection() {
       </DsField>
 
       <InPanel>
-        <PanelSection title="Theme">
-          <DsSelect
-            aria-label="Theme"
-            key={library.themes.map((t) => t.id).join()}
-            // Parabola, Parabola's own, is the default every theme starts from and restores to.
-            options={library.themes.map((t) => ({ value: t.id, label: t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name }))}
-            value={entry.id}
-            onValueChange={select}
-          />
-          <div className="flex items-center gap-ds-8">
-            <DsButton iconLeft={Plus} onClick={() => setNaming("add")}>
-              Add theme
-            </DsButton>
+        <PanelSection
+          title="Theme"
+          actions={
             <DsDropdown>
               <DsDropdownTrigger asChild>
-                <DsButton variant="text" iconLeft={MoreVertical} aria-label={`More for ${entry.name}`} />
+                <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${entry.name}`} />
               </DsDropdownTrigger>
-              <DsDropdownContent align="start">
+              <DsDropdownContent align="end">
                 <DsDropdownItem iconLeft={Pencil} disabled={entry.id === DS_DEFAULT_THEME_ID} onSelect={() => setNaming("rename")}>
                   Rename
+                </DsDropdownItem>
+                <DsDropdownItem iconLeft={Copy} onSelect={() => addTheme(`${entry.name} copy`)}>
+                  Duplicate
+                </DsDropdownItem>
+                <DsDropdownItem iconLeft={RotateCcw} onSelect={() => setRestoring(true)}>
+                  Restore to Parabola
                 </DsDropdownItem>
                 <DsDropdownItem
                   tone="danger"
@@ -340,11 +342,23 @@ export function ThemeSection() {
                   disabled={entry.id === DS_DEFAULT_THEME_ID || entry.id === library.active}
                   onSelect={() => removeTheme(entry.id)}
                 >
-                  Remove
+                  Delete
                 </DsDropdownItem>
               </DsDropdownContent>
             </DsDropdown>
-          </div>
+          }
+        >
+          <DsSelect
+            aria-label="Theme"
+            key={library.themes.map((t) => t.id).join()}
+            // Parabola, Parabola's own, is the default every theme starts from and restores to; Add theme is the last option.
+            options={[
+              ...library.themes.map((t) => ({ value: t.id, label: t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name })),
+              { value: ADD_THEME, label: "Add theme", indicator: <Plus aria-hidden className="size-4" /> },
+            ]}
+            value={entry.id}
+            onValueChange={(value) => (value === ADD_THEME ? setNaming("add") : select(value))}
+          />
         </PanelSection>
 
         <PanelSection title="Colours">
@@ -455,6 +469,18 @@ export function ThemeSection() {
           }}
         />
       )}
+      <DsConfirmDialog
+        open={restoring}
+        onOpenChange={setRestoring}
+        title="Back to Parabola?"
+        description="Parabola opens, and becomes your site's theme again when you publish. Your other themes stay as they are, to pick again any time."
+        confirmLabel="Restore"
+        onConfirm={() => {
+          setRestoring(false);
+          const undoIt = backToParabola();
+          dsToast("Back to Parabola", { action: { label: "Undo", onClick: undoIt } });
+        }}
+      />
       <DsConfirmDialog
         open={confirmSave}
         onOpenChange={setConfirmSave}

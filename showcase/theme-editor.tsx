@@ -232,31 +232,37 @@ export function InPanelFooter({ children }: { children: React.ReactNode }) {
 
 /**
  * One section of the right-hand panel, as Linear's properties panel: a muted
- * label with a small chevron that folds the section away, then its rows.
+ * label with a small chevron that folds the section away, and at the
+ * header's right end its `actions` (a ⋮ menu), then its rows.
  */
 export function PanelSection({
   title,
   defaultOpen = true,
+  actions,
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   const id = React.useId();
   return (
     <section className="flex flex-col">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen((o) => !o)}
-        className="group -mx-ds-8 flex items-center gap-ds-4 rounded-ds-control px-ds-8 py-ds-4 text-left text-p text-ds-fg-muted ds-focus hover:text-ds-fg"
-      >
-        {title}
-        <ChevronDown aria-hidden className={cn("size-4 transition-transform", !open && "-rotate-90")} />
-      </button>
+      <div className="flex items-center justify-between gap-ds-8">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => setOpen((o) => !o)}
+          className="group -mx-ds-8 flex items-center gap-ds-4 rounded-ds-control px-ds-8 py-ds-4 text-left text-p text-ds-fg-muted ds-focus hover:text-ds-fg"
+        >
+          {title}
+          <ChevronDown aria-hidden className={cn("size-4 transition-transform", !open && "-rotate-90")} />
+        </button>
+        {actions}
+      </div>
       {open && (
         <div id={id} className="ds-fields-fill flex flex-col gap-ds-16 pt-ds-16">
           {children}

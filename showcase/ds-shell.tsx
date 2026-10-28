@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bookmark, ChevronLeft } from "lucide-react";
+import { ArrowLeft, Bookmark, House, Menu } from "lucide-react";
 import { DsButton } from "../primitives/button";
+import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { DsSearch } from "../primitives/field";
 import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
@@ -117,6 +118,26 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
  * canvas holding the current page. Below `md` the sidebar moves into the
  * hamburger menu.
  */
+/** Top left of the sidebar: a menu to Parabola's home or back to the website. */
+function ShellMenu() {
+  const router = useRouter();
+  return (
+    <DsDropdown>
+      <DsDropdownTrigger asChild>
+        <DsButton iconLeft={Menu} aria-label="Menu" />
+      </DsDropdownTrigger>
+      <DsDropdownContent align="start">
+        <DsDropdownItem iconLeft={House} onSelect={() => router.push("/parabola")}>
+          Home
+        </DsDropdownItem>
+        <DsDropdownItem iconLeft={ArrowLeft} onSelect={() => router.push("/")}>
+          Back to website
+        </DsDropdownItem>
+      </DsDropdownContent>
+    </DsDropdown>
+  );
+}
+
 export function DsShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
@@ -134,7 +155,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
     <ThemeEditorProvider>
       <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto p-5 md:flex">
         <div className="flex items-center justify-between">
-          <DsButton href="/" iconLeft={ChevronLeft} aria-label="Back to site" />
+          <ShellMenu />
           <DsThemeToggle />
         </div>
         <SidebarNav />
