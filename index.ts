@@ -96,6 +96,7 @@ export { DsThemeStyle } from "./theme-style";
 export {
   DsProvider,
   DsLink,
+  DsModeScope,
   useDsSetTheme,
   useDsThemeLibrary,
   type DsLinkComponent,

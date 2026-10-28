@@ -58,6 +58,9 @@ type ThemeEditor = {
   canRedo: boolean;
   undo: () => void;
   redo: () => void;
+  /** Whether the canvas shows the theme light or dark: its own, not the UI's (the sidebar's toggle). */
+  previewMode: "light" | "dark";
+  setPreviewMode: (mode: "light" | "dark") => void;
 };
 
 const ThemeEditorContext = React.createContext<ThemeEditor | null>(null);
@@ -78,6 +81,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const [selected, setSelected] = React.useState(saved.active);
   const entry = library.themes.find((t) => t.id === selected) ?? library.themes[0];
   const [saving, setSaving] = React.useState(false);
+  const [previewMode, setPreviewMode] = React.useState<"light" | "dark">("light");
 
   // The open theme shows on the canvas (DsCanvas), whatever changed it; the rest of /parabola stays in Parabola's own.
   React.useEffect(() => dsApplyTheme(entry.theme, DS_THEME_SCOPE), [entry.theme]);
@@ -143,8 +147,10 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       canRedo: history.future.length > 0,
       undo,
       redo,
+      previewMode,
+      setPreviewMode,
     }),
-    [library, entry, setTheme, change, selected, saved, saving, onThemeLibraryChange, save, history.past.length, history.future.length, undo, redo]
+    [library, entry, setTheme, change, selected, saved, saving, onThemeLibraryChange, save, history.past.length, history.future.length, undo, redo, previewMode]
   );
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;
 }

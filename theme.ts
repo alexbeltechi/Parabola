@@ -357,15 +357,32 @@ const SCOPE_DERIVED: Record<string, string> = {
   "--ds-focus": "var(--ds-fg)",
 };
 
+/** The tokens tokens.css's `.dark` changes that a theme doesn't set: a scope sets them for its own mode. */
+const SCOPE_MODE: Record<"light" | "dark", Record<string, string>> = {
+  light: {
+    "--ds-error": "oklch(0.577 0.245 27.325)",
+    "--ds-shadow-raised": "0 12px 32px -8px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.06)",
+  },
+  dark: {
+    "--ds-error": "oklch(0.704 0.191 22.216)",
+    "--ds-shadow-raised": "0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4)",
+  },
+};
+
 /**
  * The theme as CSS: light on :root and dark on `.dark`, for a whole page
  * (the website); or, with `scope`, on that class only (`DS_THEME_SCOPE`),
- * its text in the theme's font and colour.
+ * its text in the theme's font and colour, light or dark by its own
+ * `data-ds-mode` whatever the page around it is in.
  */
 export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
   if (!scope) return `${rule(":root", dsThemeVars(theme))} ${rule(".dark", dsThemeDarkVars(theme))}`;
   const at = `.${scope}`;
-  return `${rule(at, { ...dsThemeVars(theme), ...SCOPE_DERIVED })} ${rule(`.dark ${at}`, dsThemeDarkVars(theme))} ${at} { font-family: var(--ds-font); color: var(--ds-fg); }`;
+  return [
+    rule(at, { ...dsThemeVars(theme), ...SCOPE_DERIVED, ...SCOPE_MODE.light }),
+    rule(`${at}[data-ds-mode="dark"]`, { ...dsThemeDarkVars(theme), ...SCOPE_MODE.dark }),
+    `${at} { font-family: var(--ds-font); color: var(--ds-fg); }`,
+  ].join(" ");
 }
 
 /**

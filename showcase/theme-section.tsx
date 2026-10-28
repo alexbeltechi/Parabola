@@ -17,7 +17,7 @@ import { dsFontOptions } from "../components/font-pairing";
 import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
-import { DsLink, useDsSetTheme } from "../provider";
+import { DsLink } from "../provider";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
@@ -37,19 +37,6 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
         {children}
       </div>
     </section>
-  );
-}
-
-/** Whether the page is dark, kept in step with the `dark` class on <html>. */
-function useDarkMode(): boolean {
-  return React.useSyncExternalStore(
-    (onChange) => {
-      const observer = new MutationObserver(onChange);
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-      return () => observer.disconnect();
-    },
-    () => document.documentElement.classList.contains("dark"),
-    () => false
   );
 }
 
@@ -218,10 +205,8 @@ function ThemeNameDialog({
  * its theme in Settings › Design. Every spacing is a Parabola one.
  */
 export function ThemeSection() {
-  const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme } = useThemeEditor();
-  const dark = useDarkMode();
-  const mode = dark ? "dark" : "light";
-  const setMode = useDsSetTheme();
+  const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme, previewMode: mode, setPreviewMode } =
+    useThemeEditor();
   const [naming, setNaming] = React.useState<"add" | "rename" | null>(null);
 
   const setFamilyFont = (familyId: string, font: string) =>
@@ -337,10 +322,11 @@ export function ThemeSection() {
 
         <PanelSection title="Colours">
           <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
-            <DsButton iconLeft={Sun} pressed={!dark} onClick={() => setMode("light")}>
+            {/* The preview's mode only; the UI's is the sidebar's toggle. */}
+            <DsButton iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
               Light
             </DsButton>
-            <DsButton iconLeft={Moon} pressed={dark} onClick={() => setMode("dark")}>
+            <DsButton iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
               Dark
             </DsButton>
           </div>

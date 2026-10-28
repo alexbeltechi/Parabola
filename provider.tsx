@@ -50,6 +50,18 @@ export function DsProvider({
 }
 
 /**
+ * Light and dark for part of the page that keeps its own mode (a
+ * `data-ds-mode` element, as /parabola's canvas): a theme toggle inside it
+ * switches that part only, through `onThemeChange`. Everything else the app
+ * gave DsProvider stays.
+ */
+export function DsModeScope({ onThemeChange, children }: { onThemeChange: (theme: DsTheme) => void; children: React.ReactNode }) {
+  const parent = React.useContext(DsConfigContext);
+  const config = React.useMemo(() => ({ ...parent, onThemeChange }), [parent, onThemeChange]);
+  return <DsConfigContext.Provider value={config}>{children}</DsConfigContext.Provider>;
+}
+
+/**
  * A link through the app's link component. Parabola's own links render this,
  * so they can stay server-safe: only this small piece reads the provider.
  */

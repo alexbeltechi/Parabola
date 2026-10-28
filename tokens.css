@@ -12,7 +12,9 @@
    changing one, run `npm run check:parabola`. */
 
 /* Dark theme: a `dark` class on an ancestor (next-themes puts it on <html>). */
-@custom-variant dark (&:is(.dark *));
+/* Dark: under the page's `dark` class, or inside a part of the page that
+   keeps its own mode (/parabola's canvas: data-ds-mode, theme.ts). */
+@custom-variant dark (&:is(.dark *, [data-ds-mode="dark"] *):not([data-ds-mode="light"] *));
 
 @theme inline {
   --font-sans: var(--ds-font);
