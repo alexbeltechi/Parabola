@@ -11,6 +11,7 @@ import {
   Mail,
   Ruler,
   MousePointerClick,
+  Paintbrush,
   Palette,
   SquareCheck,
   Tag,
@@ -22,6 +23,7 @@ import { AccentColoursSection, MainColoursSection } from "./colours-section";
 import { FontsSection } from "./fonts-section";
 import { SpacingSection } from "./spacing-section";
 import { IntroSection } from "./intro-section";
+import { ThemeSection } from "./theme-section";
 import { BlocksOverview, ComponentsOverview } from "./tier-overview";
 import * as S from "./specimens";
 
@@ -52,6 +54,13 @@ export const DS_TIERS: DsTier[] = [
         icon: House,
         single: true,
         pages: [{ slug: "welcome", label: "Welcome", component: IntroSection }],
+      },
+      {
+        slug: "theme",
+        label: "Theme",
+        icon: Paintbrush,
+        single: true,
+        pages: [{ slug: "fonts", label: "Theme", component: ThemeSection }],
       },
     ],
   },

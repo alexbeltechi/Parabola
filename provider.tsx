@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { DsThemeConfig } from "./theme";
 
 /**
  * Parabola's hooks into the app's framework, set once near the root:
@@ -13,6 +14,9 @@ import * as React from "react";
  * - `onThemeChange`: called by DsThemeToggle with the theme to switch to,
  *   e.g. next-themes' `setTheme`, so the choice is saved. Default: the toggle
  *   flips the `dark` class on <html> itself (not remembered across visits).
+ * - `themeConfig` / `onThemeConfigChange`: the Parabola theme the page wears
+ *   (theme.ts, fonts for now) and how to save a new one, for the /parabola
+ *   Theme page. Without them it previews and offers the theme to copy.
  *
  * Without a provider everything still works, in plain HTML.
  */
@@ -25,6 +29,8 @@ type DsTheme = "light" | "dark";
 type DsConfig = {
   link: DsLinkComponent | "a";
   onThemeChange?: (theme: DsTheme) => void;
+  themeConfig?: DsThemeConfig;
+  onThemeConfigChange?: (theme: DsThemeConfig) => Promise<void> | void;
 };
 
 const DsConfigContext = React.createContext<DsConfig>({ link: "a" });
@@ -32,9 +38,14 @@ const DsConfigContext = React.createContext<DsConfig>({ link: "a" });
 export function DsProvider({
   link = "a",
   onThemeChange,
+  themeConfig,
+  onThemeConfigChange,
   children,
 }: Partial<DsConfig> & { children: React.ReactNode }) {
-  const config = React.useMemo(() => ({ link, onThemeChange }), [link, onThemeChange]);
+  const config = React.useMemo(
+    () => ({ link, onThemeChange, themeConfig, onThemeConfigChange }),
+    [link, onThemeChange, themeConfig, onThemeConfigChange]
+  );
   return <DsConfigContext.Provider value={config}>{children}</DsConfigContext.Provider>;
 }
 
@@ -45,6 +56,12 @@ export function DsProvider({
 export function DsLink(props: DsLinkProps) {
   const { link: Link } = React.useContext(DsConfigContext);
   return <Link {...props} />;
+}
+
+/** The Parabola theme the app says the page wears, and how to save one, if it said. */
+export function useDsThemeConfig(): Pick<DsConfig, "themeConfig" | "onThemeConfigChange"> {
+  const { themeConfig, onThemeConfigChange } = React.useContext(DsConfigContext);
+  return { themeConfig, onThemeConfigChange };
 }
 
 /** Switches the theme: through the provider when set, else the `dark` class on <html>. */

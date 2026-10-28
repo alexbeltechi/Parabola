@@ -8,8 +8,8 @@ type TextStyle = {
 
 // The type scale classes from tokens.css (Figma: Folio Dharmify 693:5061),
 // each rendered with the element it's named for (Display, the editorial size,
-// is an h1 on large screens). All medium, system font,
-// two colours: `ds-fg` and `ds-fg-muted`.
+// is an h1 on large screens). All medium, in the theme's fonts (Theme page;
+// Display to H3 in its heading font), two colours: `ds-fg` and `ds-fg-muted`.
 export const TEXT_STYLES: TextStyle[] = [
   { name: "Display", tag: "h1", className: "text-display", spec: "60 / 64" },
   { name: "H1", tag: "h1", className: "text-h1", spec: "36 / 48" },
@@ -27,8 +27,8 @@ export function FontsSection() {
   return (
     <div className="flex w-full flex-col items-center gap-6 text-center">
       <div className="flex flex-col items-center gap-2">
-        <p className="text-h3 text-ds-fg">System</p>
-        <p className="text-small text-ds-fg-muted">Font</p>
+        <p className="text-h3 text-ds-fg">The theme&apos;s fonts</p>
+        <p className="text-small text-ds-fg-muted">Instrument Sans by default; pick others on Theme</p>
       </div>
 
       {TEXT_STYLES.map(({ name, tag: Tag, className, spec, muted }) => (

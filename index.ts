@@ -13,7 +13,24 @@
 export { DS_ACCENTS, type DsAccent } from "./accents";
 export { cn } from "./cn";
 export { DS_GUTTER_PX, DS_SPACES, type DsSpace } from "./spacing";
-export { DsProvider, DsLink, useDsSetTheme, type DsLinkComponent, type DsLinkProps } from "./provider";
+export { DS_FONTS, DS_DEFAULT_FONT, dsFont, dsGoogleFontsUrl, type DsFont, type DsFontId } from "./fonts";
+export {
+  DS_DEFAULT_THEME,
+  dsApplyTheme,
+  dsThemeCss,
+  dsThemeVars,
+  parseDsThemeConfig,
+  type DsThemeConfig,
+} from "./theme";
+export { DsThemeStyle } from "./theme-style";
+export {
+  DsProvider,
+  DsLink,
+  useDsSetTheme,
+  useDsThemeConfig,
+  type DsLinkComponent,
+  type DsLinkProps,
+} from "./provider";
 export { DsButton, dsButtonVariants, type DsButtonProps } from "./primitives/button";
 export { DS_COLUMNS_CLASS } from "./primitives/columns";
 export { DsCheckbox, DsCheckboxMark } from "./primitives/checkbox";
@@ -78,3 +95,4 @@ export { DsPlaceholder } from "./components/placeholder";
 export { DsEmptyState } from "./components/empty-state";
 export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
+export { DsFontPairing } from "./components/font-pairing";

@@ -2,7 +2,7 @@
  * Parabola prose: how rich text reads, in one place, so a post's text looks
  * the same in the editor (DsRichText) as on the site. Body copy is Prose
  * (18/28, sized for reading) in muted;
- * titles (h2, h3) are H2 (24px) in the page colour with space above; bold and links
+ * titles (h2, h3) are H2 (24px) in the heading font and the page colour with space above; bold and links
  * take the page colour; lists are indented with markers.
  *
  * A plain module (no "use client") so server components can use it too.
@@ -10,7 +10,7 @@
 export const DS_PROSE_CLASS = [
   "text-prose text-ds-fg-muted",
   "[&_p+p]:mt-4",
-  "[&_:is(h1,h2,h3,h4)]:mb-2 [&_:is(h1,h2,h3,h4)]:text-h2 [&_:is(h1,h2,h3,h4)]:text-ds-fg",
+  "[&_:is(h1,h2,h3,h4)]:mb-2 [&_:is(h1,h2,h3,h4)]:text-h2 [&_:is(h1,h2,h3,h4)]:text-ds-fg [&_:is(h1,h2,h3,h4)]:[font-family:var(--ds-font-heading)]",
   "[&_*+:is(h1,h2,h3,h4)]:mt-6",
   "[&_strong]:text-ds-fg [&_a]:text-ds-fg [&_a]:underline",
   "[&_:is(ul,ol)]:pl-5 [&_ul]:list-disc [&_ol]:list-decimal [&_li+li]:mt-1 [&_*+:is(ul,ol)]:mt-4 [&_:is(ul,ol)+*]:mt-4",

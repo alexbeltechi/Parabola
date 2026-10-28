@@ -75,16 +75,16 @@
   --text-display: 60px;
   --text-display--line-height: 64px;
   --text-display--letter-spacing: 0;
-  --text-display--font-weight: 500;
+  --text-display--font-weight: var(--ds-heading-weight);
   --text-h1: 36px;
   --text-h1--line-height: 48px;
-  --text-h1--font-weight: 500;
+  --text-h1--font-weight: var(--ds-heading-weight);
   --text-h2: 24px;
   --text-h2--line-height: 30px;
-  --text-h2--font-weight: 500;
+  --text-h2--font-weight: var(--ds-heading-weight);
   --text-h3: 18px;
   --text-h3--line-height: 26px;
-  --text-h3--font-weight: 500;
+  --text-h3--font-weight: var(--ds-heading-weight);
   --text-p: 16px;
   --text-p--line-height: 22px;
   --text-p--font-weight: 500;
@@ -202,9 +202,16 @@
 }
 
 :root {
-  /* Type: the system UI face (Figma specifies Inter). The scale is the
-     `text-*` tokens above. */
-  --ds-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Type: Instrument Sans for text and headings, the default theme
+     (fonts.ts, theme.ts; decisions 2026-10-28). A theme sets these three, so
+     a site can switch to System or pair a serif for headings without code.
+     An app that hosts the font files sets --ds-font-instrument-sans to its
+     family name; otherwise "Instrument Sans" must be loaded (DsThemeStyle). */
+  --ds-font: var(--ds-font-instrument-sans, "Instrument Sans"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Display and H1–H3. */
+  --ds-font-heading: var(--ds-font);
+  /* Headings' weight in the heading font: 500 (Medium), 400 for a face with one weight. */
+  --ds-heading-weight: 500;
 
   /* Parabola palette (Figma: Folio Dharmify). Ten colours per theme;
      every component draws from these and nothing else.
@@ -337,4 +344,37 @@
   --ds-highlight-tint: #581C87;
   /* Dark pages need a stronger shadow to read at all. */
   --ds-shadow-raised: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
+}
+
+/* Headings (Display, H1–H3, at any breakpoint) are set in the theme's
+   heading font. Whole class names only, so a wrapper that styles headings
+   inside it (prose) isn't caught; prose sets its own (DS_PROSE_CLASS).
+   :where keeps it at no specificity, so a class still overrides it. */
+:where(
+  [class~="text-display"],
+  [class~="sm:text-display"],
+  [class~="md:text-display"],
+  [class~="lg:text-display"],
+  [class~="xl:text-display"],
+  [class~="2xl:text-display"],
+  [class~="text-h1"],
+  [class~="sm:text-h1"],
+  [class~="md:text-h1"],
+  [class~="lg:text-h1"],
+  [class~="xl:text-h1"],
+  [class~="2xl:text-h1"],
+  [class~="text-h2"],
+  [class~="sm:text-h2"],
+  [class~="md:text-h2"],
+  [class~="lg:text-h2"],
+  [class~="xl:text-h2"],
+  [class~="2xl:text-h2"],
+  [class~="text-h3"],
+  [class~="sm:text-h3"],
+  [class~="md:text-h3"],
+  [class~="lg:text-h3"],
+  [class~="xl:text-h3"],
+  [class~="2xl:text-h3"]
+) {
+  font-family: var(--ds-font-heading);
 }

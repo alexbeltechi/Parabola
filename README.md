@@ -113,6 +113,27 @@ namespace, short and brand-free, so a rename never touches code:
 | Tailwind utilities | `*-ds-*` | `bg-ds-surface`, `text-ds-fg-muted`, `rounded-ds-lg` |
 | CSS utilities | `ds-*` | `ds-focus`, `ds-hover`, `ds-nav-fade` |
 
+## Themes and fonts
+
+A theme is data (`theme.ts`): for now its fonts, one for text and one for
+headings (Display, H1–H3), each picked from `DS_FONTS` (`fonts.ts`: Instrument
+Sans, the default; Instrument Serif; System). Make one on `/parabola`, which
+opens on **Theme**: the controls on top, Parabola's pieces changing under them,
+and the theme as JSON to copy. An app applies a theme once, in its `<head>`:
+
+```tsx
+<DsThemeStyle theme={theme} />                    {/* loads Google fonts itself */}
+<DsThemeStyle theme={theme} loadFonts={false} />  {/* the app hosts the files */}
+```
+
+An app that hosts its fonts (the CMS does, with next/font) sets
+`--ds-font-<id>` to its family name; each stack tries it first. Without
+`DsThemeStyle`, the tokens' defaults apply: Instrument Sans everywhere, which
+then has to be loaded some other way or falls back to the system face. Pass
+the theme and a saver to `DsProvider` (`themeConfig`, `onThemeConfigChange`)
+and the Theme page saves too. `DsFontPairing` is the control. Adding a font is
+one entry in `fonts.ts` (plus its next/font call in an app that hosts files).
+
 ## Using it
 
 ```tsx
