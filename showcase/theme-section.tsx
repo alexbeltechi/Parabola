@@ -14,17 +14,8 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import {
-  DS_ACCENT_COLOURS,
-  DS_BACKGROUND_PRESETS,
-  DS_BASE_COLOURS,
-  DS_ICON_LIBRARIES,
-  dsBackgroundTokens,
-  dsBaseTokens,
-  dsColourSwatch,
-  dsCounterpart,
-  dsIsHex,
-} from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, type DsColourKind, type DsThemeColours } from "../colours";
+import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
 import { DsLink, useDsSetTheme } from "../provider";
@@ -67,86 +58,87 @@ function useDarkMode(): boolean {
 const RAINBOW = "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)";
 
 /**
- * One of the theme's colours in the panel: its name with what it is now on
- * the right (a preset's name, or Custom, and the hex), the presets as
- * swatches, and Custom, a rainbow swatch that opens the colour picker right
- * here (no pop-up), where you drag hue, saturation and brightness or type a
- * hex and see it all change at once.
+ * One of the theme's three colours in the panel, for the light or the dark
+ * theme (whichever the page is in): its name with what it is now on the
+ * right, then two swatches, Parabola's own and Custom (the rainbow), which
+ * opens the colour picker right here, where you drag or type a hex and see
+ * it change at once. In dark, "Based on light theme" (on by default) keeps
+ * it the light one's counterpart; off, the picker sets a dark colour of its own.
  */
 function ColourChoice({
+  kind,
   label,
   description,
-  presets,
-  value,
-  current,
-  counterpart,
+  colours,
+  mode,
   onChange,
 }: {
+  kind: DsColourKind;
   label: string;
   description: string;
-  /** `value` is what's stored: a preset's id, a hex, or null (Background's "Base"). */
-  presets: { value: string | null; label: string; swatch: string }[];
-  value: string | null;
-  /** The colour it shows now, for the hex beside the name and the picker's start. */
-  current: string;
-  /** Its colour in the dark theme, when that's worked out from this one: shown under it. */
-  counterpart?: string;
-  onChange: (value: string | null) => void;
+  colours: DsThemeColours;
+  mode: "light" | "dark";
+  onChange: (colours: DsThemeColours) => void;
 }) {
-  const custom = dsIsHex(value) && !presets.some((p) => p.value === value);
+  const colour = colours[kind];
+  const shown = dsColourShown(colours, kind, mode);
+  const set = (next: Partial<typeof colour>) => onChange({ ...colours, [kind]: { ...colour, ...next } });
+  const based = mode === "dark" && colour.dark === null;
+  const custom = mode === "light" ? colour.light !== null : !based;
   const [open, setOpen] = React.useState(custom);
-  const name = custom ? "Custom" : (presets.find((p) => p.value === value)?.label ?? label);
+  const name = based ? "Based on light" : custom ? "Custom" : "Parabola's";
+  const ring = "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-bg";
   return (
     <div className="flex flex-col gap-ds-8">
       <div className="flex items-baseline justify-between gap-ds-8">
         <span className="text-p text-ds-fg">{label}</span>
         <span className="truncate text-small text-ds-fg-muted">
-          {name} · <span className="font-mono">{current}</span>
+          {name} · <span className="font-mono">{shown}</span>
         </span>
       </div>
-      <div className="flex flex-wrap items-center gap-ds-8" role="radiogroup" aria-label={label}>
-        {presets.map((preset) => {
-          const on = !custom && preset.value === value;
-          return (
-            <button
-              key={preset.label}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              aria-label={preset.label}
-              title={preset.label}
-              onClick={() => {
-                onChange(preset.value);
-                setOpen(false);
-              }}
-              className={cn(
-                "size-7 rounded-full border border-ds-fg/15 ds-focus",
-                on && "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-surface-subtle"
-              )}
-              style={{ backgroundColor: preset.swatch }}
-            />
-          );
-        })}
-        <button
-          type="button"
-          role="radio"
-          aria-checked={custom}
-          aria-label="Custom colour"
-          title="Custom"
-          onClick={() => {
-            setOpen((o) => !o);
-            if (!custom) onChange(current);
-          }}
-          className={cn("size-7 rounded-full ds-focus", custom && "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-surface-subtle")}
-          style={{ backgroundImage: RAINBOW }}
-        />
-      </div>
-      {open && <DsColourPicker value={current} onChange={onChange} />}
-      {counterpart && (
-        <p className="flex items-center gap-ds-8 text-small text-ds-fg-muted">
-          <span aria-hidden className="size-3 shrink-0 rounded-full border border-ds-fg/15" style={{ backgroundColor: counterpart }} />
-          In dark: its counterpart, <span className="font-mono">{counterpart}</span>
-        </p>
+      {mode === "dark" && (
+        <label className="inline-flex items-center gap-ds-8 self-start">
+          <DsCheckbox
+            checked={based}
+            // Off, it starts from the counterpart it had, so nothing jumps.
+            onCheckedChange={(on) => set({ dark: on ? null : shown })}
+          />
+          <span className="text-p text-ds-fg">Based on light theme</span>
+        </label>
+      )}
+      {mode === "light" && (
+        <div className="flex items-center gap-ds-8" role="radiogroup" aria-label={label}>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!custom}
+            aria-label="Parabola's"
+            title="Parabola's"
+            onClick={() => {
+              set({ light: null });
+              setOpen(false);
+            }}
+            className={cn("size-7 rounded-full border border-ds-fg/15 ds-focus", !custom && ring)}
+            // Parabola's own, with the theme's other colours as they are (its text on this theme colour).
+            style={{ backgroundColor: dsColourShown({ ...colours, [kind]: DS_DEFAULT_COLOURS[kind] }, kind, "light") }}
+          />
+          <button
+            type="button"
+            role="radio"
+            aria-checked={custom}
+            aria-label="Custom colour"
+            title="Custom"
+            onClick={() => {
+              setOpen((o) => !o);
+              if (!custom) set({ light: shown });
+            }}
+            className={cn("size-7 rounded-full ds-focus", custom && ring)}
+            style={{ backgroundImage: RAINBOW }}
+          />
+        </div>
+      )}
+      {((mode === "light" && open) || (mode === "dark" && !based)) && (
+        <DsColourPicker value={shown} onChange={(hex) => set(mode === "light" ? { light: hex } : { dark: hex })} />
       )}
       <p className="text-small text-ds-fg-muted">{description}</p>
     </div>
@@ -198,8 +190,8 @@ function ThemeNameDialog({
  * pieces wearing the open theme, one card under another at the CMS's
  * reading width (600px), the theme as data last; the panel on the right holds the
  * theme's main choices: which theme (Default and any added; Add theme
- * copies the open one under a new name), light or dark, the base and
- * secondary colours, the Heading and Font families' fonts, and the icon
+ * copies the open one under a new name), light or dark, the theme
+ * colour, fonts and UI and the accent colour, the Heading and Font families' fonts, and the icon
  * library. The rest is on Typography. Publish is top right; a site picks
  * its theme in Settings › Design. Every spacing is a Parabola one.
  */
@@ -207,13 +199,6 @@ export function ThemeSection() {
   const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme } = useThemeEditor();
   const dark = useDarkMode();
   const mode = dark ? "dark" : "light";
-  // What Auto gives the surfaces in the light theme: shades of the background (or the base's own).
-  const autoSurface = dsBackgroundTokens({
-    background: theme.colours.background,
-    surface: null,
-    baseBg: dsBaseTokens(theme.colours.base, "light").bg,
-    mode: "light",
-  })["surface-subtle"];
   const setMode = useDsSetTheme();
   const [naming, setNaming] = React.useState<"add" | "rename" | null>(null);
 
@@ -339,45 +324,28 @@ export function ThemeSection() {
             </DsButton>
           </div>
           <ColourChoice
-            label="Base colour"
-            description="The greys: surfaces, borders, quiet text."
-            presets={DS_BASE_COLOURS.map((c) => ({ value: c.id, label: c.label, swatch: c.swatch }))}
-            value={theme.colours.base}
-            current={dsColourSwatch("base", theme.colours.base)}
-            onChange={(base) => base && setTheme({ ...theme, colours: { ...theme.colours, base } })}
+            kind="theme"
+            label="Theme colour"
+            description="The website's background. Cards, fields and panels are shades of it."
+            colours={theme.colours}
+            mode={mode}
+            onChange={(colours) => setTheme({ ...theme, colours })}
           />
           <ColourChoice
+            kind="ui"
+            label="Fonts and UI"
+            description="The text, and the quiet text, borders and shades drawn from it. Parabola's is black or white, whichever reads on the theme colour."
+            colours={theme.colours}
+            mode={mode}
+            onChange={(colours) => setTheme({ ...theme, colours })}
+          />
+          <ColourChoice
+            kind="accent"
             label="Accent colour"
             description="The one highlight, for what needs attention."
-            presets={DS_ACCENT_COLOURS.map((c) => ({ value: c.id, label: c.label, swatch: c[mode].highlight }))}
-            value={theme.colours.accent}
-            current={dsColourSwatch("accent", theme.colours.accent, mode)}
-            onChange={(accent) => accent && setTheme({ ...theme, colours: { ...theme.colours, accent } })}
-          />
-          <ColourChoice
-            label="Background"
-            description="The website's background; its cards, fields and panels take shades of it, and text turns black or white to read on it."
-            presets={[
-              { value: null, label: "Base", swatch: dsBaseTokens(theme.colours.base, "light").bg },
-              ...DS_BACKGROUND_PRESETS.map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
-            ]}
-            value={theme.colours.background}
-            current={theme.colours.background ?? dsBaseTokens(theme.colours.base, "light").bg}
-            counterpart={theme.colours.background ? dsCounterpart(theme.colours.background) : dsBaseTokens(theme.colours.base, "dark").bg}
-            onChange={(background) => setTheme({ ...theme, colours: { ...theme.colours, background } })}
-          />
-          <ColourChoice
-            label="Surface"
-            description="Cards, side panels and fields. Auto makes them shades of the background."
-            presets={[
-              { value: null, label: "Auto", swatch: autoSurface },
-              { value: "#FFFFFF", label: "White", swatch: "#FFFFFF" },
-              ...DS_BACKGROUND_PRESETS.map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
-            ]}
-            value={theme.colours.surface}
-            current={theme.colours.surface ?? autoSurface}
-            counterpart={dsCounterpart(theme.colours.surface ?? autoSurface)}
-            onChange={(surface) => setTheme({ ...theme, colours: { ...theme.colours, surface } })}
+            colours={theme.colours}
+            mode={mode}
+            onChange={(colours) => setTheme({ ...theme, colours })}
           />
         </PanelSection>
 

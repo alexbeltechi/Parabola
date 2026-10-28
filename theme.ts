@@ -3,11 +3,12 @@ import {
   DS_BASE_COLOURS,
   DS_DEFAULT_ACCENT_COLOUR,
   DS_DEFAULT_BASE_COLOUR,
+  DS_DEFAULT_COLOURS,
   DS_ICON_LIBRARIES,
-  dsAccentTokens,
-  dsBackgroundTokens,
-  dsBaseTokens,
+  dsColourTokens,
   dsIsHex,
+  type DsThemeColour,
+  type DsThemeColours,
 } from "./colours";
 import {
   DS_DEFAULT_FONT,
@@ -25,10 +26,10 @@ import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_TOKENS, dsRadius, type DsRadius 
  * data so a site, an agent or /parabola can set them (decisions,
  * 2026-10-28; BEL-109), much as shadcn's create page sets a style:
  *
- * - colours: a base colour (the greys), an accent colour (the highlight), a
- *   background colour (the website's background) and, optionally, a surface
- *   colour (cards, panels, fields), each a preset or a custom hex picked for
- *   the light theme, the dark theme using its counterpart (colours.ts);
+ * - colours: the theme colour (the website's background), fonts and UI (the
+ *   text and the greys drawn from it) and the accent colour (the
+ *   highlight), each Parabola's or a hex picked for the light theme, and in
+ *   dark based on the light one (its counterpart) or picked apart (colours.ts);
  * - font families: Font (text) and Heading (headlines) to start, and any a
  *   theme adds, each a name and a font, the font one of Parabola's (fonts.ts)
  *   or one added to the theme (`customFonts`);
@@ -85,14 +86,8 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /**
-   * The base colour (the greys) and the accent colour (the highlight): a
-   * preset's id or a custom hex. The background: a hex, or null for the base
-   * colour's own. The surface: a hex, or null for shades of the background.
-   * Background and surface are picked for the light theme; the dark one uses
-   * their counterparts (colours.ts).
-   */
-  colours: { base: string; accent: string; background: string | null; surface: string | null };
+  /** The theme colour, fonts and UI, and the accent colour, each for light and dark (colours.ts). */
+  colours: DsThemeColours;
   /** Font (text, always there) first; then Heading and any the theme added. */
   families: DsFontFamily[];
   type: Record<DsTextStyle, DsTextStyleConfig>;
@@ -107,7 +102,7 @@ export type DsThemeConfig = {
 };
 
 export const DS_DEFAULT_THEME: DsThemeConfig = {
-  colours: { base: DS_DEFAULT_BASE_COLOUR, accent: DS_DEFAULT_ACCENT_COLOUR, background: null, surface: null },
+  colours: DS_DEFAULT_COLOURS,
   families: [
     { id: DS_BODY_FAMILY, label: "Font", font: DS_DEFAULT_FONT },
     { id: DS_HEADING_FAMILY, label: "Heading", font: DS_DEFAULT_HEADING_FONT },
@@ -195,20 +190,31 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const known = (id: unknown, fallback: string) => (typeof id === "string" && allFonts.includes(id) ? id : fallback);
 
   const coloursRaw = (raw.colours ?? {}) as Record<string, unknown>;
-  const presetOrHex = (value: unknown, presets: { id: string }[], fallback: string) =>
-    dsIsHex(value) ? value.toUpperCase() : presets.some((c) => c.id === value) ? (value as string) : fallback;
-  // The background was once set for light and dark apart: the light one stays.
-  const backgroundRaw =
+  const hex = (value: unknown) => (dsIsHex(value) ? value.toUpperCase() : null);
+  // A light pick: a hex, or an older theme's preset (never Parabola's own, which is null).
+  const lightPick = (value: unknown, presets: { id: string }[], own: string) =>
+    hex(value) ?? (typeof value === "string" && value !== own && presets.some((c) => c.id === value) ? value : null);
+  const colour = (value: unknown, presets: { id: string }[] = [], own = ""): DsThemeColour => {
+    const v = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+    return { light: lightPick(v.light, presets, own), dark: hex(v.dark) };
+  };
+  // Older themes: a base colour, an accent (once "secondary"), a background (once light and dark apart) and a surface, which goes.
+  const legacyBackground =
     coloursRaw.background && typeof coloursRaw.background === "object"
       ? (coloursRaw.background as Record<string, unknown>).light
       : coloursRaw.background;
-  const colours = {
-    base: presetOrHex(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
-    // The accent was called secondary at first.
-    accent: presetOrHex(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR),
-    background: dsIsHex(backgroundRaw) ? backgroundRaw.toUpperCase() : null,
-    surface: dsIsHex(coloursRaw.surface) ? coloursRaw.surface.toUpperCase() : null,
-  };
+  const colours: DsThemeColours =
+    coloursRaw.theme || coloursRaw.ui
+      ? {
+          theme: colour(coloursRaw.theme),
+          ui: colour(coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
+          accent: colour(coloursRaw.accent, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR),
+        }
+      : {
+          theme: { light: hex(legacyBackground), dark: null },
+          ui: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
+          accent: { light: lightPick(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR), dark: null },
+        };
 
   // Families: the list, or an older pair.
   let families: DsFontFamily[];
@@ -281,28 +287,9 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   return { colours, families, type, customFonts, hiddenFonts, radius, icons };
 }
 
-/**
- * A theme's colour tokens in light or dark: the base's greys; then, with a
- * background or surface picked, the page, its surfaces and text from them
- * (their counterparts in dark); then the accent.
- */
+/** A theme's colour tokens in light or dark, every one of them, so a theme's CSS stands on its own over another's. */
 function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string, string> {
-  const vars: Record<string, string> = {};
-  const base = dsBaseTokens(theme.colours.base, mode);
-  for (const [name, value] of Object.entries(base)) vars[`--ds-${name}`] = value;
-  // A background or surface picked brings the page, its surfaces and (with a background) its text along.
-  const { background, surface } = theme.colours;
-  // Text is always set, so a theme's CSS stands on its own over another's (a background may have turned it white).
-  vars["--ds-fg"] = mode === "light" ? "#000000" : "#FFFFFF";
-  if (background || surface) {
-    for (const [name, value] of Object.entries(dsBackgroundTokens({ background, surface, baseBg: base.bg, mode }))) {
-      vars[`--ds-${name}`] = value;
-    }
-  }
-  const accent = dsAccentTokens(theme.colours.accent, mode);
-  vars["--ds-highlight"] = accent.highlight;
-  vars["--ds-highlight-tint"] = accent.tint;
-  return vars;
+  return Object.fromEntries(Object.entries(dsColourTokens(theme.colours, mode)).map(([name, value]) => [`--ds-${name}`, value]));
 }
 
 /** The CSS custom properties a theme sets on :root, in the light theme (tokens.css has the defaults). */

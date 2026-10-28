@@ -117,17 +117,15 @@ namespace, short and brand-free, so a rename never touches code:
 
 A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
-- **Colours** (`colours.ts`): a base colour, the greys every surface, border
-  and quiet text uses (Stone, the default and tokens.css's, Neutral, Zinc,
-  Slate, Gray); an accent colour, the one highlight (Purple, the default,
-  Blue, Teal, Green, Orange, Rose); a background colour, the website's
-  background (the base's own by default; picked, the surfaces on it become
-  shades of it and text turns black or white to read on it:
-  `dsBackgroundTokens`); and, optional, a surface colour for cards, panels
-  and fields (Auto: shades of the background). Background and surface are
-  picked once; the dark theme uses their counterparts (`dsCounterpart`). Each is a preset or a
-  custom hex (a custom base or accent derives its shades:
-  `dsBaseTokens`, `dsAccentTokens`); `DsColourPicker` picks one inline.
+- **Colours** (`colours.ts`, `DsThemeColours`): the theme colour (the
+  website's background; cards, fields, panels and borders are shades of
+  it), fonts and UI (the text, and the quiet text, borders and shades drawn
+  from it; Parabola's is black or white, whichever reads on the page) and
+  the accent colour (the highlight). Each is Parabola's own (null) or a
+  hex, picked for light; in dark it's based on the light one (its
+  counterpart, `dsCounterpart`) unless a dark colour is picked for it.
+  `dsColourTokens` turns the three into every colour token;
+  `DsColourPicker` picks one inline.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
 - **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,

@@ -1,27 +1,20 @@
 /**
- * The colours a theme can pick (theme.ts; decisions, 2026-10-28), as shadcn
- * offers them:
+ * The three colours a theme picks (theme.ts; decisions, 2026-10-28):
  *
- * - a **base colour**: the greys every surface, border and quiet text is
- *   drawn in, light and dark. Stone is Parabola's own and what tokens.css
- *   sets (`npm run check:parabola` checks); Neutral, Zinc, Slate and Gray
- *   follow Tailwind's palettes, mapped onto the same roles.
- * - an **accent colour**: Parabola's one highlight, for the few things that
+ * - the **theme colour**: the website's background, Parabola's white (and
+ *   charcoal in dark) by default; any colour, a bright yellow included.
+ *   Cards, fields, side panels and borders are shades of it.
+ * - **fonts and UI**: the text, and the quiet text, borders and surface
+ *   shades drawn from it. Parabola's own is black or white, whichever reads
+ *   on the theme colour, with Stone's warm greys on the default page
+ *   (tokens.css; `npm run check:parabola` checks).
+ * - the **accent colour**: Parabola's one highlight, for the few things that
  *   need attention (a highlight pill), and its tint. Purple is Parabola's own.
- * - a **background colour**: the website's background, by default the base
- *   colour's own (white, charcoal); any colour, a bright yellow included.
- *   Picked, it brings the rest along (`dsBackgroundTokens`): the surfaces on
- *   it (cards, fields, side panels, borders) as shades of itself, and text
- *   in black or white, whichever reads on it.
- * - a **surface colour**, optional: cards, side panels and fields, by default
- *   shades of the background.
  *
- * Every colour is picked once, for the light theme; the dark theme uses its
- * counterpart (`dsCounterpart`), the same hue at the other end of light, so
- * the two always contrast.
- *
- * Each of the three is a preset or a custom colour, a hex: a custom base or
- * accent derives its other shades from it (`dsBaseTokens`, `dsAccentTokens`).
+ * Each is picked for the light theme (or left as Parabola's). In the dark
+ * theme each is, by default, based on the light one: its counterpart
+ * (`dsCounterpart`), the same hue at the other end of light, so the two
+ * always contrast; or a colour picked for dark on its own.
  * Pure data and functions, so the server and the browser share them.
  */
 
@@ -187,24 +180,23 @@ export const DS_ACCENT_COLOURS: DsAccentColour[] = [
   { id: "rose", label: "Rose", light: { highlight: "#BE123C", tint: "#FFE4E6" }, dark: { highlight: "#FDA4AF", tint: "#881337" } },
 ];
 
-/**
- * Backgrounds and surfaces to try: soft ones, a few bold mid-tones and two
- * deep ones. Each is the light theme's; the dark theme uses its counterpart
- * (`dsCounterpart`), so one pick covers both.
- */
-export const DS_BACKGROUND_PRESETS: { label: string; value: string }[] = [
-  { label: "Paper", value: "#F6F2EA" },
-  { label: "Sand", value: "#ECE3D0" },
-  { label: "Mint", value: "#DCF2E3" },
-  { label: "Sky", value: "#DCEAF8" },
-  { label: "Yellow", value: "#FFE35A" },
-  { label: "Coral", value: "#FF9A7A" },
-  { label: "Ink", value: "#1B2A44" },
-  { label: "Forest", value: "#1F3A2C" },
-];
-
 export const DS_DEFAULT_BASE_COLOUR = "stone";
 export const DS_DEFAULT_ACCENT_COLOUR = "purple";
+
+/**
+ * One of a theme's colours: picked for the light theme (null: Parabola's
+ * own), and for the dark one (null: based on the light one). A light pick is
+ * a hex; older themes may hold a preset's id (Slate, Blue), which still works.
+ */
+export type DsThemeColour = { light: string | null; dark: string | null };
+export type DsColourKind = "theme" | "ui" | "accent";
+export type DsThemeColours = Record<DsColourKind, DsThemeColour>;
+
+export const DS_DEFAULT_COLOURS: DsThemeColours = {
+  theme: { light: null, dark: null },
+  ui: { light: null, dark: null },
+  accent: { light: null, dark: null },
+};
 
 export const dsBaseColour = (id: string) => DS_BASE_COLOURS.find((c) => c.id === id) ?? DS_BASE_COLOURS[0];
 export const dsAccentColour = (id: string) => DS_ACCENT_COLOURS.find((c) => c.id === id) ?? DS_ACCENT_COLOURS[0];
@@ -332,51 +324,58 @@ export function dsCounterpart(hex: string): string {
     : fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, flipped)));
 }
 
+/** A hex colour in a theme: the one picked for it, or, based on the light one, its counterpart. */
+function hexIn(colour: DsThemeColour, mode: "light" | "dark"): string | null {
+  const light = dsIsHex(colour.light) ? colour.light : null;
+  if (mode === "light") return light;
+  return colour.dark ?? (light && dsCounterpart(light));
+}
+
 /**
- * The page and what sits on it, from a background (and, optionally, a
- * surface) picked for the light theme; the dark theme uses their
- * counterparts. Text is black or white, whichever reads on the background,
- * with its quieter steps mixed toward it; the surfaces (cards, fields, side
- * panels) are the surface colour or shades of the background, darker on a
- * light one and lighter on a dark one; borders are a deeper shade.
- * `background` null keeps the base colour's own page (`baseBg`).
+ * A theme's colour tokens (names without `--ds-`) in light or dark. With
+ * Parabola's own page and text, the greys are the base colour's (Stone, or
+ * an older theme's preset). With a theme colour or a text colour picked, the
+ * rest follows from the two: text is the fonts and UI colour, or black or
+ * white, whichever reads on the page; its quieter steps, the borders and the
+ * surfaces (cards, fields, side panels) are the text mixed into the page, so
+ * everything on a card reads as it does on the page.
  */
-export function dsBackgroundTokens({
-  background,
-  surface,
-  baseBg,
-  mode,
-}: {
-  background: string | null;
-  surface: string | null;
-  baseBg: string;
-  mode: "light" | "dark";
-}): Record<string, string> {
-  const inMode = (hex: string) => (mode === "light" ? hex : dsCounterpart(hex));
-  const bg = background ? inMode(background) : baseBg;
-  const toward = dsLuminance(bg) > 0.18 ? BLACK : WHITE;
-  const shade = (from: string, amount: number) => dsMix(toward, from, amount);
-  const card = surface ? inMode(surface) : shade(bg, 0.035);
-  const tokens: Record<string, string> = {
-    bg,
-    "surface-subtle": card,
-    field: shade(card, 0.03),
-    surface: shade(card, 0.11),
-    border: shade(bg, 0.2),
-  };
-  // Text follows the background only when one is picked; the base's own page keeps the base's text.
-  if (background) {
-    tokens.fg = toward;
-    tokens["fg-muted"] = dsMix(toward, bg, 0.7);
-    tokens["fg-subtle"] = dsMix(toward, bg, 0.52);
+export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"): Record<string, string> {
+  const base = dsIsHex(colours.ui.light) || !colours.ui.light ? DS_DEFAULT_BASE_COLOUR : colours.ui.light;
+  const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
+  const page = hexIn(colours.theme, mode);
+  const text = hexIn(colours.ui, mode);
+  if (page || text) {
+    const bg = page ?? tokens.bg;
+    const fg = text ?? (dsLuminance(bg) > 0.18 ? BLACK : WHITE);
+    const card = dsMix(fg, bg, 0.035);
+    const [r, g, b] = toRgb(dsMix(fg, bg, 0.8));
+    Object.assign(tokens, {
+      bg,
+      fg,
+      "fg-muted": dsMix(fg, bg, 0.7),
+      "fg-subtle": dsMix(fg, bg, 0.52),
+      border: dsMix(fg, bg, 0.2),
+      "surface-subtle": card,
+      field: dsMix(fg, card, 0.03),
+      surface: dsMix(fg, card, 0.11),
+      "surface-inverse": `rgb(${r} ${g} ${b} / ${mode === "light" ? 0.7 : 0.8})`,
+    });
   }
+  const accentLight = colours.accent.light ?? DS_DEFAULT_ACCENT_COLOUR;
+  const accent =
+    mode === "dark" && colours.accent.dark
+      ? { highlight: colours.accent.dark, tint: dsMix(colours.accent.dark, tokens.bg, 0.3) }
+      : dsAccentTokens(accentLight, mode);
+  tokens.highlight = accent.highlight;
+  tokens["highlight-tint"] = accent.tint;
   return tokens;
 }
 
-/** The swatch a colour choice shows: a preset's own, or the hex itself. */
-export function dsColourSwatch(kind: "base" | "accent", value: string, mode: "light" | "dark" = "light"): string {
-  if (dsIsHex(value)) return value;
-  return kind === "base" ? dsBaseColour(value).swatch : dsAccentColour(value)[mode].highlight;
+/** What one of a theme's colours is in light or dark, as a hex: the page, the text or the highlight. */
+export function dsColourShown(colours: DsThemeColours, kind: DsColourKind, mode: "light" | "dark"): string {
+  const tokens = dsColourTokens(colours, mode);
+  return tokens[kind === "theme" ? "bg" : kind === "ui" ? "fg" : "highlight"];
 }
 
 /**

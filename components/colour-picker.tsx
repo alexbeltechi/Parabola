@@ -95,7 +95,7 @@ export function DsColourPicker({
         aria-label="Saturation and brightness"
         aria-valuetext={shown}
         aria-valuenow={Math.round(hsv.s * 100)}
-        className="relative h-36 w-full cursor-crosshair touch-none rounded-ds-md ds-focus"
+        className="relative h-24 w-full cursor-crosshair touch-none rounded-ds-md ds-focus"
         style={{
           backgroundColor: dsHsvToHex(hsv.h, 1, 1),
           backgroundImage: "linear-gradient(to top, black, transparent), linear-gradient(to right, white, transparent)",

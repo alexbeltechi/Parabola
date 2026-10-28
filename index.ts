@@ -64,16 +64,16 @@ export {
 export {
   DS_BASE_COLOURS,
   DS_ACCENT_COLOURS,
-  DS_BACKGROUND_PRESETS,
   DS_ICON_LIBRARIES,
   DS_DEFAULT_BASE_COLOUR,
   DS_DEFAULT_ACCENT_COLOUR,
+  DS_DEFAULT_COLOURS,
   dsAccentColour,
   dsAccentTokens,
   dsBaseColour,
-  dsBackgroundTokens,
   dsBaseTokens,
-  dsColourSwatch,
+  dsColourShown,
+  dsColourTokens,
   dsCounterpart,
   dsLuminance,
   dsHexToHsv,
@@ -83,6 +83,9 @@ export {
   dsNormalizeHex,
   type DsAccentColour,
   type DsBaseColour,
+  type DsColourKind,
+  type DsThemeColour,
+  type DsThemeColours,
 } from "./colours";
 export { DsThemeStyle } from "./theme-style";
 export {
