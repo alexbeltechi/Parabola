@@ -68,14 +68,12 @@ const RAINBOW = "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)";
 function ColourChoice({
   kind,
   label,
-  description,
   colours,
   mode,
   onChange,
 }: {
   kind: DsColourKind;
   label: string;
-  description: string;
   colours: DsThemeColours;
   mode: "light" | "dark";
   onChange: (colours: DsThemeColours) => void;
@@ -86,14 +84,15 @@ function ColourChoice({
   const based = mode === "dark" && colour.dark === null;
   const custom = mode === "light" ? colour.light !== null : !based;
   const [open, setOpen] = React.useState(custom);
-  const name = based ? "Based on light" : custom ? "Custom" : "Parabola's";
+  const name = based ? null : custom ? "Custom" : "Parabola's";
   const ring = "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-bg";
   return (
     <div className="flex flex-col gap-ds-8">
       <div className="flex items-baseline justify-between gap-ds-8">
         <span className="text-p text-ds-fg">{label}</span>
         <span className="truncate text-small text-ds-fg-muted">
-          {name} · <span className="font-mono">{shown}</span>
+          {name && `${name} · `}
+          <span className="font-mono">{shown}</span>
         </span>
       </div>
       {mode === "dark" && (
@@ -140,7 +139,6 @@ function ColourChoice({
       {((mode === "light" && open) || (mode === "dark" && !based)) && (
         <DsColourPicker value={shown} onChange={(hex) => set(mode === "light" ? { light: hex } : { dark: hex })} />
       )}
-      <p className="text-small text-ds-fg-muted">{description}</p>
     </div>
   );
 }
@@ -326,7 +324,6 @@ export function ThemeSection() {
           <ColourChoice
             kind="theme"
             label="Theme colour"
-            description="The website's background. Cards, fields and panels are shades of it."
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}
@@ -334,7 +331,6 @@ export function ThemeSection() {
           <ColourChoice
             kind="ui"
             label="Fonts and UI"
-            description="The text, and the quiet text, borders and shades drawn from it. Parabola's is black or white, whichever reads on the theme colour."
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}
@@ -342,7 +338,6 @@ export function ThemeSection() {
           <ColourChoice
             kind="accent"
             label="Accent colour"
-            description="The one highlight, for what needs attention."
             colours={theme.colours}
             mode={mode}
             onChange={(colours) => setTheme({ ...theme, colours })}
