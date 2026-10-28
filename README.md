@@ -122,7 +122,14 @@ A theme is data (`theme.ts`). For now it's typography:
   default display; System) or a Google font added to the theme
   (`customFonts`, from its name or link: `dsCustomFontFromInput`).
 - **The type scale**: for each text style (`DS_TEXT_STYLES`, Display to
-  Small) its family, size and line height. The defaults are tokens.css's.
+  Small) its name, family, weight, size and line height. By default Display
+  to H3 are in the display family (Instrument Serif, Regular) and the rest
+  in the primary (Instrument Sans, Medium); tokens.css holds the defaults.
+
+Each font lists the weights it has (`weights`); a style's weight is snapped
+to the nearest one its family's font has (`dsNearestWeight`), so nothing is
+faked. An added Google font has the weights its link names (Regular only
+from a bare name).
 
 The type tokens are `--ds-*` variables (`--ds-family-primary`,
 `--ds-family-display`, `--ds-font-<style>`, `--ds-text-<style>`, `--ds-text-<style>-leading`,

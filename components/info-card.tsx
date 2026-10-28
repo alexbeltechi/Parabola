@@ -27,7 +27,8 @@ export function DsInfoCard({
       {...props}
     >
       <Icon aria-hidden className="mt-1 size-4 shrink-0 text-ds-fg-muted" />
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
+      {/* The title sits 4px over its text; the text's own parts (a line, an action) keep 12px. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-ds-4">
         {title && <p className="text-p text-ds-fg">{title}</p>}
         <div className="flex flex-col gap-3 text-ds-fg-muted">{children}</div>
       </div>

@@ -6,6 +6,7 @@ import { DsButton } from "../primitives/button";
 import { DsDialog, DsDialogActions } from "../primitives/dialog";
 import { DsField, DsInput } from "../primitives/field";
 import { DsSelect } from "../primitives/select";
+import { dsNearestWeight, dsWeightName } from "../fonts";
 import {
   DS_DEFAULT_THEME,
   DS_TEXT_STYLES,
@@ -75,7 +76,8 @@ function PxField({
 }
 
 /**
- * One style's settings in a dialog: its family, size and line height. Save
+ * One style's settings in a dialog: its name, family, weight (the ones the
+ * family's font has), size and line height. Save
  * puts them in the theme (it shows at once; Publish, top right, makes it
  * live), Restore default puts back Parabola's for this style.
  */
@@ -91,19 +93,37 @@ function StyleDialog({
   onSave: (config: DsTextStyleConfig) => void;
 }) {
   const [draft, setDraft] = React.useState<DsTextStyleConfig>(theme.type[style]);
-  const { label, use } = DS_TEXT_STYLE_DEFAULTS[style];
+  const { use } = DS_TEXT_STYLE_DEFAULTS[style];
   const familyOptions = (["primary", "display"] as DsFamilyRole[]).map((role) => ({
     value: role,
     label: `${FAMILY_LABEL[role]}: ${dsThemeFont(theme, theme.fonts[role]).label}`,
   }));
+  const font = dsThemeFont(theme, theme.fonts[draft.family]);
+  const weight = dsNearestWeight(font, draft.weight);
   return (
-    <DsDialog open onOpenChange={(open) => !open && onClose()} title={label} description={use}>
+    <DsDialog open onOpenChange={(open) => !open && onClose()} title={theme.type[style].label} description={use}>
       <div className="flex flex-col gap-ds-16">
+        <DsField label="Name" description="What it's called here and in the theme.">
+          <DsInput value={draft.label} maxLength={40} onChange={(e) => setDraft({ ...draft, label: e.target.value })} />
+        </DsField>
         <DsField label="Font">
           <DsSelect
             options={familyOptions}
             value={draft.family}
             onValueChange={(family) => setDraft({ ...draft, family: family as DsFamilyRole })}
+          />
+        </DsField>
+        <DsField
+          label="Weight"
+          description={font.weights.length === 1 ? `${font.label} has one weight.` : `The weights ${font.label} has.`}
+        >
+          <DsSelect
+            // Remount when the family changes, so the shown weight is one it has.
+            key={font.id}
+            options={font.weights.map((w) => ({ value: String(w), label: `${dsWeightName(w)} (${w})` }))}
+            value={String(weight)}
+            onValueChange={(w) => setDraft({ ...draft, weight: Number(w) })}
+            disabled={font.weights.length === 1}
           />
         </DsField>
         <div className="grid grid-cols-2 gap-ds-8">
@@ -118,7 +138,10 @@ function StyleDialog({
         </div>
       </div>
       <DsDialogActions>
-        <DsButton variant="primary" onClick={() => onSave(draft)}>
+        <DsButton
+          variant="primary"
+          onClick={() => onSave({ ...draft, label: draft.label.trim() || DS_DEFAULT_THEME.type[style].label, weight })}
+        >
           Save
         </DsButton>
         <DsButton variant="text" onClick={() => setDraft(DS_DEFAULT_THEME.type[style])}>
@@ -131,8 +154,8 @@ function StyleDialog({
 
 /**
  * Typography › Type scale: Parabola's text styles (tokens.css), each in the
- * family, size and line height the theme gives it, with its spec and an edit
- * button that opens its settings (decisions, 2026-10-28).
+ * name, family, weight, size and line height the theme gives it, with its
+ * spec and an edit button that opens its settings (decisions, 2026-10-28).
  */
 export function FontsSection() {
   const { theme, setTheme } = useThemeEditor();
@@ -144,7 +167,7 @@ export function FontsSection() {
         const { tag: Tag, className } = SPECIMEN[style];
         const t = theme.type[style];
         const font = dsThemeFont(theme, theme.fonts[t.family]);
-        const { label } = DS_TEXT_STYLE_DEFAULTS[style];
+        const { label } = t;
         return (
           <div key={style} className="flex max-w-full flex-col items-center gap-ds-8">
             <div className="flex max-w-full items-center gap-ds-8">
@@ -153,7 +176,7 @@ export function FontsSection() {
             </div>
             <p className="text-small text-ds-fg-muted">
               {label}: {t.size} / {t.lineHeight} · {FAMILY_LABEL[t.family]} ({font.label}) ·{" "}
-              {font.weight === 500 ? "Medium" : "Regular"}
+              {dsWeightName(dsNearestWeight(font, t.weight))}
             </p>
           </div>
         );

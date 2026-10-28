@@ -1,4 +1,12 @@
-import { DS_DEFAULT_FONT, DS_DEFAULT_DISPLAY_FONT, DS_FONTS, dsCustomFont, type DsCustomFont, type DsFont } from "./fonts";
+import {
+  DS_DEFAULT_FONT,
+  DS_DEFAULT_DISPLAY_FONT,
+  DS_FONTS,
+  dsCustomFont,
+  dsNearestWeight,
+  type DsCustomFont,
+  type DsFont,
+} from "./fonts";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -7,8 +15,9 @@ import { DS_DEFAULT_FONT, DS_DEFAULT_DISPLAY_FONT, DS_FONTS, dsCustomFont, type 
  *
  * - two font families, a primary and a display, each a font from
  *   Parabola's list (fonts.ts) or one added to the theme (`customFonts`);
- * - the type scale: for each text style, which family it's set in (primary
- *   unless it's moved to display), its size and its line height.
+ * - the type scale: for each text style, its name, which family it's set
+ *   in (headings in display, the rest in primary, by default), its weight,
+ *   size and line height.
  *
  * Colours, corners and the rest join it later; an older theme without them
  * keeps Parabola's defaults.
@@ -18,20 +27,36 @@ import { DS_DEFAULT_FONT, DS_DEFAULT_DISPLAY_FONT, DS_FONTS, dsCustomFont, type 
 export const DS_TEXT_STYLES = ["display", "h1", "h2", "h3", "p", "prose", "small"] as const;
 export type DsTextStyle = (typeof DS_TEXT_STYLES)[number];
 
-/** Each style's name and Parabola's default size and line height (px), as tokens.css sets them. */
-export const DS_TEXT_STYLE_DEFAULTS: Record<DsTextStyle, { label: string; size: number; lineHeight: number; use: string }> = {
-  display: { label: "Display", size: 60, lineHeight: 64, use: "Editorial headlines on large screens" },
-  h1: { label: "H1", size: 36, lineHeight: 48, use: "Page and post titles" },
-  h2: { label: "H2", size: 24, lineHeight: 30, use: "Sections" },
-  h3: { label: "H3", size: 18, lineHeight: 26, use: "Small headings, the site's name" },
-  p: { label: "P", size: 16, lineHeight: 22, use: "Interface text: buttons, fields, lists" },
-  prose: { label: "Prose", size: 18, lineHeight: 28, use: "Paragraphs people read" },
-  small: { label: "Small", size: 14, lineHeight: 18, use: "Meta and descriptions; the floor" },
-};
-
 export type DsFamilyRole = "primary" | "display";
 
-export type DsTextStyleConfig = { family: DsFamilyRole; size: number; lineHeight: number };
+/**
+ * Each style's default name, family, weight, size and line height (px), as
+ * tokens.css sets them (`npm run check:parabola` checks): headings in the
+ * display family (Instrument Serif, which has one weight), the rest in the
+ * primary at Medium (decisions, 2026-10-28).
+ */
+export const DS_TEXT_STYLE_DEFAULTS: Record<
+  DsTextStyle,
+  { label: string; family: DsFamilyRole; weight: number; size: number; lineHeight: number; use: string }
+> = {
+  display: { label: "Display", family: "display", weight: 400, size: 60, lineHeight: 64, use: "Editorial headlines on large screens" },
+  h1: { label: "H1", family: "display", weight: 400, size: 36, lineHeight: 48, use: "Page and post titles" },
+  h2: { label: "H2", family: "display", weight: 400, size: 24, lineHeight: 30, use: "Sections" },
+  h3: { label: "H3", family: "display", weight: 400, size: 18, lineHeight: 26, use: "Small headings, the site's name" },
+  p: { label: "P", family: "primary", weight: 500, size: 16, lineHeight: 22, use: "Interface text: buttons, fields, lists" },
+  prose: { label: "Prose", family: "primary", weight: 500, size: 18, lineHeight: 28, use: "Paragraphs people read" },
+  small: { label: "Small", family: "primary", weight: 500, size: 14, lineHeight: 18, use: "Meta and descriptions; the floor" },
+};
+
+export type DsTextStyleConfig = {
+  /** What the theme calls it, shown on /parabola ("Display", "H1"…). */
+  label: string;
+  family: DsFamilyRole;
+  /** 100–900; the family's nearest weight is used. */
+  weight: number;
+  size: number;
+  lineHeight: number;
+};
 
 export type DsThemeConfig = {
   fonts: { primary: string; display: string };
@@ -43,7 +68,10 @@ export type DsThemeConfig = {
 export const DS_DEFAULT_THEME: DsThemeConfig = {
   fonts: { primary: DS_DEFAULT_FONT, display: DS_DEFAULT_DISPLAY_FONT },
   type: Object.fromEntries(
-    DS_TEXT_STYLES.map((s) => [s, { family: "primary", size: DS_TEXT_STYLE_DEFAULTS[s].size, lineHeight: DS_TEXT_STYLE_DEFAULTS[s].lineHeight }])
+    DS_TEXT_STYLES.map((s) => {
+      const { label, family, weight, size, lineHeight } = DS_TEXT_STYLE_DEFAULTS[s];
+      return [s, { label, family, weight, size, lineHeight }];
+    })
   ) as Record<DsTextStyle, DsTextStyleConfig>,
   customFonts: [],
 };
@@ -88,7 +116,10 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const primary = known(legacy ? fonts.text : fonts.primary, DS_DEFAULT_FONT);
   const display = known(legacy ? fonts.headings : (fonts.display ?? fonts.secondary), DS_DEFAULT_DISPLAY_FONT);
 
-  const typeRaw = (raw.type ?? {}) as Record<string, { family?: unknown; size?: unknown; lineHeight?: unknown } | undefined>;
+  const typeRaw = (raw.type ?? {}) as Record<
+    string,
+    { label?: unknown; family?: unknown; weight?: unknown; size?: unknown; lineHeight?: unknown } | undefined
+  >;
   const type = Object.fromEntries(
     DS_TEXT_STYLES.map((s) => {
       const d = DS_TEXT_STYLE_DEFAULTS[s];
@@ -98,10 +129,17 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
           ? "primary"
           : t?.family === "display" || t?.family === "secondary"
             ? "display"
-            : legacy && HEADINGS.includes(s) && display !== primary
-              ? "display"
-              : "primary";
-      return [s, { family, size: px(t?.size, d.size, 10, 200), lineHeight: px(t?.lineHeight, d.lineHeight, 10, 240) }];
+            : legacy
+              ? HEADINGS.includes(s) && display !== primary
+                ? "display"
+                : "primary"
+              : d.family;
+      const label = typeof t?.label === "string" && t.label.trim() ? t.label.trim().slice(0, 40) : d.label;
+      const weight = px(t?.weight, family === d.family ? d.weight : family === "display" ? 400 : 500, 100, 900);
+      return [
+        s,
+        { label, family, weight: Math.round(weight / 100) * 100, size: px(t?.size, d.size, 10, 200), lineHeight: px(t?.lineHeight, d.lineHeight, 10, 240) },
+      ];
     })
   ) as Record<DsTextStyle, DsTextStyleConfig>;
 
@@ -120,7 +158,7 @@ export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
     vars[`--ds-font-${s}`] = `var(--ds-family-${t.family})`;
     vars[`--ds-text-${s}`] = `${t.size}px`;
     vars[`--ds-text-${s}-leading`] = `${t.lineHeight}px`;
-    vars[`--ds-weight-${s}`] = String(family(t.family).weight);
+    vars[`--ds-weight-${s}`] = String(dsNearestWeight(family(t.family), t.weight));
   }
   return vars;
 }

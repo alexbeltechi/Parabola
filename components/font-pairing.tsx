@@ -2,6 +2,7 @@ import * as React from "react";
 import { DsField, DS_FIELDS_CLASS } from "../primitives/field";
 import { DsSelect, type DsSelectOption } from "../primitives/select";
 import { cn } from "../cn";
+import { dsNearestWeight } from "../fonts";
 import { dsThemeFonts, type DsFamilyRole, type DsThemeConfig } from "../theme";
 
 /** A theme's fonts as select options, each with "Aa" in its own face before its name. */
@@ -10,7 +11,7 @@ export function dsFontOptions(theme: DsThemeConfig): DsSelectOption[] {
     value: font.id,
     label: font.label,
     indicator: (
-      <span aria-hidden className="w-6 text-p text-ds-fg" style={{ fontFamily: font.family, fontWeight: font.weight }}>
+      <span aria-hidden className="w-6 text-p text-ds-fg" style={{ fontFamily: font.family, fontWeight: dsNearestWeight(font, 500) }}>
         Aa
       </span>
     ),

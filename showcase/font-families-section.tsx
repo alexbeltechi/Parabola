@@ -8,11 +8,27 @@ import { DsField, DsInput } from "../primitives/field";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
 import { dsFontOptions } from "../components/font-pairing";
-import { dsCustomFontFromInput } from "../fonts";
+import { dsCustomFontFromInput, dsNearestWeight, dsWeightName, type DsFont } from "../fonts";
 import { DS_DEFAULT_THEME, dsThemeFont, dsThemeFonts, type DsFamilyRole, type DsThemeConfig } from "../theme";
 import { useThemeEditor } from "./theme-editor";
 
 const SAMPLE = "Ars longa vita brevis";
+
+/** A font's weights by name: "Regular, Medium, Semibold, Bold". */
+const weightNames = (font: DsFont) => font.weights.map(dsWeightName).join(", ");
+
+/** A font's weights as small pills, each in its own weight. */
+function Weights({ font }: { font: DsFont }) {
+  return (
+    <div className="flex flex-wrap gap-ds-4">
+      {font.weights.map((w) => (
+        <DsPill key={w}>
+          <span style={{ fontFamily: font.family, fontWeight: w }}>{dsWeightName(w)}</span>
+        </DsPill>
+      ))}
+    </div>
+  );
+}
 
 const FAMILY: Record<DsFamilyRole, { label: string; use: string }> = {
   primary: { label: "Primary", use: "Text, and every style set in it." },
@@ -32,11 +48,24 @@ function FamilyDialog({
   onSave: (fontId: string) => void;
 }) {
   const [font, setFont] = React.useState(theme.fonts[role]);
+  const picked = dsThemeFont(theme, font);
   return (
     <DsDialog open onOpenChange={(open) => !open && onClose()} title={`${FAMILY[role].label} font`} description={FAMILY[role].use}>
-      <DsField label="Font">
-        <DsSelect options={dsFontOptions(theme)} value={font} onValueChange={setFont} />
-      </DsField>
+      <div className="flex flex-col gap-ds-16">
+        <DsField label="Font">
+          <DsSelect options={dsFontOptions(theme)} value={font} onValueChange={setFont} />
+        </DsField>
+        <DsField
+          label="Weights"
+          description={
+            picked.custom && picked.weights.length === 1
+              ? "Added by its name, so Regular only. For more, add it again from a share link on fonts.google.com with the weights picked."
+              : "Each style picks one of these on Type scale."
+          }
+        >
+          <Weights font={picked} />
+        </DsField>
+      </div>
       <DsDialogActions>
         <DsButton variant="primary" onClick={() => onSave(font)}>
           Save
@@ -93,8 +122,9 @@ function AddFontDialog({ theme, onClose, onAdd }: { theme: DsThemeConfig; onClos
 
 /**
  * Typography › Font families: the theme's two families, primary and display,
- * in their faces, each with an edit button for its font; then every font the
- * theme can use, Parabola's and any Google font added to it (decisions,
+ * in their faces with their weights, each with an edit button for its font;
+ * then every font the theme can use (how many, top right), Parabola's and
+ * any Google font added to it, and Add font under the list (decisions,
  * 2026-10-28).
  */
 export function FontFamiliesSection() {
@@ -120,29 +150,35 @@ export function FontFamiliesSection() {
                   onClick={() => setEditing(role)}
                 />
               </div>
-              <p className="text-h1 text-ds-fg" style={{ fontFamily: font.family, fontWeight: font.weight }}>
+              <p className="text-h1 text-ds-fg" style={{ fontFamily: font.family, fontWeight: dsNearestWeight(font, 400) }}>
                 {SAMPLE}
               </p>
-              <p className="text-p text-ds-fg">{font.label}</p>
+              <div className="flex flex-col gap-ds-4">
+                <p className="text-p text-ds-fg">{font.label}</p>
+                <p className="text-small text-ds-fg-muted">{weightNames(font)}</p>
+              </div>
             </section>
           );
         })}
       </div>
 
       <section className="flex flex-col gap-ds-8">
-        <div className="flex items-center gap-ds-8">
+        <div className="flex items-baseline gap-ds-8">
           <h2 className="flex-1 text-h3 text-ds-fg">Fonts</h2>
-          <DsButton variant="text" iconLeft={Plus} onClick={() => setAdding(true)}>
-            Add font
-          </DsButton>
+          <span className="text-p text-ds-fg-muted tabular-nums">{dsThemeFonts(theme).length}</span>
         </div>
         <ul className="flex flex-col divide-y divide-ds-border border-y border-ds-border">
           {dsThemeFonts(theme).map((font) => (
             <li key={font.id} className="flex items-center gap-ds-16 py-ds-16">
-              <span className="w-12 shrink-0 text-h2 text-ds-fg" style={{ fontFamily: font.family, fontWeight: font.weight }}>
+              <span className="w-12 shrink-0 text-h2 text-ds-fg" style={{ fontFamily: font.family, fontWeight: dsNearestWeight(font, 400) }}>
                 Aa
               </span>
-              <span className="min-w-0 flex-1 truncate text-p text-ds-fg">{font.label}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-p text-ds-fg">{font.label}</span>
+                <span className="truncate text-small text-ds-fg-muted">
+                  {font.weights.length === 1 ? "1 weight" : `${font.weights.length} weights`}
+                </span>
+              </span>
               {used.has(font.id) && <DsPill>In use</DsPill>}
               <span className="text-small text-ds-fg-muted">{font.custom ? "Added" : "Parabola"}</span>
               {font.custom && (
@@ -158,6 +194,9 @@ export function FontFamiliesSection() {
             </li>
           ))}
         </ul>
+        <DsButton iconLeft={Plus} className="mt-ds-8 self-start" onClick={() => setAdding(true)}>
+          Add font
+        </DsButton>
       </section>
 
       {editing && (

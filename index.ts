@@ -21,6 +21,10 @@ export {
   dsCustomFont,
   dsCustomFontFromInput,
   dsGoogleFontsUrl,
+  dsGoogleWeights,
+  dsNearestWeight,
+  dsWeightName,
+  DS_WEIGHT_NAMES,
   type DsFont,
   type DsCustomFont,
 } from "./fonts";

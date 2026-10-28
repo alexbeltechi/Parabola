@@ -15,12 +15,16 @@ import { useThemeEditor } from "./theme-editor";
  * One tile of the preview grid: a few words on what it shows, then the
  * pieces themselves, on the page colour with no outline, so pieces that sit
  * on a surface of their own (the info card) stand out from the canvas.
+ * Fields fill it unless it's wide.
  */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-bg p-ds-20">
-      <p className="text-small text-ds-fg-muted">{label}</p>
-      {children}
+    <section className="@container rounded-ds-lg bg-ds-bg p-ds-20">
+      {/* Fields fill the tile while it's narrow (under 672px), as on a phone; a wider tile gives them their usual width. */}
+      <div className="flex flex-col gap-ds-16 @max-2xl:ds-fields-fill">
+        <p className="text-small text-ds-fg-muted">{label}</p>
+        {children}
+      </div>
     </section>
   );
 }
