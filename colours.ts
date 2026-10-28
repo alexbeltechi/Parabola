@@ -9,7 +9,8 @@
  *   on the theme colour, with Stone's warm greys on the default page
  *   (tokens.css; `npm run check:parabola` checks).
  * - the **accent colour**: Parabola's one highlight, for the few things that
- *   need attention (a highlight pill), and its tint. Purple is Parabola's own.
+ *   need attention (a highlight pill), and its tint. Parabola's own is Purple
+ *   on its own page, and on a theme colour that colour's complement.
  *
  * Each is picked for the light theme (or left as Parabola's). In the dark
  * theme each is, by default, based on the light one: its counterpart
@@ -324,6 +325,20 @@ export function dsCounterpart(hex: string): string {
     : fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, flipped)));
 }
 
+/**
+ * Parabola's accent on a theme colour: its complement (the hue across the
+ * wheel), deep on a light page and pale on a dark one so it reads, its tint
+ * a clean wash of it (pale on a light page, deep on a dark one). None for a page with hardly any colour (a grey
+ * has no complement): Purple stays.
+ */
+function accentFor(page: string): { highlight: string; tint: string } | null {
+  const [h, s] = toHsl(page);
+  if (s < 0.12) return null;
+  const light = dsLuminance(page) > 0.18;
+  const highlight = fromHsl((h + 180) % 360, Math.min(0.85, Math.max(0.55, s)), light ? 0.32 : 0.74);
+  return { highlight, tint: light ? dsMix(highlight, WHITE, 0.14) : dsMix(highlight, BLACK, 0.4) };
+}
+
 /** A hex colour in a theme: the one picked for it, or, based on the light one, its counterpart. */
 function hexIn(colour: DsThemeColour, mode: "light" | "dark"): string | null {
   const light = dsIsHex(colour.light) ? colour.light : null;
@@ -349,7 +364,6 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     const bg = page ?? tokens.bg;
     const fg = text ?? (dsLuminance(bg) > 0.18 ? BLACK : WHITE);
     const card = dsMix(fg, bg, 0.035);
-    const [r, g, b] = toRgb(dsMix(fg, bg, 0.8));
     Object.assign(tokens, {
       bg,
       fg,
@@ -359,14 +373,16 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "surface-subtle": card,
       field: dsMix(fg, card, 0.03),
       surface: dsMix(fg, card, 0.11),
-      "surface-inverse": `rgb(${r} ${g} ${b} / ${mode === "light" ? 0.7 : 0.8})`,
+      // Selected states (a current nav item, a pressed button, a checked box) in the text colour, solid as Publish is.
+      "surface-inverse": fg,
     });
   }
-  const accentLight = colours.accent.light ?? DS_DEFAULT_ACCENT_COLOUR;
   const accent =
     mode === "dark" && colours.accent.dark
       ? { highlight: colours.accent.dark, tint: dsMix(colours.accent.dark, tokens.bg, 0.3) }
-      : dsAccentTokens(accentLight, mode);
+      : !colours.accent.light && page
+        ? (accentFor(page) ?? dsAccentTokens(DS_DEFAULT_ACCENT_COLOUR, mode))
+        : dsAccentTokens(colours.accent.light ?? DS_DEFAULT_ACCENT_COLOUR, mode);
   tokens.highlight = accent.highlight;
   tokens["highlight-tint"] = accent.tint;
   return tokens;

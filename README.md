@@ -121,7 +121,8 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   website's background; cards, fields, panels and borders are shades of
   it), fonts and UI (the text, and the quiet text, borders and shades drawn
   from it; Parabola's is black or white, whichever reads on the page) and
-  the accent colour (the highlight). Each is Parabola's own (null) or a
+  the accent colour (the highlight; Parabola's own is Purple, or the theme
+  colour's complement once one is picked). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one (its
   counterpart, `dsCounterpart`) unless a dark colour is picked for it.
   `dsColourTokens` turns the three into every colour token;
