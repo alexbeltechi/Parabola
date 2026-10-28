@@ -3,7 +3,7 @@ import { DsField, DS_FIELDS_CLASS } from "../primitives/field";
 import { DsSelect, type DsSelectOption } from "../primitives/select";
 import { cn } from "../cn";
 import { dsNearestWeight } from "../fonts";
-import { dsThemeFonts, type DsFamilyRole, type DsThemeConfig } from "../theme";
+import { dsThemeFonts, type DsThemeConfig } from "../theme";
 
 /** A theme's fonts as select options, each with "Aa" in its own face before its name. */
 export function dsFontOptions(theme: DsThemeConfig): DsSelectOption[] {
@@ -19,12 +19,11 @@ export function dsFontOptions(theme: DsThemeConfig): DsSelectOption[] {
 }
 
 /**
- * Parabola font pairing: a theme's two font families (theme.ts), primary and
- * display, each a select of the theme's fonts (Parabola's and any it
- * added) with "Aa" in the face. Every text style is set in one of the two
- * (Typography › Type scale). On Settings › Design and in /parabola's panel
- * (decisions, 2026-10-28). Controlled: it shows `theme` and hands back the
- * whole theme with the change.
+ * Parabola font pairing: a select for each of a theme's font families
+ * (theme.ts: Primary, Secondary and any it added), of the theme's fonts with
+ * "Aa" in the face. Every text style is set in one of them (Typography ›
+ * Type scale). On Settings › Design (decisions, 2026-10-28). Controlled: it
+ * shows `theme` and hands back the whole theme with the change.
  */
 export function DsFontPairing({
   theme,
@@ -41,15 +40,20 @@ export function DsFontPairing({
   className?: string;
 }) {
   const options = dsFontOptions(theme);
-  const set = (role: DsFamilyRole) => (id: string) => onChange({ ...theme, fonts: { ...theme.fonts, [role]: id } });
   return (
     <div data-slot="ds-font-pairing" className={cn(stacked ? "ds-fields-fill flex flex-col gap-ds-16" : DS_FIELDS_CLASS, className)}>
-      <DsField label="Primary" description="Text, and every style set in it.">
-        <DsSelect options={options} value={theme.fonts.primary} onValueChange={set("primary")} disabled={disabled} />
-      </DsField>
-      <DsField label="Display" description="For the styles you set in it, such as headings: a pairing.">
-        <DsSelect options={options} value={theme.fonts.display} onValueChange={set("display")} disabled={disabled} />
-      </DsField>
+      {theme.families.map((family) => (
+        <DsField key={family.id} label={family.label}>
+          <DsSelect
+            options={options}
+            value={family.font}
+            onValueChange={(font) =>
+              onChange({ ...theme, families: theme.families.map((f) => (f.id === family.id ? { ...f, font } : f)) })
+            }
+            disabled={disabled}
+          />
+        </DsField>
+      ))}
     </div>
   );
 }

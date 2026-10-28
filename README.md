@@ -117,28 +117,26 @@ namespace, short and brand-free, so a rename never touches code:
 
 A theme is data (`theme.ts`). For now it's typography:
 
-- **Two font families**, primary and display, each one of `DS_FONTS`
-  (`fonts.ts`: Instrument Sans, the default primary; Instrument Serif, the
-  default display; System) or a Google font added to the theme
-  (`customFonts`, from its name or link: `dsCustomFontFromInput`).
+- **Font families** (`families`): Primary (text, always there) and Secondary
+  (headlines) to start, and any the theme adds, each a name and a font.
+- **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,
+  Instrument Serif, System), less any the theme took out (`hiddenFonts`;
+  never System), plus Google fonts it added (`customFonts`, from a name or a
+  link: `dsCustomFontFromInput`). Each font lists its weights.
 - **The type scale**: for each text style (`DS_TEXT_STYLES`, Display to
   Small) its name, family, weight, size and line height. By default Display
-  to H3 are in the display family (Instrument Serif, Regular) and the rest
-  in the primary (Instrument Sans, Medium); tokens.css holds the defaults.
+  to H3 are Secondary (Instrument Serif, Regular) and the rest Primary
+  (Instrument Sans, Medium); tokens.css holds the defaults.
 
-Each font lists the weights it has (`weights`); a style's weight is snapped
-to the nearest one its family's font has (`dsNearestWeight`), so nothing is
-faked. An added Google font has the weights its link names (Regular only
-from a bare name).
-
-The type tokens are `--ds-*` variables (`--ds-family-primary`,
-`--ds-family-display`, `--ds-font-<style>`, `--ds-text-<style>`, `--ds-text-<style>-leading`,
-`--ds-weight-<style>`), so a theme changes them at run time. Make one on
-`/parabola`: Theme (a grid of pieces, the theme as JSON) and Typography (Font
-families, Type scale: an edit button on each family and style opens its
-settings), then Publish, top right on every page, beside a ⋮ menu that
-restores this page's defaults or all of them (with Undo in the toast). An app
-applies a theme once, in its `<head>`:
+A style's weight snaps to the nearest one its family's font has
+(`dsNearestWeight`), so nothing is faked. The type tokens are `--ds-*`
+variables (`--ds-family-<id>`, `--ds-font-<style>`, `--ds-text-<style>`,
+`--ds-text-<style>-leading`, `--ds-weight-<style>`), so a theme changes them
+at run time. Make one on `/parabola`: Theme (a grid of pieces, the theme as
+JSON) and Typography (Font families, Type scale: an edit button on each
+family and style opens its settings), with Undo, Redo, Publish and a ⋮ menu
+to restore defaults top right on every page. An app applies a theme once, in
+its `<head>`:
 
 ```tsx
 <DsThemeStyle theme={theme} />                         {/* loads its Google fonts */}
@@ -148,7 +146,7 @@ applies a theme once, in its `<head>`:
 An app that hosts Parabola's fonts (the CMS does, with next/font) sets
 `--ds-font-<id>` to its family names; each stack tries it first. Pass the
 theme and a saver to `DsProvider` (`themeConfig`, `onThemeConfigChange`) and
-`/parabola` saves too. `DsFontPairing` picks the two families.
+`/parabola` publishes too. `DsFontPairing` picks each family's font.
 
 ## Using it
 

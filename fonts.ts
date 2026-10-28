@@ -51,8 +51,8 @@ export const DS_FONTS: DsFont[] = [
 
 /** The primary family's default face: tokens.css sets `--ds-family-primary` to its stack (`npm run check:parabola` checks). */
 export const DS_DEFAULT_FONT = "instrument-sans";
-/** The display family's default face, for a pairing (`--ds-family-display`). */
-export const DS_DEFAULT_DISPLAY_FONT = "instrument-serif";
+/** The secondary family's default face, for headlines (`--ds-family-secondary`). */
+export const DS_DEFAULT_SECONDARY_FONT = "instrument-serif";
 
 /** What each weight is called. */
 export const DS_WEIGHT_NAMES: Record<number, string> = {
@@ -139,6 +139,12 @@ export function dsCustomFontFromInput(input: string): DsCustomFont | null {
   const label = google.split(":")[0].replace(/\+/g, " ").trim();
   if (!label) return null;
   return { id: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label, google: google.replace(/ /g, "+") };
+}
+
+/** A Google font's page on fonts.google.com, to check it's the one meant; null for System. */
+export function dsGoogleFontsPage(font: DsFont): string | null {
+  if (!font.google) return null;
+  return `https://fonts.google.com/specimen/${font.google.split(":")[0]}`;
 }
 
 /** One Google Fonts stylesheet for these fonts, or null when none of them is a Google font. */

@@ -11,8 +11,8 @@ import {
   DS_DEFAULT_THEME,
   DS_TEXT_STYLES,
   DS_TEXT_STYLE_DEFAULTS,
-  dsThemeFont,
-  type DsFamilyRole,
+  dsFamily,
+  dsFamilyFont,
   type DsTextStyle,
   type DsTextStyleConfig,
   type DsThemeConfig,
@@ -31,8 +31,6 @@ const SPECIMEN: Record<DsTextStyle, { tag: "h1" | "h2" | "h3" | "p" | "small"; c
 };
 
 const SAMPLE = "Ars longa vita brevis";
-
-const FAMILY_LABEL: Record<DsFamilyRole, string> = { primary: "Primary", display: "Display" };
 
 /**
  * A number in px, applied as soon as it's in range: what's typed stays in
@@ -94,11 +92,11 @@ function StyleDialog({
 }) {
   const [draft, setDraft] = React.useState<DsTextStyleConfig>(theme.type[style]);
   const { use } = DS_TEXT_STYLE_DEFAULTS[style];
-  const familyOptions = (["primary", "display"] as DsFamilyRole[]).map((role) => ({
-    value: role,
-    label: `${FAMILY_LABEL[role]}: ${dsThemeFont(theme, theme.fonts[role]).label}`,
+  const familyOptions = theme.families.map((family) => ({
+    value: family.id,
+    label: `${family.label}: ${dsFamilyFont(theme, family.id).label}`,
   }));
-  const font = dsThemeFont(theme, theme.fonts[draft.family]);
+  const font = dsFamilyFont(theme, draft.family);
   const weight = dsNearestWeight(font, draft.weight);
   return (
     <DsDialog open onOpenChange={(open) => !open && onClose()} title={theme.type[style].label} description={use}>
@@ -110,7 +108,7 @@ function StyleDialog({
           <DsSelect
             options={familyOptions}
             value={draft.family}
-            onValueChange={(family) => setDraft({ ...draft, family: family as DsFamilyRole })}
+            onValueChange={(family) => setDraft({ ...draft, family })}
           />
         </DsField>
         <DsField
@@ -166,7 +164,7 @@ export function FontsSection() {
       {DS_TEXT_STYLES.map((style) => {
         const { tag: Tag, className } = SPECIMEN[style];
         const t = theme.type[style];
-        const font = dsThemeFont(theme, theme.fonts[t.family]);
+        const font = dsFamilyFont(theme, t.family);
         const { label } = t;
         return (
           <div key={style} className="flex max-w-full flex-col items-center gap-ds-8">
@@ -175,7 +173,7 @@ export function FontsSection() {
               <DsButton variant="text" iconLeft={Pencil} aria-label={`Edit ${label}`} onClick={() => setEditing(style)} />
             </div>
             <p className="text-small text-ds-fg-muted">
-              {label}: {t.size} / {t.lineHeight} · {FAMILY_LABEL[t.family]} ({font.label}) ·{" "}
+              {label}: {t.size} / {t.lineHeight} · {dsFamily(theme, t.family).label} ({font.label}) ·{" "}
               {dsWeightName(dsNearestWeight(font, t.weight))}
             </p>
           </div>
