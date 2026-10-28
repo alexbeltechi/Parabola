@@ -155,7 +155,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeEditorProvider>
-      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border p-5 md:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border bg-ds-surface-subtle p-5 md:flex">
         <div className="flex items-center justify-between">
           <ShellMenu />
           <DsThemeToggle />
@@ -176,7 +176,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
         </DsMenu>
       </div>
 
-      <main className="flex min-h-screen flex-col bg-ds-surface-subtle pt-[76px] md:ml-[240px] md:pt-0">
+      <main className="flex min-h-screen flex-col bg-ds-bg pt-[76px] md:ml-[240px] md:pt-0">
         {children}
       </main>
       {/* One toaster for every page: the theme's, and the Toast specimen's. */}
@@ -225,11 +225,11 @@ export function DsCanvas({
           lg the header runs across the page and the panel, a rule under it, and
           the two scroll on their own beneath it, the panel a column on the right. */}
       <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_minmax(0,1fr)]">
-        {/* Pinned on the canvas's own colour, so the page never shows through behind
+        {/* Pinned on the page colour (as the panel is; the sidebar sits on the surface), so the page never shows through behind
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <DsTopBar className="top-[76px] self-start bg-ds-surface-subtle before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:before:hidden lg:col-span-2 lg:row-start-1">
+        <DsTopBar className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-2 lg:row-start-1">
           <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
             <div className="flex min-w-0 flex-col">
               <p className="text-small text-ds-fg-subtle">{group}</p>
@@ -271,7 +271,7 @@ export function DsCanvas({
             ref={setSlot}
             className="flex flex-col gap-ds-16 p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16"
           />
-          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-surface-subtle p-ds-16 empty:hidden" />
+          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-bg p-ds-16 empty:hidden" />
         </aside>
       </div>
       </DsAccordionGroup>
