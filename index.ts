@@ -16,7 +16,7 @@ export { DS_GUTTER_PX, DS_SPACES, type DsSpace } from "./spacing";
 export {
   DS_FONTS,
   DS_DEFAULT_FONT,
-  DS_DEFAULT_SECONDARY_FONT,
+  DS_DEFAULT_HEADING_FONT,
   dsFont,
   dsCustomFont,
   dsCustomFontFromInput,
@@ -30,13 +30,19 @@ export {
   type DsCustomFont,
 } from "./fonts";
 export {
+  DS_BODY_FAMILY,
+  DS_DEFAULT_LIBRARY,
   DS_DEFAULT_THEME,
+  DS_DEFAULT_THEME_ID,
+  DS_HEADING_FAMILY,
   DS_PERMANENT_FONT,
-  DS_PRIMARY_FAMILY,
   DS_TEXT_STYLES,
   DS_TEXT_STYLE_DEFAULTS,
+  dsActiveTheme,
   dsApplyTheme,
   dsThemeCss,
+  dsThemeDarkVars,
+  dsThemeEntryId,
   dsFamily,
   dsFamilyFont,
   dsFamilyId,
@@ -45,17 +51,31 @@ export {
   dsThemeFonts,
   dsThemeVars,
   parseDsThemeConfig,
+  parseDsThemeLibrary,
   type DsFontFamily,
   type DsTextStyle,
   type DsTextStyleConfig,
   type DsThemeConfig,
+  type DsThemeEntry,
+  type DsThemeLibrary,
 } from "./theme";
+export {
+  DS_BASE_COLOURS,
+  DS_SECONDARY_COLOURS,
+  DS_ICON_LIBRARIES,
+  DS_DEFAULT_BASE_COLOUR,
+  DS_DEFAULT_SECONDARY_COLOUR,
+  dsBaseColour,
+  dsSecondaryColour,
+  type DsBaseColour,
+  type DsSecondaryColour,
+} from "./colours";
 export { DsThemeStyle } from "./theme-style";
 export {
   DsProvider,
   DsLink,
   useDsSetTheme,
-  useDsThemeConfig,
+  useDsThemeLibrary,
   type DsLinkComponent,
   type DsLinkProps,
 } from "./provider";

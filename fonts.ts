@@ -49,10 +49,10 @@ export const DS_FONTS: DsFont[] = [
   { id: "system", label: "System", family: SYSTEM_STACK, weights: [300, 400, 500, 600, 700] },
 ];
 
-/** The primary family's default face: tokens.css sets `--ds-family-primary` to its stack (`npm run check:parabola` checks). */
+/** The Font family's default face: tokens.css sets `--ds-family-body` to its stack (`npm run check:parabola` checks). */
 export const DS_DEFAULT_FONT = "instrument-sans";
-/** The secondary family's default face, for headlines (`--ds-family-secondary`). */
-export const DS_DEFAULT_SECONDARY_FONT = "instrument-serif";
+/** The Heading family's default face, for headlines (`--ds-family-heading`). */
+export const DS_DEFAULT_HEADING_FONT = "instrument-serif";
 
 /** What each weight is called. */
 export const DS_WEIGHT_NAMES: Record<number, string> = {

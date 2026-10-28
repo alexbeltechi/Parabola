@@ -113,40 +113,46 @@ namespace, short and brand-free, so a rename never touches code:
 | Tailwind utilities | `*-ds-*` | `bg-ds-surface`, `text-ds-fg-muted`, `rounded-ds-lg` |
 | CSS utilities | `ds-*` | `ds-focus`, `ds-hover`, `ds-nav-fade` |
 
-## Themes and typography
+## Themes
 
-A theme is data (`theme.ts`). For now it's typography:
+A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
-- **Font families** (`families`): Primary (text, always there) and Secondary
+- **Colours** (`colours.ts`): a base colour, the greys every surface, border
+  and quiet text uses (Stone, the default and tokens.css's, Neutral, Zinc,
+  Slate, Gray), and a secondary colour, the one highlight (Purple, the
+  default, Blue, Teal, Green, Orange, Rose), each in light and dark.
+- **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
 - **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,
   Instrument Serif, System), less any the theme took out (`hiddenFonts`;
   never System), plus Google fonts it added (`customFonts`, from a name or a
   link: `dsCustomFontFromInput`). Each font lists its weights.
-- **The type scale**: for each text style (`DS_TEXT_STYLES`, Display to
-  Small) its name, family, weight, size and line height. By default Display
-  to H2 are Secondary (Instrument Serif, Regular) and the rest, H3 included,
-  Primary (Instrument Sans, Medium); tokens.css holds the defaults.
+- **The type scale**: for each text style (`DS_TEXT_STYLES`) its name,
+  family, weight, size and line height. By default Display to H2 are in
+  Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
+  (Instrument Sans, Medium).
+- **Icons**: the library, Lucide for now.
 
-A style's weight snaps to the nearest one its family's font has
-(`dsNearestWeight`), so nothing is faked. The type tokens are `--ds-*`
-variables (`--ds-family-<id>`, `--ds-font-<style>`, `--ds-text-<style>`,
-`--ds-text-<style>-leading`, `--ds-weight-<style>`), so a theme changes them
-at run time. Make one on `/parabola`: Theme (a grid of pieces, the theme as
-JSON) and Typography (Font families, Type scale: an edit button on each
-family and style opens its settings), with Undo, Redo, Publish and a ⋮ menu
-to restore defaults top right on every page. An app applies a theme once, in
-its `<head>`:
+Themes are kept in a **library** (`DsThemeLibrary`): Default and any added,
+one of them in use. A style's weight snaps to the nearest one its family's
+font has (`dsNearestWeight`). The tokens a theme sets are `--ds-*` variables
+(`--ds-bg`… `--ds-highlight`, `--ds-family-<id>`, `--ds-font-<style>`,
+`--ds-text-<style>`, `--ds-text-<style>-leading`, `--ds-weight-<style>`), light
+on `:root` and dark on `.dark`, so a theme changes them at run time. Make
+themes on `/parabola`: Theme (a grid of pieces, and the main choices in the
+panel on the right) and Typography (Font families, Type scale), with the
+open theme's name, Undo, Redo, Publish and a ⋮ menu to restore defaults top
+right on every page. An app applies the theme in use once, in its `<head>`:
 
 ```tsx
-<DsThemeStyle theme={theme} />                         {/* loads its Google fonts */}
-<DsThemeStyle theme={theme} hosted={["instrument-sans", …]} />  {/* the app hosts these */}
+<DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its Google fonts */}
+<DsThemeStyle theme={…} hosted={["instrument-sans", "instrument-serif", "system"]} />  {/* the app hosts these */}
 ```
 
 An app that hosts Parabola's fonts (the CMS does, with next/font) sets
 `--ds-font-<id>` to its family names; each stack tries it first. Pass the
-theme and a saver to `DsProvider` (`themeConfig`, `onThemeConfigChange`) and
-`/parabola` publishes too. `DsFontPairing` picks each family's font.
+library and a saver to `DsProvider` (`themeLibrary`, `onThemeLibraryChange`)
+and `/parabola` publishes too.
 
 ## Using it
 

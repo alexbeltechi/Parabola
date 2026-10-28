@@ -13,7 +13,7 @@ import { dsCustomFontFromInput, dsGoogleFontsPage, dsNearestWeight, dsWeightName
 import {
   DS_DEFAULT_THEME,
   DS_PERMANENT_FONT,
-  DS_PRIMARY_FAMILY,
+  DS_BODY_FAMILY,
   dsFamilyFont,
   dsFamilyId,
   dsRemoveFamily,
@@ -86,7 +86,7 @@ function FamilyDialog({
       onOpenChange={(open) => !open && onClose()}
       title={family ? family.label : "Add a family"}
       description={
-        family?.id === DS_PRIMARY_FAMILY
+        family?.id === DS_BODY_FAMILY
           ? "Text, and every style set in it."
           : "A font your styles can be set in: headlines, quotes, captions…"
       }
@@ -294,7 +294,7 @@ export function FontFamiliesSection() {
             setEditing(null);
           }}
           onRemove={
-            editingFamily && editingFamily.id !== DS_PRIMARY_FAMILY
+            editingFamily && editingFamily.id !== DS_BODY_FAMILY
               ? () => {
                   change(dsRemoveFamily(theme, editingFamily.id), `${editingFamily.label} removed; its styles are in Primary now`);
                   setEditing(null);
