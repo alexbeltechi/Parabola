@@ -193,13 +193,14 @@ export function DsCanvas({
       {/* One grid for the header, the page and its panel, so the header stays pinned
           over all of it: on phones the panel comes under the page, and a header
           sticky only within the page's own column would scroll away there. From
-          lg the panel is a column of its own on the right. */}
-      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_1fr]">
+          lg the header runs across the page and the panel, a rule under it, and
+          the two scroll on their own beneath it, the panel a column on the right. */}
+      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_minmax(0,1fr)]">
         {/* Pinned on the canvas's own colour, so the page never shows through behind
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 self-start bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:pt-6 md:before:hidden lg:col-start-1 lg:row-start-1">
+        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 self-start bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle border-b border-ds-border md:top-0 md:pt-6 md:before:hidden lg:col-span-2 lg:row-start-1">
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-small text-ds-fg-subtle">{group}</p>
             <h1 className="text-h3 text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
@@ -211,7 +212,7 @@ export function DsCanvas({
             around it stays Parabola's own, in the UI's mode. */}
         <div
           data-ds-mode={previewMode}
-          className={`${DS_THEME_SCOPE} flex min-w-0 items-center justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2`}>
+          className={`${DS_THEME_SCOPE} flex min-w-0 items-center-safe justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto`}>
           <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
         </div>
         {/* The page's properties; hidden while it has none. A rule between sections,
@@ -219,7 +220,7 @@ export function DsCanvas({
         <aside
           ref={setSlot}
           aria-label="Properties"
-          className="flex flex-col gap-ds-20 self-start border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-screen lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
+          className="flex flex-col gap-ds-20 self-start border-t border-ds-border p-ds-20 empty:hidden lg:col-start-2 lg:row-start-2 lg:h-full lg:min-h-0 lg:self-stretch lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
         />
       </div>
     </PanelSlotContext.Provider>

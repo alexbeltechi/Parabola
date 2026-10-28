@@ -247,23 +247,30 @@ export function ThemeSection() {
           <DsPill>Essay</DsPill>
           <DsPill variant="dark">Published</DsPill>
         </div>
-        <h1 className="text-display text-ds-fg">Ars longa</h1>
+        <h1 className="text-display text-ds-fg">Ars longa, vita brevis</h1>
         <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
-        <p className="text-prose text-ds-fg">
-          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
-        </p>
         <p className="text-prose text-ds-fg-muted">
-          So now I start with the smallest thing that could stand on its own, and let it ask for more.
+          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
         </p>
         <p className="text-small text-ds-fg-muted">2026 · 2 min · Small, the floor</p>
       </article>
 
-      <div className="flex flex-wrap items-center gap-ds-8">
-        <DsButton variant="primary" size="large">
-          Book a call
-        </DsButton>
-        <DsButton size="large">Read more</DsButton>
-      </div>
+      {/* A card above the fold, on the surface, with the big marketing buttons. */}
+      <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
+        <h3 className="text-h3 text-ds-fg">The studio notebook</h3>
+        <p className="text-p text-ds-fg-muted">One letter a season: what I made, what I dropped and why.</p>
+        <div className="@max-2xl:ds-fields-fill">
+          <DsField label="Email">
+            <DsInput placeholder="you@example.com" />
+          </DsField>
+        </div>
+        <div className="flex flex-wrap items-center gap-ds-8">
+          <DsButton variant="primary" size="large">
+            Subscribe
+          </DsButton>
+          <DsButton size="large">Learn more</DsButton>
+        </div>
+      </section>
 
       <section className="flex flex-col gap-ds-20">
         <h2 className="text-h2 text-ds-fg">Writing</h2>
@@ -277,21 +284,24 @@ export function ThemeSection() {
         />
       </section>
 
-      {/* The one card: on the surface, as a site's newsletter box is. */}
-      <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
-        <h3 className="text-h3 text-ds-fg">Letters, now and then</h3>
-        <p className="text-p text-ds-fg-muted">What I&apos;m making, a few times a year.</p>
-        <div className="flex flex-wrap items-end gap-ds-8 @max-2xl:ds-fields-fill">
-          <DsField label="Email">
-            <DsInput placeholder="you@example.com" />
-          </DsField>
-          <DsButton variant="primary">Subscribe</DsButton>
+      {/* A product card, as the admin shows a draft: its name and state, a note, its actions. */}
+      <section className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
+        <div className="flex items-start justify-between gap-ds-16">
+          <div className="flex flex-col gap-ds-4">
+            <h3 className="text-h3 text-ds-fg">How to listen to a lake</h3>
+            <p className="text-small text-ds-fg-muted">Edited today · 3 images</p>
+          </div>
+          <DsPill>Draft</DsPill>
+        </div>
+        <DsInfoCard title="Not live yet">
+          <p>Changes to a published post wait until you publish them.</p>
+        </DsInfoCard>
+        <div className="flex flex-wrap items-center gap-ds-8">
+          <DsButton variant="primary">Publish</DsButton>
+          <DsButton>Save</DsButton>
+          <DsButton variant="text">Preview</DsButton>
         </div>
       </section>
-
-      <DsInfoCard title="Not live yet">
-        <p>Changes to a published post wait until you publish them.</p>
-      </DsInfoCard>
 
     <DsField
         label={`${entry.name} as data`}
