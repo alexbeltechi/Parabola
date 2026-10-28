@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
+import { ChevronRight, Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsCopyField } from "../primitives/copy-field";
@@ -19,7 +19,6 @@ import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsH
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
-import { DsLink } from "../provider";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY, parseDsThemeConfig, type DsThemeConfig } from "../theme";
 import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
@@ -54,8 +53,6 @@ function ColourChoice({
   const shiftKey = mode === "light" ? "lightShift" : "darkShift";
   const basedOn = mode === "dark" ? "light theme" : LIGHT_BASIS[kind];
   const based = basedOn !== null && colour[pick] === null;
-  // Not set by you: Parabola's own, or based on another. Its picker shows faint until it's touched.
-  const unset = colour[pick] === null;
   // What it's based on, for the bar's middle, and how much lighter or darker it is than that.
   const unshifted = dsColourShown({ ...colours, [kind]: { ...colour, [shiftKey]: 0 } }, kind, mode);
   const at = (amount: number) => dsShift(unshifted, amount);
@@ -72,25 +69,26 @@ function ColourChoice({
           <span className="text-p text-ds-fg">Based on {basedOn}</span>
         </label>
       )}
-      {based && (
-        <DsColourBar
-          label={`${label} brightness`}
-          title="Brightness"
-          // Lighter (+) or darker (−) than what it's based on, out of 100: what it is, not just what was moved.
-          readout={diff === 0 ? "0" : `${diff > 0 ? "+" : "−"}${Math.abs(diff)}`}
-          value={Math.min(1, Math.max(0, (diff / 100 + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)))}
-          onChange={(x) => {
-            const amount = Math.round((x * 2 - 1) * DS_SHIFT_MAX * 100) / 100;
-            set({ [shiftKey]: amount });
-          }}
-          valueText={diff === 0 ? "As it is" : `${Math.abs(diff)}% ${diff < 0 ? "darker" : "lighter"}`}
-          track={`linear-gradient(to right, ${[-1, -0.5, 0, 0.5, 1].map((t) => at(t * DS_SHIFT_MAX)).join(", ")})`}
-          thumb={shown}
-        />
-      )}
-      {/* Faint until you set it (Parabola's own, or based on something); touching it gives the colour its own, from where it is. */}
-      <div className={cn(unset && "opacity-30 transition-opacity hover:opacity-60")}>
-        <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
+      {/* Faint while it's based on another (ticked); the bar shifts it, touching the picker makes it yours.
+          Theme colour and Typography have no tick in light, so they're always clear. */}
+      <div className={cn("flex flex-col gap-ds-8", based && "opacity-30 transition-opacity hover:opacity-60")}>
+        {based && (
+          <DsColourBar
+            label={`${label} brightness`}
+            title="Brightness"
+            // Lighter (+) or darker (−) than what it's based on, out of 100: what it is, not just what was moved.
+            readout={diff === 0 ? "0" : `${diff > 0 ? "+" : "−"}${Math.abs(diff)}`}
+            value={Math.min(1, Math.max(0, (diff / 100 + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)))}
+            onChange={(x) => {
+              const amount = Math.round((x * 2 - 1) * DS_SHIFT_MAX * 100) / 100;
+              set({ [shiftKey]: amount });
+            }}
+            valueText={diff === 0 ? "As it is" : `${Math.abs(diff)}% ${diff < 0 ? "darker" : "lighter"}`}
+            track={`linear-gradient(to right, ${[-1, -0.5, 0, 0.5, 1].map((t) => at(t * DS_SHIFT_MAX)).join(", ")})`}
+            thumb={shown}
+          />
+        )}
+          <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
       </div>
     </DsAccordion>
   );
@@ -155,7 +153,8 @@ function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radiu
   return (
     <div className="flex flex-col gap-ds-8">
       <div className="flex items-center gap-ds-4" role="group" aria-label="Radius">
-        {DS_RADII.map((r) => (
+        {/* Small is left out of the choices (an older theme's still reads); Custom covers what's between. */}
+        {DS_RADII.filter((r) => r.id !== "small").map((r) => (
           <DsButton key={r.id} className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
             {r.label}
           </DsButton>
@@ -450,10 +449,10 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
-          title="Type"
+          title="Typography"
           actions={
             <SectionRestore
-              section="Type"
+              section="Typography"
               theme={theme}
               setTheme={setTheme}
               restore={(t) => parseDsThemeConfig({ ...t, families: DS_DEFAULT_THEME.families, hiddenFonts: [] })}
@@ -469,12 +468,9 @@ export function ThemeSection() {
             <DsSelect options={fontOptions} value={body.font} onValueChange={(font) => setFamilyFont(body.id, font)} />
           </DsField>
           {/* In-app, so the unpublished draft comes along. */}
-          <DsLink
-            href="/parabola/typography/font-families"
-            className="text-small text-ds-fg-muted underline underline-offset-4 hover:text-ds-fg"
-          >
-            More families, fonts and the type scale
-          </DsLink>
+          <DsButton href="/parabola/typography/font-families" variant="text" iconRight={ChevronRight} className="-ml-3 self-start">
+            More settings
+          </DsButton>
         </PanelSection>
 
         <PanelSection

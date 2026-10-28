@@ -290,7 +290,7 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
  * once published), each after a confirm and with Undo in the toast that
  * follows. Nothing restored is live until it's published.
  */
-export function ThemeHeaderActions() {
+export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNode }) {
   const { theme, setTheme, entry, dirty, saving, canSave, save, canUndo, canRedo, undo, redo, backToParabola } = useThemeEditor();
   const pathname = usePathname();
   const [publishing, setPublishing] = React.useState(false);
@@ -317,15 +317,16 @@ export function ThemeHeaderActions() {
 
   return (
     <div className="flex shrink-0 items-center gap-ds-8">
-      <DsButton iconLeft={Undo2} onClick={undo} disabled={!canUndo || saving}>
+      <DsButton variant="text" iconLeft={Undo2} onClick={undo} disabled={!canUndo || saving}>
         Undo
       </DsButton>
-      <DsButton iconLeft={Redo2} aria-label="Redo" onClick={redo} disabled={!canRedo || saving} />
+      <DsButton variant="text" iconLeft={Redo2} aria-label="Redo" onClick={redo} disabled={!canRedo || saving} />
       {canSave && (
         <DsButton variant="primary" onClick={() => setPublishing(true)} disabled={!dirty} loading={saving}>
           Publish
         </DsButton>
       )}
+      {beforeMenu}
       <DsDropdown>
         <DsDropdownTrigger asChild>
           <DsButton variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />

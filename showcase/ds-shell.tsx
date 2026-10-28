@@ -235,19 +235,21 @@ export function DsCanvas({
               <p className="text-small text-ds-fg-subtle">{group}</p>
               <h1 className="text-p text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
             </div>
-            <div className="flex shrink-0 items-center gap-ds-8">
-              <DsButton
-                iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}
-                aria-label={allOpen ? "Collapse all" : "Expand all"}
-                title={allOpen ? "Collapse all" : "Expand all"}
-                onClick={() => {
-                  setAllOpen((o) => !o);
-                  setVersion((v) => v + 1);
-                }}
-              />
-              {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
-              <ThemeHeaderActions />
-            </div>
+            {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are; Collapse all / Expand all just before the ⋮. */}
+            <ThemeHeaderActions
+              beforeMenu={
+                <DsButton
+                  variant="text"
+                  iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}
+                  aria-label={allOpen ? "Collapse all" : "Expand all"}
+                  title={allOpen ? "Collapse all" : "Expand all"}
+                  onClick={() => {
+                    setAllOpen((o) => !o);
+                    setVersion((v) => v + 1);
+                  }}
+                />
+              }
+            />
           </div>
         </DsTopBar>
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
