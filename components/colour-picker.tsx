@@ -114,8 +114,8 @@ export function DsColourBar({
 /**
  * Parabola colour picker, inline (no pop-up): a square for saturation (left
  * to right) and brightness (bottom to top) in the chosen hue, the hex right
- * under it (typed or pasted), a hue bar of the whole rainbow, with `warmth`
- * a bar from cold to warm (white balance, for a page colour: white to
+ * under it (typed or pasted), a hue bar of the whole rainbow, a warmth bar
+ * from cold to warm (white balance, for a page colour: white to
  * paper), and a brightness bar from black through the colour to white (all
  * DsColourBar). Drag any of them, or use the arrow keys on them (Shift for bigger steps). Every change is reported at
  * once, so whatever wears the colour follows live. Controlled: `value` is a
@@ -125,13 +125,13 @@ export function DsColourPicker({
   value,
   onChange,
   className,
-  warmth = false,
+  warmth = true,
   "aria-label": label,
 }: {
   value: string;
   onChange: (hex: string) => void;
   className?: string;
-  /** Add the warmth bar, between hue and brightness. */
+  /** The warmth bar, between hue and brightness (on by default). */
   warmth?: boolean;
   /** What the colour is for, naming the picker's group. */
   "aria-label"?: string;

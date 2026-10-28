@@ -88,7 +88,7 @@ function ColourChoice({
             thumb={shown}
           />
         )}
-          <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
+          <DsColourPicker aria-label={label} value={shown} onChange={(hex) => set({ [pick]: hex })} />
       </div>
     </DsAccordion>
   );
