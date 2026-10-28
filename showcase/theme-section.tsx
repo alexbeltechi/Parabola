@@ -71,6 +71,9 @@ function ColourChoice({
       {based ? (
         <DsColourBar
           label={`${label} brightness`}
+          title="Brightness"
+          // Lighter (+) or darker (−) than what it's based on, out of 100.
+          readout={shift === 0 ? "0" : `${shift > 0 ? "+" : "−"}${Math.abs(Math.round(shift * 100))}`}
           value={(shift + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)}
           onChange={(x) => {
             const amount = Math.round((x * 2 - 1) * DS_SHIFT_MAX * 100) / 100;

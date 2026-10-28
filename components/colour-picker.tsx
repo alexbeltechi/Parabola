@@ -43,8 +43,10 @@ const THUMB_RING = "inset 0 0 0 2px white, 0 0 0 1px black";
  * Parabola colour bar: a slider whose track shows the colours it gives, left
  * to right, and a thumb in the colour it's on. The colour picker's hue and
  * brightness are both one, and so is a theme colour's shift from what it's
- * based on. Drag it, or use the arrow keys (Shift for bigger steps).
- * Controlled: `value` from 0 to 1.
+ * based on. Drag it, or use the arrow keys (Shift for bigger steps). With
+ * `readout`, its name sits on the left above it and its value on the right,
+ * so a colour can be noted down and made again. Controlled: `value` from 0
+ * to 1.
  */
 export function DsColourBar({
   value,
@@ -52,6 +54,8 @@ export function DsColourBar({
   track,
   thumb,
   label,
+  title = label,
+  readout,
   valueText,
   className,
 }: {
@@ -62,12 +66,16 @@ export function DsColourBar({
   /** The thumb's colour. */
   thumb: string;
   label: string;
+  /** The name shown above it, when it differs from `label` ("Brightness" for "Buttons brightness"). */
+  title?: string;
+  /** The value shown above it on the right: "212°", "64", "−6". */
+  readout?: string;
   /** What the value means, for assistive tech ("10% darker"). */
   valueText?: string;
   className?: string;
 }) {
   const drag = useDrag((x) => onChange(x));
-  return (
+  const bar = (
     <div
       role="slider"
       tabIndex={0}
@@ -89,6 +97,16 @@ export function DsColourBar({
       {...drag}
     >
       <span className={THUMB} style={{ boxShadow: THUMB_RING, left: `${value * 100}%`, top: "50%", backgroundColor: thumb }} />
+    </div>
+  );
+  if (readout === undefined) return bar;
+  return (
+    <div className="flex flex-col gap-ds-8">
+      <div className="flex items-baseline justify-between gap-ds-8 text-small">
+        <span className="text-ds-fg-muted">{title}</span>
+        <span className="text-ds-fg tabular-nums">{readout}</span>
+      </div>
+      {bar}
     </div>
   );
 }
@@ -173,6 +191,7 @@ export function DsColourPicker({
       </div>
       <DsColourBar
         label="Hue"
+        readout={`${Math.round(hsv.h) % 360}°`}
         value={hsv.h / 360}
         onChange={(x) => set({ ...hsv, h: x * 360 })}
         track="linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)"
@@ -181,6 +200,7 @@ export function DsColourPicker({
       {warmth && (
         <DsColourBar
           label="Warmth"
+          readout={String(Math.round(dsWarmth(shown) * 100))}
           value={dsWarmth(shown)}
           onChange={(w) => {
             const hex = dsWithWarmth(shown, w);
@@ -195,6 +215,7 @@ export function DsColourPicker({
       )}
       <DsColourBar
         label="Brightness"
+        readout={String(Math.round(light * 100))}
         value={light}
         onChange={(l) => {
           const hex = dsHslToHex(hsv.h, sat || hsv.s, l);
