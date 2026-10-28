@@ -396,16 +396,41 @@ export function dsCounterpart(hex: string): string {
 }
 
 /**
+ * Text, a button or the accent in the other theme: the same hue, as rich,
+ * moved from its own lightness only as far as it needs to read on `page`
+ * (`contrast`: 4.5:1 for text and the accent; 2:1 for a button's fill, whose
+ * label is black or white on it, so it can stay closer to itself), so a
+ * red stays a red, a navy a blue, instead of going to near white the way a
+ * page's counterpart does (`dsCounterpart`, for pages and cards).
+ */
+export function dsInkCounterpart(hex: string, page: string, contrast = 4.5): string {
+  const [h, s, l] = toHsl(hex);
+  const toLight = dsLuminance(page) <= 0.18;
+  let lightness = l;
+  let out = hex;
+  for (let step = 0; step < 50 && dsContrast(out, page) < contrast; step++) {
+    lightness = toLight ? Math.min(0.98, lightness + 0.02) : Math.max(0.02, lightness - 0.02);
+    out = fromHsl(h, s, lightness);
+  }
+  return out;
+}
+
+/**
  * A colour in a theme as a hex, or null for Parabola's own as it is: the one
  * picked for this theme; else what it's based on (in dark, the light one's
  * counterpart; otherwise `auto`, Parabola's own or, for buttons, the
  * typography), shifted lighter or darker if it's been moved.
  */
-function hexIn(colour: DsThemeColour, mode: "light" | "dark", auto: () => string): string | null {
+function hexIn(
+  colour: DsThemeColour,
+  mode: "light" | "dark",
+  auto: () => string,
+  counterpart: (hex: string) => string = dsCounterpart
+): string | null {
   const light = dsIsHex(colour.light) ? colour.light : null;
   if (mode === "light" && light) return light;
   if (mode === "dark" && colour.dark) return colour.dark;
-  const based = mode === "dark" && light ? dsCounterpart(light) : null;
+  const based = mode === "dark" && light ? counterpart(light) : null;
   const shift = (mode === "light" ? colour.lightShift : colour.darkShift) ?? 0;
   return shift ? dsShift(based ?? auto(), shift) : based;
 }
@@ -423,7 +448,12 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
   const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
   const page = hexIn(colours.theme, mode, () => tokens.bg);
-  const text = hexIn(colours.text, mode, () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE));
+  const text = hexIn(
+    colours.text,
+    mode,
+    () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE),
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg)
+  );
   if (page || text) {
     const bg = page ?? tokens.bg;
     const readable = dsLuminance(bg) > 0.18 ? BLACK : WHITE;
@@ -461,7 +491,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     tokens.surface = dsMix(tokens.fg, card, 0.11);
   }
   // Buttons and selected states: their own colour with black or white on it, or the text on the page.
-  const button = hexIn(colours.button, mode, () => tokens.fg);
+  const button = hexIn(colours.button, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg, 2));
   tokens.button = button ?? tokens.fg;
   tokens["on-button"] = button ? (dsLuminance(button) > 0.18 ? BLACK : WHITE) : tokens.bg;
   // The highlight: an older theme's preset; else its own colour or the buttons', its tint a wash of it on the page.
@@ -471,7 +501,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     tokens.highlight = accent.highlight;
     tokens["highlight-tint"] = accent.tint;
   } else {
-    tokens.highlight = hexIn(colours.accent, mode, () => tokens.button) ?? tokens.button;
+    tokens.highlight = hexIn(colours.accent, mode, () => tokens.button, (hex) => dsInkCounterpart(hex, tokens.bg)) ?? tokens.button;
     tokens["highlight-tint"] = dsMix(tokens.highlight, tokens.bg, 0.14);
   }
   return tokens;

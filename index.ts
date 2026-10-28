@@ -82,6 +82,7 @@ export {
   dsHslToHex,
   DS_SHIFT_MAX,
   dsCounterpart,
+  dsInkCounterpart,
   dsLuminance,
   dsHexToHsv,
   dsHsvToHex,

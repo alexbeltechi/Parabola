@@ -21,9 +21,9 @@ export function DsAccordionGroup({ open, version, children }: DsAccordionGroupSt
 /**
  * Parabola accordion: a title with a small chevron that folds what's under
  * it away, and at the header's right end its `actions` (a ⋮ menu). Compact:
- * a 32px header, 8px to what's under it. Accordions nest: one inside another
- * is `inset`, set in 16px from the left so it reads as part of the one above,
- * its title in the text colour where the outer one's is muted (as /parabola's
+ * a 32px header, then what's under it 8px down and set in 16px from the
+ * left, so it reads as part of the one above. Accordions nest: one inside
+ * another is `inset`, its title in the text colour where the outer one's is muted (as /parabola's
  * Colours holds Theme colour, Surface and the rest). Under a
  * DsAccordionGroup they all open or fold at once when the group says so.
  */
@@ -40,7 +40,7 @@ export function DsAccordion({
   defaultOpen?: boolean;
   /** At the header's right end, e.g. a ⋮ menu. */
   actions?: React.ReactNode;
-  /** Inside another accordion: set in from the left. */
+  /** Inside another accordion: its title in the text colour. */
   inset?: boolean;
   className?: string;
   contentClassName?: string;
@@ -56,7 +56,7 @@ export function DsAccordion({
     setOpen(group.open);
   }
   return (
-    <section data-slot="ds-accordion" className={cn("flex flex-col", inset && "pl-ds-16", className)}>
+    <section data-slot="ds-accordion" className={cn("flex flex-col", className)}>
       <div className="flex h-8 items-center justify-between gap-ds-8">
         <button
           type="button"
@@ -74,7 +74,7 @@ export function DsAccordion({
         {actions}
       </div>
       {open && (
-        <div id={id} className={cn("flex flex-col gap-ds-16 pt-ds-8", contentClassName)}>
+        <div id={id} className={cn("flex flex-col gap-ds-16 pt-ds-8 pl-ds-16", contentClassName)}>
           {children}
         </div>
       )}

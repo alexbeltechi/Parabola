@@ -468,7 +468,7 @@ export function ThemeSection() {
             <DsSelect options={fontOptions} value={body.font} onValueChange={(font) => setFamilyFont(body.id, font)} />
           </DsField>
           {/* In-app, so the unpublished draft comes along. */}
-          <DsButton href="/parabola/typography/font-families" variant="text" iconRight={ChevronRight} className="-ml-3 self-start">
+          <DsButton href="/parabola/typography/font-families" variant="text" size="small" iconRight={ChevronRight} className="-ml-2 self-start">
             More settings
           </DsButton>
         </PanelSection>
