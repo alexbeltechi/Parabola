@@ -9,6 +9,7 @@ import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsToaster } from "../primitives/toast";
+import { DS_THEME_SCOPE } from "../theme";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
 import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
 
@@ -204,7 +205,10 @@ export function DsCanvas({
           {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
           <ThemeHeaderActions />
         </header>
-        <div className="flex min-w-0 items-center justify-center px-6 py-12 lg:col-start-1 lg:row-start-2">{children}</div>
+        {/* The page wears the open theme (theme-editor); everything around it stays Parabola's own. */}
+        <div className={`${DS_THEME_SCOPE} flex min-w-0 items-center justify-center bg-ds-surface-subtle px-6 py-12 lg:col-start-1 lg:row-start-2`}>
+          {children}
+        </div>
         {/* The page's properties; hidden while it has none. A rule between sections,
             so folded ones still read as separate. */}
         <aside

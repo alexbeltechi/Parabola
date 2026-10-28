@@ -7,9 +7,18 @@ import { dsThemeCss, dsThemeFont, type DsThemeConfig } from "./theme";
  * tokens on :root, and one Google Fonts stylesheet for the Google fonts its
  * families use, leaving out the ones the app hosts itself (`hosted`, by
  * font id: the CMS hosts Parabola's own with next/font). Render it once in
- * the document's <head>. Server-safe: no hooks.
+ * the page. With `scope`, only that class wears it (dsThemeCss). Server-safe:
+ * no hooks.
  */
-export function DsThemeStyle({ theme, hosted = [] }: { theme: DsThemeConfig; hosted?: readonly string[] }) {
+export function DsThemeStyle({
+  theme,
+  hosted = [],
+  scope,
+}: {
+  theme: DsThemeConfig;
+  hosted?: readonly string[];
+  scope?: string;
+}) {
   const fonts = theme.families
     .map((family) => dsThemeFont(theme, family.font))
     .filter((font) => !hosted.includes(font.id));
@@ -17,7 +26,7 @@ export function DsThemeStyle({ theme, hosted = [] }: { theme: DsThemeConfig; hos
   return (
     <>
       {fontsUrl && <link rel="stylesheet" href={fontsUrl} />}
-      <style data-slot="ds-theme" dangerouslySetInnerHTML={{ __html: dsThemeCss(theme) }} />
+      <style data-slot="ds-theme" dangerouslySetInnerHTML={{ __html: dsThemeCss(theme, scope) }} />
     </>
   );
 }

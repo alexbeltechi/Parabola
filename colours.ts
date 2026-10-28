@@ -299,6 +299,12 @@ export function dsAccentTokens(accent: string, mode: "light" | "dark"): { highli
     : { highlight: dsMix(accent, WHITE, 0.55), tint: dsMix(accent, BLACK, 0.4) };
 }
 
+/** How far apart two colours are to read, 1 (the same) to 21 (black on white): WCAG's contrast ratio. */
+export function dsContrast(a: string, b: string): number {
+  const [x, y] = [dsLuminance(a), dsLuminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+
 /** How light a colour is, 0 (black) to 1 (white): relative luminance. */
 export function dsLuminance(hex: string): number {
   const [r, g, b] = toRgb(hex).map((c) => {
@@ -402,7 +408,11 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   const text = hexIn(colours.text, mode, () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE));
   if (page || text) {
     const bg = page ?? tokens.bg;
-    const fg = text ?? (dsLuminance(bg) > 0.18 ? BLACK : WHITE);
+    const readable = dsLuminance(bg) > 0.18 ? BLACK : WHITE;
+    // Text that's only based on another colour (its light one's counterpart, a shift) falls back to black or
+    // white if it wouldn't read on this page; a colour picked for it is kept as picked.
+    const picked = mode === "light" ? dsIsHex(colours.text.light) : Boolean(colours.text.dark);
+    const fg = text && (picked || dsContrast(text, bg) >= 3) ? text : readable;
     const card = dsMix(fg, bg, 0.035);
     Object.assign(tokens, {
       bg,

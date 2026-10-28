@@ -158,11 +158,14 @@ on `:root` and dark on `.dark`, so a theme changes them at run time. Make
 themes on `/parabola`: Theme (the pieces in one 600px column, and the main
 choices in the panel on the right) and Typography (Font families, Type
 scale), with Undo, Redo, Publish and a ⋮ menu to restore defaults top right
-on every page. An app applies the theme in use once, in its `<head>`:
+on every page. An app applies the theme in use once, on its website's
+pages (not its admin, which stays in Parabola's own), or on part of a page
+with `scope` (`DS_THEME_SCOPE`, as /parabola's canvas does):
 
 ```tsx
 <DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its Google fonts */}
 <DsThemeStyle theme={…} hosted={["instrument-sans", "instrument-serif", "system"]} />  {/* the app hosts these */}
+<DsThemeStyle theme={…} scope={DS_THEME_SCOPE} />                              {/* only <div className="ds-theme"> */}
 ```
 
 An app that hosts Parabola's fonts (the CMS does, with next/font) sets

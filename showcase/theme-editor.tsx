@@ -14,6 +14,7 @@ import {
   DS_DEFAULT_LIBRARY,
   DS_DEFAULT_THEME,
   DS_DEFAULT_THEME_ID,
+  DS_THEME_SCOPE,
   dsApplyTheme,
   dsClearAppliedTheme,
   dsThemeEntryId,
@@ -26,8 +27,10 @@ import {
 
 /**
  * The themes being made on /parabola: the app's library (Default and any
- * added), one of them open for editing, shown on every page (dsApplyTheme)
- * so a font picked on Font families shows on Type scale and Theme too. Every
+ * added), one of them open for editing, shown on every page's canvas
+ * (dsApplyTheme, scoped) so a font picked on Font families shows on Type
+ * scale and Theme too; the sidebar, header and panel stay in Parabola's own,
+ * so a theme that's hard to read never makes the controls hard to use. Every
  * change goes on a history, so Undo and Redo step through them one at a
  * time; Publish hands the library to the app (DsProvider
  * `onThemeLibraryChange`). Which theme a site wears is the site's choice
@@ -76,9 +79,9 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const entry = library.themes.find((t) => t.id === selected) ?? library.themes[0];
   const [saving, setSaving] = React.useState(false);
 
-  // The open theme shows on the page, whatever changed it.
-  React.useEffect(() => dsApplyTheme(entry.theme), [entry.theme]);
-  // Leaving /parabola puts the page back in the theme it was served with: the one in use, as published.
+  // The open theme shows on the canvas (DsCanvas), whatever changed it; the rest of /parabola stays in Parabola's own.
+  React.useEffect(() => dsApplyTheme(entry.theme, DS_THEME_SCOPE), [entry.theme]);
+  // Leaving /parabola takes it away.
   React.useEffect(() => dsClearAppliedTheme, []);
 
   // A new change starts a new branch: there's nothing to redo after it.

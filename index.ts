@@ -42,6 +42,7 @@ export {
   dsActiveTheme,
   dsApplyTheme,
   dsClearAppliedTheme,
+  DS_THEME_SCOPE,
   dsThemeCss,
   dsThemeDarkVars,
   dsThemeEntryId,

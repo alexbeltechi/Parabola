@@ -339,9 +339,33 @@ const rule = (selector: string, vars: Record<string, string>) =>
     .map(([name, value]) => `${name}: ${value};`)
     .join(" ")} }`;
 
-/** The theme as CSS, light on :root and dark on `.dark`, to put in the page's <head>. */
-export function dsThemeCss(theme: DsThemeConfig): string {
-  return `${rule(":root", dsThemeVars(theme))} ${rule(".dark", dsThemeDarkVars(theme))}`;
+/**
+ * The class that wears a theme on part of a page (`dsThemeCss` with a
+ * scope): /parabola's canvas, while its sidebar, header and panel, like the
+ * admin, stay in Parabola's own.
+ */
+export const DS_THEME_SCOPE = "ds-theme";
+
+/**
+ * Tokens tokens.css works out from others on :root. A scope sets them again,
+ * so they follow its colours and fonts rather than the page's.
+ */
+const SCOPE_DERIVED: Record<string, string> = {
+  "--ds-font": "var(--ds-family-body)",
+  "--ds-hover": "color-mix(in srgb, var(--ds-fg) 12%, transparent)",
+  "--ds-hover-inverse": "color-mix(in srgb, var(--ds-bg) 18%, transparent)",
+  "--ds-focus": "var(--ds-fg)",
+};
+
+/**
+ * The theme as CSS: light on :root and dark on `.dark`, for a whole page
+ * (the website); or, with `scope`, on that class only (`DS_THEME_SCOPE`),
+ * its text in the theme's font and colour.
+ */
+export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
+  if (!scope) return `${rule(":root", dsThemeVars(theme))} ${rule(".dark", dsThemeDarkVars(theme))}`;
+  const at = `.${scope}`;
+  return `${rule(at, { ...dsThemeVars(theme), ...SCOPE_DERIVED })} ${rule(`.dark ${at}`, dsThemeDarkVars(theme))} ${at} { font-family: var(--ds-font); color: var(--ds-fg); }`;
 }
 
 /**
@@ -349,16 +373,17 @@ export function dsThemeCss(theme: DsThemeConfig): string {
  * its CSS in a <style> at the end of the <head>, over what the page was
  * served with, and loads the fonts the theme added (from Google) that the
  * page hasn't loaded yet, so they can be seen before they're picked;
- * Parabola's own come with the page (DsThemeStyle). Browser only.
+ * Parabola's own come with the page (DsThemeStyle). With `scope`, only on
+ * that class (dsThemeCss). Browser only.
  */
-export function dsApplyTheme(theme: DsThemeConfig): void {
+export function dsApplyTheme(theme: DsThemeConfig, scope?: string): void {
   if (typeof document === "undefined") return;
   let style = document.getElementById("ds-theme-live") as HTMLStyleElement | null;
   if (!style) {
     style = Object.assign(document.createElement("style"), { id: "ds-theme-live" });
     document.head.appendChild(style);
   }
-  style.textContent = dsThemeCss(theme);
+  style.textContent = dsThemeCss(theme, scope);
   for (const font of theme.customFonts.map(dsCustomFont)) {
     if (document.querySelector(`link[data-ds-font="${font.id}"]`)) continue;
     const link = Object.assign(document.createElement("link"), {
