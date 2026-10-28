@@ -14,9 +14,9 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_ICON_LIBRARIES, dsColourShown, type DsColourKind, type DsThemeColours } from "../colours";
+import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
-import { DsColourPicker } from "../components/colour-picker";
+import { DsColourBar, DsColourPicker } from "../components/colour-picker";
 import { DsLink, useDsSetTheme } from "../provider";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
@@ -56,11 +56,11 @@ function useDarkMode(): boolean {
 /**
  * One of the theme's four colours in the panel, for the light or the dark
  * theme (whichever the page is in): its name, then the colour picker sitting
- * on the colour it is now (Parabola's own until you move it), where you drag
- * or type a hex and see it change at once. Buttons start "Based on
- * typography", until the picker gives them their own. In dark, "Based on light theme"
- * (on by default) keeps it the light one's counterpart; moving the picker
- * gives it a dark colour of its own and turns that off.
+ * on the colour it is now (Parabola's own until you move it). A colour based
+ * on another (buttons on the typography, until given their own; in dark,
+ * each on the light one, by default) shows only that tick and a brightness
+ * bar, to make it lighter or darker than what it's based on; untick it and
+ * the picker comes back, starting from the colour it was.
  */
 function ColourChoice({
   kind,
@@ -76,34 +76,44 @@ function ColourChoice({
   onChange: (colours: DsThemeColours) => void;
 }) {
   const colour = colours[kind];
-  const set = (next: Partial<typeof colour>) => onChange({ ...colours, [kind]: { ...colour, ...next } });
+  const set = (next: Partial<DsThemeColour>) => onChange({ ...colours, [kind]: { ...colour, ...next } });
+  const shown = dsColourShown(colours, kind, mode);
+  const pick = mode === "light" ? "light" : "dark";
+  const shiftKey = mode === "light" ? "lightShift" : "darkShift";
+  const basedOn = mode === "dark" ? "light theme" : kind === "button" ? "typography" : null;
+  const based = basedOn !== null && colour[pick] === null;
+  const shift = colour[shiftKey] ?? 0;
+  // What it's based on, before the shift, for the bar's middle.
+  const unshifted = dsColourShown({ ...colours, [kind]: { ...colour, [shiftKey]: 0 } }, kind, mode);
+  const at = (amount: number) => dsShift(unshifted, amount);
   return (
     <div className="flex flex-col gap-ds-8">
       <span className="text-p text-ds-fg">{label}</span>
-      {/* Buttons follow the typography until they're given a colour of their own. */}
-      {kind === "button" && mode === "light" && (
+      {basedOn && (
         <label className="inline-flex items-center gap-ds-8 self-start">
           <DsCheckbox
-            checked={colour.light === null}
-            onCheckedChange={(on) => set({ light: on ? null : dsColourShown(colours, kind, "light") })}
+            checked={based}
+            // Off, the picker starts from the colour it was, shift and all.
+            onCheckedChange={(on) => set(on ? { [pick]: null } : { [pick]: shown, [shiftKey]: 0 })}
           />
-          <span className="text-p text-ds-fg">Based on typography</span>
+          <span className="text-p text-ds-fg">Based on {basedOn}</span>
         </label>
       )}
-      {mode === "dark" && (
-        <label className="inline-flex items-center gap-ds-8 self-start">
-          <DsCheckbox
-            checked={colour.dark === null}
-            onCheckedChange={(on) => set({ dark: on ? null : dsColourShown(colours, kind, "dark") })}
-          />
-          <span className="text-p text-ds-fg">Based on light theme</span>
-        </label>
+      {based ? (
+        <DsColourBar
+          label={`${label} brightness`}
+          value={(shift + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)}
+          onChange={(x) => {
+            const amount = Math.round((x * 2 - 1) * DS_SHIFT_MAX * 100) / 100;
+            set({ [shiftKey]: amount });
+          }}
+          valueText={shift === 0 ? "As it is" : `${Math.abs(Math.round(shift * 100))}% ${shift < 0 ? "darker" : "lighter"}`}
+          track={`linear-gradient(to right, ${[-1, -0.5, 0, 0.5, 1].map((t) => at(t * DS_SHIFT_MAX)).join(", ")})`}
+          thumb={shown}
+        />
+      ) : (
+        <DsColourPicker aria-label={label} value={shown} onChange={(hex) => set({ [pick]: hex })} />
       )}
-      <DsColourPicker
-        aria-label={label}
-        value={dsColourShown(colours, kind, mode)}
-        onChange={(hex) => set(mode === "light" ? { light: hex } : { dark: hex })}
-      />
     </div>
   );
 }

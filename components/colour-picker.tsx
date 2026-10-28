@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "../cn";
-import { dsHexToHsv, dsHsvToHex, dsNormalizeHex } from "../colours";
+import { dsHexToHsl, dsHexToHsv, dsHslToHex, dsHsvToHex, dsNormalizeHex } from "../colours";
 import { DsInput } from "../primitives/field";
 
 type Hsv = { h: number; s: number; v: number };
@@ -37,9 +37,64 @@ function useDrag(onMove: (x: number, y: number) => void) {
 const THUMB = "pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ds-bg shadow-ds-raised";
 
 /**
+ * Parabola colour bar: a slider whose track shows the colours it gives, left
+ * to right, and a thumb in the colour it's on. The colour picker's hue and
+ * brightness are both one, and so is a theme colour's shift from what it's
+ * based on. Drag it, or use the arrow keys (Shift for bigger steps).
+ * Controlled: `value` from 0 to 1.
+ */
+export function DsColourBar({
+  value,
+  onChange,
+  track,
+  thumb,
+  label,
+  valueText,
+  className,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  /** The track: a CSS gradient, left to right. */
+  track: string;
+  /** The thumb's colour. */
+  thumb: string;
+  label: string;
+  /** What the value means, for assistive tech ("10% darker"). */
+  valueText?: string;
+  className?: string;
+}) {
+  const drag = useDrag((x) => onChange(x));
+  return (
+    <div
+      role="slider"
+      tabIndex={0}
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(value * 100)}
+      aria-valuetext={valueText}
+      className={cn("relative h-3 w-full cursor-pointer touch-none rounded-full ds-focus", className)}
+      style={{ backgroundImage: track }}
+      onKeyDown={(event) => {
+        const size = event.shiftKey ? 0.1 : 0.02;
+        const delta =
+          event.key === "ArrowRight" || event.key === "ArrowUp" ? size : event.key === "ArrowLeft" || event.key === "ArrowDown" ? -size : 0;
+        if (!delta) return;
+        event.preventDefault();
+        onChange(clamp(value + delta));
+      }}
+      {...drag}
+    >
+      <span className={THUMB} style={{ left: `${value * 100}%`, top: "50%", backgroundColor: thumb }} />
+    </div>
+  );
+}
+
+/**
  * Parabola colour picker, inline (no pop-up): a square for saturation (left
  * to right) and brightness (bottom to top) in the chosen hue, a hue bar of
- * the whole rainbow, and the hex, typed or pasted. Drag either, or use the
+ * the whole rainbow, a brightness bar from black through the colour to
+ * white (both DsColourBar), and the hex, typed or pasted. Drag either, or use the
  * arrow keys on them (Shift for bigger steps). Every change is reported at
  * once, so whatever wears the colour follows live. Controlled: `value` is a
  * `#RRGGBB`, `onChange` gets the new one.
@@ -76,15 +131,16 @@ export function DsColourPicker({
   };
 
   const area = useDrag((x, y) => set({ ...hsv, s: x, v: 1 - y }));
-  const hue = useDrag((x) => set({ ...hsv, h: x * 360 }));
+  // Brightness as lightness: black at the left, the colour in the middle, white at the right.
+  const [, sat, light] = dsHexToHsl(shown);
+  const pure = dsHslToHex(hsv.h, sat || hsv.s, 0.5);
 
-  const step = (event: React.KeyboardEvent, axis: "s" | "v" | "h") => {
-    const size = (event.shiftKey ? 0.1 : 0.02) * (axis === "h" ? 360 : 1);
+  const step = (event: React.KeyboardEvent) => {
+    const size = event.shiftKey ? 0.1 : 0.02;
     const delta =
       event.key === "ArrowRight" || event.key === "ArrowUp" ? size : event.key === "ArrowLeft" || event.key === "ArrowDown" ? -size : 0;
     if (!delta) return;
     event.preventDefault();
-    if (axis === "h") return set({ ...hsv, h: (hsv.h + delta + 360) % 360 });
     // In the square, left and right are saturation, up and down brightness.
     const key = event.key === "ArrowUp" || event.key === "ArrowDown" ? "v" : "s";
     set({ ...hsv, [key]: clamp(hsv[key] + delta) });
@@ -103,25 +159,29 @@ export function DsColourPicker({
           backgroundColor: dsHsvToHex(hsv.h, 1, 1),
           backgroundImage: "linear-gradient(to top, black, transparent), linear-gradient(to right, white, transparent)",
         }}
-        onKeyDown={(e) => step(e, "s")}
+        onKeyDown={step}
         {...area}
       >
         <span className={THUMB} style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: shown }} />
       </div>
-      <div
-        role="slider"
-        tabIndex={0}
-        aria-label="Hue"
-        aria-valuemin={0}
-        aria-valuemax={360}
-        aria-valuenow={Math.round(hsv.h)}
-        className="relative h-3 w-full cursor-pointer touch-none rounded-full ds-focus"
-        style={{ backgroundImage: "linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)" }}
-        onKeyDown={(e) => step(e, "h")}
-        {...hue}
-      >
-        <span className={THUMB} style={{ left: `${(hsv.h / 360) * 100}%`, top: "50%", backgroundColor: dsHsvToHex(hsv.h, 1, 1) }} />
-      </div>
+      <DsColourBar
+        label="Hue"
+        value={hsv.h / 360}
+        onChange={(x) => set({ ...hsv, h: x * 360 })}
+        track="linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)"
+        thumb={dsHsvToHex(hsv.h, 1, 1)}
+      />
+      <DsColourBar
+        label="Brightness"
+        value={light}
+        onChange={(l) => {
+          const hex = dsHslToHex(hsv.h, sat || hsv.s, l);
+          // Keep the hue: black and white have none of their own.
+          set({ ...dsHexToHsv(hex), h: hsv.h });
+        }}
+        track={`linear-gradient(to right, #000000, ${pure}, #FFFFFF)`}
+        thumb={shown}
+      />
       <DsInput
         aria-label="Hex"
         className="w-full font-mono"

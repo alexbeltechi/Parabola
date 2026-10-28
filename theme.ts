@@ -5,6 +5,7 @@ import {
   DS_DEFAULT_BASE_COLOUR,
   DS_DEFAULT_COLOURS,
   DS_ICON_LIBRARIES,
+  DS_SHIFT_MAX,
   dsColourTokens,
   dsIsHex,
   type DsThemeColour,
@@ -194,9 +195,20 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   // A light pick: a hex, or an older theme's preset (never Parabola's own, which is null).
   const lightPick = (value: unknown, presets: { id: string }[], own: string) =>
     hex(value) ?? (typeof value === "string" && value !== own && presets.some((c) => c.id === value) ? value : null);
+  const shift = (value: unknown) =>
+    typeof value === "number" && Number.isFinite(value) && value !== 0
+      ? { value: Math.min(DS_SHIFT_MAX, Math.max(-DS_SHIFT_MAX, value)) }
+      : null;
   const colour = (value: unknown, presets: { id: string }[] = [], own = ""): DsThemeColour => {
     const v = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
-    return { light: lightPick(v.light, presets, own), dark: hex(v.dark) };
+    const lightShift = shift(v.lightShift);
+    const darkShift = shift(v.darkShift);
+    return {
+      light: lightPick(v.light, presets, own),
+      dark: hex(v.dark),
+      ...(lightShift && { lightShift: lightShift.value }),
+      ...(darkShift && { darkShift: darkShift.value }),
+    };
   };
   // Older themes: a base colour, an accent (once "secondary"), a background (once light and dark apart) and a surface, which goes.
   const legacyBackground =

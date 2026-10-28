@@ -126,9 +126,11 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   the accent colour (the highlight; Parabola's own is Purple, or the theme
   colour's complement once one is picked). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one (its
-  counterpart, `dsCounterpart`) unless a dark colour is picked for it.
-  `dsColourTokens` turns the three into every colour token;
-  `DsColourPicker` picks one inline.
+  counterpart, `dsCounterpart`) unless a dark colour is picked for it. A
+  colour based on another can be shifted lighter or darker (`lightShift`,
+  `darkShift`, `dsShift`). `dsColourTokens` turns the four into every
+  colour token; `DsColourPicker` picks one inline, and `DsColourBar` is its
+  hue and brightness bars, and the shift.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
 - **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,

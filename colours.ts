@@ -193,7 +193,20 @@ export const DS_DEFAULT_ACCENT_COLOUR = "purple";
  * own, or for buttons the typography's), and for the dark one (null: based on the light one). A light pick is
  * a hex; older themes may hold a preset's id (Slate, Blue), which still works.
  */
-export type DsThemeColour = { light: string | null; dark: string | null };
+export type DsThemeColour = {
+  light: string | null;
+  dark: string | null;
+  /**
+   * While it's based on something (buttons on the typography; in dark, the
+   * light one), how much lighter (above 0) or darker it is, as lightness:
+   * -0.1 is 10% darker. Per theme, light and dark.
+   */
+  lightShift?: number;
+  darkShift?: number;
+};
+
+/** How far a shift goes either way. */
+export const DS_SHIFT_MAX = 0.5;
 export type DsColourKind = "theme" | "text" | "button" | "accent";
 export type DsThemeColours = Record<DsColourKind, DsThemeColour>;
 
@@ -295,7 +308,21 @@ export function dsLuminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-// Hue, saturation and lightness (0–1), for counterparts.
+// Hue, saturation and lightness (0–1), for counterparts, shifts and the picker's brightness.
+export function dsHexToHsl(hex: string): [number, number, number] {
+  return toHsl(hex);
+}
+
+export function dsHslToHex(h: number, s: number, l: number): string {
+  return fromHsl(h, s, Math.min(1, Math.max(0, l)));
+}
+
+/** A colour lighter (`amount` above 0) or darker (below 0), as lightness: -0.1 is 10% darker. */
+export function dsShift(hex: string, amount: number): string {
+  const [h, s, l] = toHsl(hex);
+  return dsHslToHex(h, s, l + amount);
+}
+
 function toHsl(hex: string): [number, number, number] {
   const [r, g, b] = toRgb(hex).map((c) => c / 255);
   const max = Math.max(r, g, b);
@@ -344,11 +371,19 @@ function accentFor(page: string): { highlight: string; tint: string } | null {
   return { highlight, tint: light ? dsMix(highlight, WHITE, 0.14) : dsMix(highlight, BLACK, 0.4) };
 }
 
-/** A hex colour in a theme: the one picked for it, or, based on the light one, its counterpart. */
-function hexIn(colour: DsThemeColour, mode: "light" | "dark"): string | null {
+/**
+ * A colour in a theme as a hex, or null for Parabola's own as it is: the one
+ * picked for this theme; else what it's based on (in dark, the light one's
+ * counterpart; otherwise `auto`, Parabola's own or, for buttons, the
+ * typography), shifted lighter or darker if it's been moved.
+ */
+function hexIn(colour: DsThemeColour, mode: "light" | "dark", auto: () => string): string | null {
   const light = dsIsHex(colour.light) ? colour.light : null;
-  if (mode === "light") return light;
-  return colour.dark ?? (light && dsCounterpart(light));
+  if (mode === "light" && light) return light;
+  if (mode === "dark" && colour.dark) return colour.dark;
+  const based = mode === "dark" && light ? dsCounterpart(light) : null;
+  const shift = (mode === "light" ? colour.lightShift : colour.darkShift) ?? 0;
+  return shift ? dsShift(based ?? auto(), shift) : based;
 }
 
 /**
@@ -363,8 +398,8 @@ function hexIn(colour: DsThemeColour, mode: "light" | "dark"): string | null {
 export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"): Record<string, string> {
   const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
   const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
-  const page = hexIn(colours.theme, mode);
-  const text = hexIn(colours.text, mode);
+  const page = hexIn(colours.theme, mode, () => tokens.bg);
+  const text = hexIn(colours.text, mode, () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE));
   if (page || text) {
     const bg = page ?? tokens.bg;
     const fg = text ?? (dsLuminance(bg) > 0.18 ? BLACK : WHITE);
@@ -383,15 +418,17 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     });
   }
   // Buttons and selected states: their own colour with black or white on it, or the text on the page.
-  const button = hexIn(colours.button, mode);
+  const button = hexIn(colours.button, mode, () => tokens.fg);
   tokens.button = button ?? tokens.fg;
   tokens["on-button"] = button ? (dsLuminance(button) > 0.18 ? BLACK : WHITE) : tokens.bg;
+  const shift = (mode === "light" ? colours.accent.lightShift : colours.accent.darkShift) ?? 0;
   const accent =
     mode === "dark" && colours.accent.dark
       ? { highlight: colours.accent.dark, tint: dsMix(colours.accent.dark, tokens.bg, 0.3) }
       : !colours.accent.light && page
         ? (accentFor(page) ?? dsAccentTokens(DS_DEFAULT_ACCENT_COLOUR, mode))
         : dsAccentTokens(colours.accent.light ?? DS_DEFAULT_ACCENT_COLOUR, mode);
+  if (shift && !(mode === "dark" && colours.accent.dark)) accent.highlight = dsShift(accent.highlight, shift);
   tokens.highlight = accent.highlight;
   tokens["highlight-tint"] = accent.tint;
   return tokens;
