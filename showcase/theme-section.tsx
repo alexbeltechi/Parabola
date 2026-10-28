@@ -145,13 +145,16 @@ const ADD_THEME = "__add-theme";
  * The open theme as code, folded at the panel's foot: a full export
  * (`dsThemeExport`) a person or an AI can build from as it is (every colour
  * by its role in light and dark, the fonts, the type scale, the corners) and
- * Parabola can read back. Copy it to keep it, share it or hand it to a
- * prompt; paste one in (or just its settings) and it's applied at once.
+ * Parabola can read back. It shows its first lines; a click in selects it
+ * all. Copy it to keep it, share it or hand it to a prompt; paste one in
+ * (or just its settings) and it's applied at once.
  */
 function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: string; setTheme: (theme: DsThemeConfig) => void }) {
   const code = React.useMemo(() => JSON.stringify(dsThemeExport(theme, name), null, 2), [theme, name]);
   const [text, setText] = React.useState(code);
   const [invalid, setInvalid] = React.useState(false);
+  // A click in selects it all (copy takes the whole theme, a paste replaces it); the mouse coming up keeps that.
+  const justFocused = React.useRef(false);
   // A change made anywhere else shows here.
   const [shown, setShown] = React.useState(code);
   if (code !== shown) {
@@ -173,13 +176,21 @@ function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: stri
         />
       }
     >
+      {/* The first ten lines or so, the rest a scroll away, fading out at the foot. */}
       <DsTextarea
         aria-label="The theme as code"
-        className="w-full font-mono"
-        rows={12}
+        className="relative w-full font-mono after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-10 after:rounded-b-ds-lg after:bg-gradient-to-t after:from-ds-field after:to-transparent [&_textarea]:max-h-[180px] [&_textarea]:overflow-y-auto [&_textarea]:text-small"
         spellCheck={false}
         value={text}
         invalid={invalid}
+        onFocus={(e) => {
+          e.currentTarget.select();
+          justFocused.current = true;
+        }}
+        onMouseUp={(e) => {
+          if (justFocused.current) e.preventDefault();
+          justFocused.current = false;
+        }}
         onChange={(e) => {
           setText(e.target.value);
           try {
