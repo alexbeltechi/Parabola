@@ -61,14 +61,23 @@ export {
 } from "./theme";
 export {
   DS_BASE_COLOURS,
-  DS_SECONDARY_COLOURS,
+  DS_ACCENT_COLOURS,
+  DS_BACKGROUND_PRESETS,
   DS_ICON_LIBRARIES,
   DS_DEFAULT_BASE_COLOUR,
-  DS_DEFAULT_SECONDARY_COLOUR,
+  DS_DEFAULT_ACCENT_COLOUR,
+  dsAccentColour,
+  dsAccentTokens,
   dsBaseColour,
-  dsSecondaryColour,
+  dsBaseTokens,
+  dsColourSwatch,
+  dsHexToHsv,
+  dsHsvToHex,
+  dsIsHex,
+  dsMix,
+  dsNormalizeHex,
+  type DsAccentColour,
   type DsBaseColour,
-  type DsSecondaryColour,
 } from "./colours";
 export { DsThemeStyle } from "./theme-style";
 export {
@@ -144,3 +153,4 @@ export { DsEmptyState } from "./components/empty-state";
 export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
+export { DsColourPicker } from "./components/colour-picker";

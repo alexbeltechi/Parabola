@@ -11,11 +11,20 @@ import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
 import { DsSwitch } from "../primitives/switch";
 import { DsThemeToggle } from "../primitives/theme-toggle";
-import { DsColourDot } from "../primitives/tray";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_BASE_COLOURS, DS_ICON_LIBRARIES, DS_SECONDARY_COLOURS } from "../colours";
+import {
+  DS_ACCENT_COLOURS,
+  DS_BACKGROUND_PRESETS,
+  DS_BASE_COLOURS,
+  DS_ICON_LIBRARIES,
+  dsBaseTokens,
+  dsColourSwatch,
+  dsIsHex,
+} from "../colours";
+import { DsColourPicker } from "../components/colour-picker";
+import { cn } from "../cn";
 import { DsLink, useDsSetTheme } from "../provider";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
@@ -48,6 +57,87 @@ function useDarkMode(): boolean {
     },
     () => document.documentElement.classList.contains("dark"),
     () => false
+  );
+}
+
+/** A swatch of the whole rainbow, for Custom. */
+const RAINBOW = "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)";
+
+/**
+ * One of the theme's colours in the panel: its name with what it is now on
+ * the right (a preset's name, or Custom, and the hex), the presets as
+ * swatches, and Custom, a rainbow swatch that opens the colour picker right
+ * here (no pop-up), where you drag hue, saturation and brightness or type a
+ * hex and see it all change at once.
+ */
+function ColourChoice({
+  label,
+  description,
+  presets,
+  value,
+  current,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  /** `value` is what's stored: a preset's id, a hex, or null (Background's "Base"). */
+  presets: { value: string | null; label: string; swatch: string }[];
+  value: string | null;
+  /** The colour it shows now, for the hex beside the name and the picker's start. */
+  current: string;
+  onChange: (value: string | null) => void;
+}) {
+  const custom = dsIsHex(value) && !presets.some((p) => p.value === value);
+  const [open, setOpen] = React.useState(custom);
+  const name = custom ? "Custom" : (presets.find((p) => p.value === value)?.label ?? label);
+  return (
+    <div className="flex flex-col gap-ds-8">
+      <div className="flex items-baseline justify-between gap-ds-8">
+        <span className="text-p text-ds-fg">{label}</span>
+        <span className="truncate text-small text-ds-fg-muted">
+          {name} · <span className="font-mono">{current}</span>
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-ds-8" role="radiogroup" aria-label={label}>
+        {presets.map((preset) => {
+          const on = !custom && preset.value === value;
+          return (
+            <button
+              key={preset.label}
+              type="button"
+              role="radio"
+              aria-checked={on}
+              aria-label={preset.label}
+              title={preset.label}
+              onClick={() => {
+                onChange(preset.value);
+                setOpen(false);
+              }}
+              className={cn(
+                "size-7 rounded-full border border-ds-border ds-focus",
+                on && "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-surface-subtle"
+              )}
+              style={{ backgroundColor: preset.swatch }}
+            />
+          );
+        })}
+        <button
+          type="button"
+          role="radio"
+          aria-checked={custom}
+          aria-label="Custom colour"
+          title="Custom"
+          onClick={() => {
+            setOpen((o) => !o);
+            if (!custom) onChange(current);
+          }}
+          className={cn("size-7 rounded-full ds-focus", custom && "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-surface-subtle")}
+          style={{ backgroundImage: RAINBOW }}
+        />
+      </div>
+      {open && <DsColourPicker value={current} onChange={onChange} />}
+      <p className="text-small text-ds-fg-muted">{description}</p>
+    </div>
   );
 }
 
@@ -104,6 +194,7 @@ function ThemeNameDialog({
 export function ThemeSection() {
   const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme } = useThemeEditor();
   const dark = useDarkMode();
+  const mode = dark ? "dark" : "light";
   const setMode = useDsSetTheme();
   const [naming, setNaming] = React.useState<"add" | "rename" | null>(null);
 
@@ -223,24 +314,37 @@ export function ThemeSection() {
               Dark
             </DsButton>
           </div>
-          <DsField label="Base colour" description="The greys: surfaces, borders, quiet text.">
-            <DsSelect
-              options={DS_BASE_COLOURS.map((c) => ({ value: c.id, label: c.label, indicator: <DsColourDot color={c.swatch} /> }))}
-              value={theme.colours.base}
-              onValueChange={(base) => setTheme({ ...theme, colours: { ...theme.colours, base } })}
-            />
-          </DsField>
-          <DsField label="Secondary colour" description="The one highlight, for what needs attention.">
-            <DsSelect
-              options={DS_SECONDARY_COLOURS.map((c) => ({
-                value: c.id,
-                label: c.label,
-                indicator: <DsColourDot color={dark ? c.dark.highlight : c.light.highlight} />,
-              }))}
-              value={theme.colours.secondary}
-              onValueChange={(secondary) => setTheme({ ...theme, colours: { ...theme.colours, secondary } })}
-            />
-          </DsField>
+          <ColourChoice
+            label="Base colour"
+            description="The greys: surfaces, borders, quiet text."
+            presets={DS_BASE_COLOURS.map((c) => ({ value: c.id, label: c.label, swatch: c.swatch }))}
+            value={theme.colours.base}
+            current={dsColourSwatch("base", theme.colours.base)}
+            onChange={(base) => base && setTheme({ ...theme, colours: { ...theme.colours, base } })}
+          />
+          <ColourChoice
+            label="Accent colour"
+            description="The one highlight, for what needs attention."
+            presets={DS_ACCENT_COLOURS.map((c) => ({ value: c.id, label: c.label, swatch: c[mode].highlight }))}
+            value={theme.colours.accent}
+            current={dsColourSwatch("accent", theme.colours.accent, mode)}
+            onChange={(accent) => accent && setTheme({ ...theme, colours: { ...theme.colours, accent } })}
+          />
+          <ColourChoice
+            // A fresh one per theme (light, dark): each has its own background.
+            key={mode}
+            label={`Background, ${mode}`}
+            description={`The page in the ${mode} theme. Switch to ${mode === "light" ? "Dark" : "Light"} above to set the other.`}
+            presets={[
+              { value: null, label: "Base", swatch: dsBaseTokens(theme.colours.base, mode).bg },
+              ...DS_BACKGROUND_PRESETS[mode].map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
+            ]}
+            value={theme.colours.background[mode]}
+            current={theme.colours.background[mode] ?? dsBaseTokens(theme.colours.base, mode).bg}
+            onChange={(background) =>
+              setTheme({ ...theme, colours: { ...theme.colours, background: { ...theme.colours.background, [mode]: background } } })
+            }
+          />
         </PanelSection>
 
         <PanelSection title="Type">

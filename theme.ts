@@ -1,11 +1,12 @@
 import {
+  DS_ACCENT_COLOURS,
   DS_BASE_COLOURS,
+  DS_DEFAULT_ACCENT_COLOUR,
   DS_DEFAULT_BASE_COLOUR,
-  DS_DEFAULT_SECONDARY_COLOUR,
   DS_ICON_LIBRARIES,
-  DS_SECONDARY_COLOURS,
-  dsBaseColour,
-  dsSecondaryColour,
+  dsAccentTokens,
+  dsBaseTokens,
+  dsIsHex,
 } from "./colours";
 import {
   DS_DEFAULT_FONT,
@@ -22,8 +23,9 @@ import {
  * data so a site, an agent or /parabola can set them (decisions,
  * 2026-10-28; BEL-109), much as shadcn's create page sets a style:
  *
- * - colours: a base colour (the greys) and a secondary colour (the
- *   highlight), each in light and dark (colours.ts);
+ * - colours: a base colour (the greys), an accent colour (the highlight)
+ *   and a background colour (the page, for light and dark), each a preset or
+ *   a custom hex (colours.ts);
  * - font families: Font (text) and Heading (headlines) to start, and any a
  *   theme adds, each a name and a font, the font one of Parabola's (fonts.ts)
  *   or one added to the theme (`customFonts`);
@@ -78,8 +80,12 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /** The base colour (the greys) and the secondary colour (the highlight), by id (colours.ts). */
-  colours: { base: string; secondary: string };
+  /**
+   * The base colour (the greys) and the accent colour (the highlight): a
+   * preset's id or a custom hex. The background, for each theme: a hex, or
+   * null for the base colour's own (colours.ts).
+   */
+  colours: { base: string; accent: string; background: { light: string | null; dark: string | null } };
   /** Font (text, always there) first; then Heading and any the theme added. */
   families: DsFontFamily[];
   type: Record<DsTextStyle, DsTextStyleConfig>;
@@ -92,7 +98,7 @@ export type DsThemeConfig = {
 };
 
 export const DS_DEFAULT_THEME: DsThemeConfig = {
-  colours: { base: DS_DEFAULT_BASE_COLOUR, secondary: DS_DEFAULT_SECONDARY_COLOUR },
+  colours: { base: DS_DEFAULT_BASE_COLOUR, accent: DS_DEFAULT_ACCENT_COLOUR, background: { light: null, dark: null } },
   families: [
     { id: DS_BODY_FAMILY, label: "Font", font: DS_DEFAULT_FONT },
     { id: DS_HEADING_FAMILY, label: "Heading", font: DS_DEFAULT_HEADING_FONT },
@@ -179,11 +185,17 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const known = (id: unknown, fallback: string) => (typeof id === "string" && allFonts.includes(id) ? id : fallback);
 
   const coloursRaw = (raw.colours ?? {}) as Record<string, unknown>;
+  const presetOrHex = (value: unknown, presets: { id: string }[], fallback: string) =>
+    dsIsHex(value) ? value.toUpperCase() : presets.some((c) => c.id === value) ? (value as string) : fallback;
+  const backgroundRaw = (coloursRaw.background ?? {}) as Record<string, unknown>;
   const colours = {
-    base: DS_BASE_COLOURS.some((c) => c.id === coloursRaw.base) ? (coloursRaw.base as string) : DS_DEFAULT_BASE_COLOUR,
-    secondary: DS_SECONDARY_COLOURS.some((c) => c.id === coloursRaw.secondary)
-      ? (coloursRaw.secondary as string)
-      : DS_DEFAULT_SECONDARY_COLOUR,
+    base: presetOrHex(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
+    // The accent was called secondary at first.
+    accent: presetOrHex(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR),
+    background: {
+      light: dsIsHex(backgroundRaw.light) ? backgroundRaw.light.toUpperCase() : null,
+      dark: dsIsHex(backgroundRaw.dark) ? backgroundRaw.dark.toUpperCase() : null,
+    },
   };
 
   // Families: the list, or an older pair.
@@ -256,14 +268,21 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   return { colours, families, type, customFonts, hiddenFonts, icons };
 }
 
+/** A theme's colour tokens in light or dark: the base's greys, its background over the base's own, the accent. */
+function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const [name, value] of Object.entries(dsBaseTokens(theme.colours.base, mode))) vars[`--ds-${name}`] = value;
+  const background = theme.colours.background[mode];
+  if (background) vars["--ds-bg"] = background;
+  const accent = dsAccentTokens(theme.colours.accent, mode);
+  vars["--ds-highlight"] = accent.highlight;
+  vars["--ds-highlight-tint"] = accent.tint;
+  return vars;
+}
+
 /** The CSS custom properties a theme sets on :root, in the light theme (tokens.css has the defaults). */
 export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
-  const base = dsBaseColour(theme.colours.base).light;
-  const secondary = dsSecondaryColour(theme.colours.secondary).light;
-  const vars: Record<string, string> = {};
-  for (const [name, value] of Object.entries(base)) vars[`--ds-${name}`] = value;
-  vars["--ds-highlight"] = secondary.highlight;
-  vars["--ds-highlight-tint"] = secondary.tint;
+  const vars: Record<string, string> = colourVars(theme, "light");
   for (const family of theme.families) vars[`--ds-family-${family.id}`] = dsThemeFont(theme, family.font).family;
   for (const s of DS_TEXT_STYLES) {
     const t = theme.type[s];
@@ -278,13 +297,7 @@ export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
 
 /** The colours a theme sets in the dark theme (the `.dark` class). */
 export function dsThemeDarkVars(theme: DsThemeConfig): Record<string, string> {
-  const base = dsBaseColour(theme.colours.base).dark;
-  const secondary = dsSecondaryColour(theme.colours.secondary).dark;
-  const vars: Record<string, string> = {};
-  for (const [name, value] of Object.entries(base)) vars[`--ds-${name}`] = value;
-  vars["--ds-highlight"] = secondary.highlight;
-  vars["--ds-highlight-tint"] = secondary.tint;
-  return vars;
+  return colourVars(theme, "dark");
 }
 
 const rule = (selector: string, vars: Record<string, string>) =>

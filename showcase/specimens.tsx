@@ -55,6 +55,7 @@ import { DsPlaceholder } from "../components/placeholder";
 import { DsEmptyState } from "../components/empty-state";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
+import { DsColourPicker } from "../components/colour-picker";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsProgress } from "../primitives/progress";
 import { InPanel, PanelSection } from "./theme-editor";
@@ -1052,6 +1053,17 @@ export function Progress() {
       {[0, 45, 100].map((value) => (
         <DsProgress key={value} value={value} label={`${value}% done`} />
       ))}
+    </div>
+  );
+}
+
+/** Components › Colour › Colour picker: inline, its swatch following along. */
+export function ColourPicker() {
+  const [colour, setColour] = useState("#FFE35A");
+  return (
+    <div className="flex w-full max-w-[300px] flex-col gap-ds-16">
+      <div className="h-16 rounded-ds-lg border border-ds-border" style={{ backgroundColor: colour }} />
+      <DsColourPicker value={colour} onChange={setColour} />
     </div>
   );
 }

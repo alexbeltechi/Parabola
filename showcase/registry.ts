@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   Info,
   Link as LinkIcon,
+  Pipette,
   ListTree,
   Mail,
   Ruler,
@@ -205,6 +206,12 @@ export const DS_TIERS: DsTier[] = [
           { slug: "media-tile", label: "Media tile", component: S.MediaTile },
           { slug: "placeholder", label: "Placeholder", component: S.Placeholder },
         ],
+      },
+      {
+        slug: "colour",
+        label: "Colour",
+        icon: Pipette,
+        pages: [{ slug: "colour-picker", label: "Colour picker", component: S.ColourPicker }],
       },
       {
         slug: "links",

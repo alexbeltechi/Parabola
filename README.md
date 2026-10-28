@@ -119,8 +119,11 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
 - **Colours** (`colours.ts`): a base colour, the greys every surface, border
   and quiet text uses (Stone, the default and tokens.css's, Neutral, Zinc,
-  Slate, Gray), and a secondary colour, the one highlight (Purple, the
-  default, Blue, Teal, Green, Orange, Rose), each in light and dark.
+  Slate, Gray); an accent colour, the one highlight (Purple, the default,
+  Blue, Teal, Green, Orange, Rose); and a background colour, the page, for
+  light and dark apart (the base's own by default). Each is a preset or a
+  custom hex (a custom base or accent derives its shades:
+  `dsBaseTokens`, `dsAccentTokens`); `DsColourPicker` picks one inline.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
 - **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,
