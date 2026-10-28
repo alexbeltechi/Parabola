@@ -120,9 +120,12 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 - **Colours** (`colours.ts`): a base colour, the greys every surface, border
   and quiet text uses (Stone, the default and tokens.css's, Neutral, Zinc,
   Slate, Gray); an accent colour, the one highlight (Purple, the default,
-  Blue, Teal, Green, Orange, Rose); and a background colour, the website's
-  background, for light and dark apart (the base's own by default; picked,
-  the surfaces on it become shades of it: `dsBackgroundTokens`). Each is a preset or a
+  Blue, Teal, Green, Orange, Rose); a background colour, the website's
+  background (the base's own by default; picked, the surfaces on it become
+  shades of it and text turns black or white to read on it:
+  `dsBackgroundTokens`); and, optional, a surface colour for cards, panels
+  and fields (Auto: shades of the background). Background and surface are
+  picked once; the dark theme uses their counterparts (`dsCounterpart`). Each is a preset or a
   custom hex (a custom base or accent derives its shades:
   `dsBaseTokens`, `dsAccentTokens`); `DsColourPicker` picks one inline.
 - **Font families** (`families`): Font (text, always there) and Heading

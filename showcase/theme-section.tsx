@@ -19,8 +19,10 @@ import {
   DS_BACKGROUND_PRESETS,
   DS_BASE_COLOURS,
   DS_ICON_LIBRARIES,
+  dsBackgroundTokens,
   dsBaseTokens,
   dsColourSwatch,
+  dsCounterpart,
   dsIsHex,
 } from "../colours";
 import { DsColourPicker } from "../components/colour-picker";
@@ -30,14 +32,14 @@ import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
 
 /**
- * One tile of the preview grid: a few words on what it shows, then the
- * pieces themselves, on the page colour with no outline, so pieces that sit
- * on a surface of their own (the info card) stand out from the canvas.
+ * One card of the preview: a few words on what it shows, then the pieces
+ * themselves, on the surface colour (`ds-surface-subtle`, as a site's cards
+ * and panels are) with no outline, inside a page in the background colour.
  * Fields fill it unless it's wide.
  */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="@container rounded-ds-lg bg-ds-bg p-ds-20">
+    <section className="@container rounded-ds-lg bg-ds-surface-subtle p-ds-20">
       {/* Fields fill the tile while it's narrow (under 672px), as on a phone; a wider tile gives them their usual width. */}
       <div className="flex flex-col gap-ds-16 @max-2xl:ds-fields-fill">
         <p className="text-small text-ds-fg-muted">{label}</p>
@@ -76,6 +78,7 @@ function ColourChoice({
   presets,
   value,
   current,
+  counterpart,
   onChange,
 }: {
   label: string;
@@ -85,6 +88,8 @@ function ColourChoice({
   value: string | null;
   /** The colour it shows now, for the hex beside the name and the picker's start. */
   current: string;
+  /** Its colour in the dark theme, when that's worked out from this one: shown under it. */
+  counterpart?: string;
   onChange: (value: string | null) => void;
 }) {
   const custom = dsIsHex(value) && !presets.some((p) => p.value === value);
@@ -136,6 +141,12 @@ function ColourChoice({
         />
       </div>
       {open && <DsColourPicker value={current} onChange={onChange} />}
+      {counterpart && (
+        <p className="flex items-center gap-ds-8 text-small text-ds-fg-muted">
+          <span aria-hidden className="size-3 shrink-0 rounded-full border border-ds-border" style={{ backgroundColor: counterpart }} />
+          In dark: its counterpart, <span className="font-mono">{counterpart}</span>
+        </p>
+      )}
       <p className="text-small text-ds-fg-muted">{description}</p>
     </div>
   );
@@ -195,6 +206,13 @@ export function ThemeSection() {
   const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme } = useThemeEditor();
   const dark = useDarkMode();
   const mode = dark ? "dark" : "light";
+  // What Auto gives the surfaces in the light theme: shades of the background (or the base's own).
+  const autoSurface = dsBackgroundTokens({
+    background: theme.colours.background,
+    surface: null,
+    baseBg: dsBaseTokens(theme.colours.base, "light").bg,
+    mode: "light",
+  })["surface-subtle"];
   const setMode = useDsSetTheme();
   const [naming, setNaming] = React.useState<"add" | "rename" | null>(null);
 
@@ -207,6 +225,8 @@ export function ThemeSection() {
   return (
     // One column at the reading width the CMS uses (600px), each card as tall as what's in it.
     <div className="flex w-full max-w-[600px] flex-col gap-ds-20">
+      {/* A page in the theme's background, its cards on the surface colour: as a site wears them. */}
+      <div className="flex flex-col gap-ds-20 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-20">
         <Tile label="Type">
           <p className="text-display text-ds-fg">Ars longa</p>
           <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
@@ -248,7 +268,7 @@ export function ThemeSection() {
             <DsSwitch defaultChecked />
           </label>
         </Tile>
-        <Tile label="Lists and notes">
+        <Tile label="Lists">
           <DsLinkList
             items={[
               { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
@@ -256,10 +276,12 @@ export function ThemeSection() {
             ]}
             more={{ label: "All 6 posts", href: "#" }}
           />
-          <DsInfoCard title="Not live yet">
-            <p>Changes to a published post wait until you publish them.</p>
-          </DsInfoCard>
         </Tile>
+        {/* On the page itself, as notes sit on a site: its own surface shows against the background. */}
+        <DsInfoCard title="Not live yet">
+          <p>Changes to a published post wait until you publish them.</p>
+        </DsInfoCard>
+      </div>
 
       <DsField
         label={`${entry.name} as data`}
@@ -331,19 +353,29 @@ export function ThemeSection() {
             onChange={(accent) => accent && setTheme({ ...theme, colours: { ...theme.colours, accent } })}
           />
           <ColourChoice
-            // A fresh one per theme (light, dark): each has its own background.
-            key={mode}
-            label={`Background, ${mode}`}
-            description={`The page in the ${mode} theme, and its cards, fields and panels in shades of it. Switch to ${mode === "light" ? "Dark" : "Light"} above to set the other.`}
+            label="Background"
+            description="The website's background; its cards, fields and panels take shades of it, and text turns black or white to read on it."
             presets={[
-              { value: null, label: "Base", swatch: dsBaseTokens(theme.colours.base, mode).bg },
-              ...DS_BACKGROUND_PRESETS[mode].map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
+              { value: null, label: "Base", swatch: dsBaseTokens(theme.colours.base, "light").bg },
+              ...DS_BACKGROUND_PRESETS.map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
             ]}
-            value={theme.colours.background[mode]}
-            current={theme.colours.background[mode] ?? dsBaseTokens(theme.colours.base, mode).bg}
-            onChange={(background) =>
-              setTheme({ ...theme, colours: { ...theme.colours, background: { ...theme.colours.background, [mode]: background } } })
-            }
+            value={theme.colours.background}
+            current={theme.colours.background ?? dsBaseTokens(theme.colours.base, "light").bg}
+            counterpart={theme.colours.background ? dsCounterpart(theme.colours.background) : dsBaseTokens(theme.colours.base, "dark").bg}
+            onChange={(background) => setTheme({ ...theme, colours: { ...theme.colours, background } })}
+          />
+          <ColourChoice
+            label="Surface"
+            description="Cards, side panels and fields. Auto makes them shades of the background."
+            presets={[
+              { value: null, label: "Auto", swatch: autoSurface },
+              { value: "#FFFFFF", label: "White", swatch: "#FFFFFF" },
+              ...DS_BACKGROUND_PRESETS.map((p) => ({ value: p.value, label: p.label, swatch: p.value })),
+            ]}
+            value={theme.colours.surface}
+            current={theme.colours.surface ?? autoSurface}
+            counterpart={dsCounterpart(theme.colours.surface ?? autoSurface)}
+            onChange={(surface) => setTheme({ ...theme, colours: { ...theme.colours, surface } })}
           />
         </PanelSection>
 

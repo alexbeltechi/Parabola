@@ -72,6 +72,7 @@ export {
   dsBackgroundTokens,
   dsBaseTokens,
   dsColourSwatch,
+  dsCounterpart,
   dsLuminance,
   dsHexToHsv,
   dsHsvToHex,

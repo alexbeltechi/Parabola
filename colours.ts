@@ -8,10 +8,17 @@
  *   follow Tailwind's palettes, mapped onto the same roles.
  * - an **accent colour**: Parabola's one highlight, for the few things that
  *   need attention (a highlight pill), and its tint. Purple is Parabola's own.
- * - a **background colour**: the page itself, set apart for light and dark,
- *   by default the base colour's own (white, charcoal); any colour, a bright
- *   yellow included. Picked, it also sets the surfaces on it (cards, fields,
- *   side panels, borders) as shades of itself (`dsBackgroundTokens`).
+ * - a **background colour**: the website's background, by default the base
+ *   colour's own (white, charcoal); any colour, a bright yellow included.
+ *   Picked, it brings the rest along (`dsBackgroundTokens`): the surfaces on
+ *   it (cards, fields, side panels, borders) as shades of itself, and text
+ *   in black or white, whichever reads on it.
+ * - a **surface colour**, optional: cards, side panels and fields, by default
+ *   shades of the background.
+ *
+ * Every colour is picked once, for the light theme; the dark theme uses its
+ * counterpart (`dsCounterpart`), the same hue at the other end of light, so
+ * the two always contrast.
  *
  * Each of the three is a preset or a custom colour, a hex: a custom base or
  * accent derives its other shades from it (`dsBaseTokens`, `dsAccentTokens`).
@@ -180,25 +187,21 @@ export const DS_ACCENT_COLOURS: DsAccentColour[] = [
   { id: "rose", label: "Rose", light: { highlight: "#BE123C", tint: "#FFE4E6" }, dark: { highlight: "#FDA4AF", tint: "#881337" } },
 ];
 
-/** Backgrounds to try, by theme: soft, and a few bold mid-tones. "Base" (null) is the base colour's own. */
-export const DS_BACKGROUND_PRESETS: Record<"light" | "dark", { label: string; value: string }[]> = {
-  light: [
-    { label: "Paper", value: "#F6F2EA" },
-    { label: "Sand", value: "#ECE3D0" },
-    { label: "Mint", value: "#DCF2E3" },
-    { label: "Sky", value: "#DCEAF8" },
-    { label: "Yellow", value: "#FFE35A" },
-    { label: "Coral", value: "#FF9A7A" },
-  ],
-  dark: [
-    { label: "Charcoal", value: "#1E1E1E" },
-    { label: "Ink", value: "#0F1B2D" },
-    { label: "Forest", value: "#11261C" },
-    { label: "Plum", value: "#2A1630" },
-    { label: "Olive", value: "#3D3D18" },
-    { label: "Rust", value: "#5A2414" },
-  ],
-};
+/**
+ * Backgrounds and surfaces to try: soft ones, a few bold mid-tones and two
+ * deep ones. Each is the light theme's; the dark theme uses its counterpart
+ * (`dsCounterpart`), so one pick covers both.
+ */
+export const DS_BACKGROUND_PRESETS: { label: string; value: string }[] = [
+  { label: "Paper", value: "#F6F2EA" },
+  { label: "Sand", value: "#ECE3D0" },
+  { label: "Mint", value: "#DCF2E3" },
+  { label: "Sky", value: "#DCEAF8" },
+  { label: "Yellow", value: "#FFE35A" },
+  { label: "Coral", value: "#FF9A7A" },
+  { label: "Ink", value: "#1B2A44" },
+  { label: "Forest", value: "#1F3A2C" },
+];
 
 export const DS_DEFAULT_BASE_COLOUR = "stone";
 export const DS_DEFAULT_ACCENT_COLOUR = "purple";
@@ -294,21 +297,80 @@ export function dsLuminance(hex: string): number {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+// Hue, saturation and lightness (0–1), for counterparts.
+function toHsl(hex: string): [number, number, number] {
+  const [r, g, b] = toRgb(hex).map((c) => c / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (!d) return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
+}
+
+function fromHsl(h: number, s: number, l: number): string {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return toHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]);
+}
+
 /**
- * A background and the surfaces on it, as shades of the same colour: darker
- * steps on a light background, lighter ones on a dark one, so a card, a
- * field, a side panel and a border all read as the background's own.
+ * A colour's counterpart for the other theme: the same hue at the other end
+ * of light, so whatever contrasted with it still does. A light colour gets a
+ * deep one (lightness 6–24%), a dark colour a pale one (88–97%), its
+ * saturation softened a little so a bright pick doesn't glow in the dark.
  */
-export function dsBackgroundTokens(background: string): Pick<DsBaseTokens, "bg" | "surface-subtle" | "field" | "surface" | "border"> {
-  const toward = dsLuminance(background) > 0.18 ? BLACK : WHITE;
-  const shade = (amount: number) => dsMix(toward, background, amount);
-  return {
-    bg: background,
-    "surface-subtle": shade(0.035),
-    field: shade(0.06),
-    surface: shade(0.14),
-    border: shade(0.2),
+export function dsCounterpart(hex: string): string {
+  const [h, s, l] = toHsl(hex);
+  const flipped = 1 - l;
+  return l >= 0.5
+    ? fromHsl(h, s * 0.75, Math.min(0.24, Math.max(0.06, flipped)))
+    : fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, flipped)));
+}
+
+/**
+ * The page and what sits on it, from a background (and, optionally, a
+ * surface) picked for the light theme; the dark theme uses their
+ * counterparts. Text is black or white, whichever reads on the background,
+ * with its quieter steps mixed toward it; the surfaces (cards, fields, side
+ * panels) are the surface colour or shades of the background, darker on a
+ * light one and lighter on a dark one; borders are a deeper shade.
+ * `background` null keeps the base colour's own page (`baseBg`).
+ */
+export function dsBackgroundTokens({
+  background,
+  surface,
+  baseBg,
+  mode,
+}: {
+  background: string | null;
+  surface: string | null;
+  baseBg: string;
+  mode: "light" | "dark";
+}): Record<string, string> {
+  const inMode = (hex: string) => (mode === "light" ? hex : dsCounterpart(hex));
+  const bg = background ? inMode(background) : baseBg;
+  const toward = dsLuminance(bg) > 0.18 ? BLACK : WHITE;
+  const shade = (from: string, amount: number) => dsMix(toward, from, amount);
+  const card = surface ? inMode(surface) : shade(bg, 0.035);
+  const tokens: Record<string, string> = {
+    bg,
+    "surface-subtle": card,
+    field: shade(card, 0.03),
+    surface: shade(card, 0.11),
+    border: shade(bg, 0.2),
   };
+  // Text follows the background only when one is picked; the base's own page keeps the base's text.
+  if (background) {
+    tokens.fg = toward;
+    tokens["fg-muted"] = dsMix(toward, bg, 0.7);
+    tokens["fg-subtle"] = dsMix(toward, bg, 0.52);
+  }
+  return tokens;
 }
 
 /** The swatch a colour choice shows: a preset's own, or the hex itself. */
