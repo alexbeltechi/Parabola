@@ -129,7 +129,8 @@ The type tokens are `--ds-*` variables (`--ds-family-primary`,
 `--ds-weight-<style>`), so a theme changes them at run time. Make one on
 `/parabola`: Theme (a grid of pieces, the theme as JSON) and Typography (Font
 families, Type scale: an edit button on each family and style opens its
-settings), then Publish, top right on every page. An app
+settings), then Publish, top right on every page, beside a ⋮ menu that
+restores this page's defaults or all of them (with Undo in the toast). An app
 applies a theme once, in its `<head>`:
 
 ```tsx

@@ -8,6 +8,7 @@ import { DsSearch } from "../primitives/field";
 import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
+import { DsToaster } from "../primitives/toast";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
 import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions } from "./theme-editor";
 
@@ -153,6 +154,8 @@ export function DsShell({ children }: { children: React.ReactNode }) {
       <main className="flex min-h-screen flex-col bg-ds-surface-subtle pt-[76px] md:ml-[240px] md:pt-0">
         {children}
       </main>
+      {/* One toaster for every page: the theme's, and the Toast specimen's. */}
+      <DsToaster />
     </ThemeEditorProvider>
   );
 }

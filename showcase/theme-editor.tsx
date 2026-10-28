@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronDown, MoreVertical, RotateCcw } from "lucide-react";
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog } from "../primitives/dialog";
+import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { dsToast } from "../primitives/toast";
 import { cn } from "../cn";
 import { useDsThemeConfig } from "../provider";
@@ -24,7 +26,6 @@ type ThemeEditor = {
   canSave: boolean;
   save: () => Promise<void>;
   undo: () => void;
-  reset: () => void;
 };
 
 const ThemeEditorContext = React.createContext<ThemeEditor | null>(null);
@@ -72,8 +73,6 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       canSave: Boolean(onThemeConfigChange),
       save,
       undo: () => setTheme(saved),
-      // Parabola's defaults, keeping the fonts this theme added so they stay pickable.
-      reset: () => setTheme({ ...DS_DEFAULT_THEME, customFonts: theme.customFonts }),
     }),
     [theme, saved, saving, onThemeConfigChange, save, setTheme]
   );
@@ -125,39 +124,111 @@ export function PanelSection({
   );
 }
 
+/** What a restore puts back to Parabola's defaults: this page's part of the theme, or all of it. */
+type RestoreScope = "families" | "type" | "all";
+
+const RESTORE: Record<RestoreScope, { item: string; title: string; description: string; done: string }> = {
+  families: {
+    item: "Restore the font families",
+    title: "Restore the font families?",
+    description: "Primary and Display go back to Instrument Sans and Instrument Serif. Fonts you added stay in the list.",
+    done: "Font families restored",
+  },
+  type: {
+    item: "Restore the type scale",
+    title: "Restore the whole type scale?",
+    description: "Every style goes back to Parabola's size and line height, set in the primary family.",
+    done: "Type scale restored",
+  },
+  all: {
+    item: "Restore all defaults",
+    title: "Restore the whole theme?",
+    description: "Both font families and every style go back to Parabola's defaults. Fonts you added stay in the list.",
+    done: "Theme restored",
+  },
+};
+
+/** The theme with one part back at Parabola's defaults. */
+function restored(theme: DsThemeConfig, scope: RestoreScope): DsThemeConfig {
+  if (scope === "families") return { ...theme, fonts: DS_DEFAULT_THEME.fonts };
+  if (scope === "type") return { ...theme, type: DS_DEFAULT_THEME.type };
+  // Keeping the fonts this theme added, so they stay pickable.
+  return { ...DS_DEFAULT_THEME, customFonts: theme.customFonts };
+}
+
 /**
  * The theme's actions, top right of every /parabola page (DsCanvas): Undo
- * (back to what's published), Restore default (Parabola's), and Publish,
- * after a confirm, since a published theme changes every site that uses it.
- * Without an app that can publish, only the first two.
+ * (back to what's published), Publish (after a confirm, since a published
+ * theme changes every site that uses it), and, last, a ⋮ menu to restore
+ * Parabola's defaults for this page's part of the theme or all of it, each
+ * after a confirm and with Undo in the toast that follows. Nothing restored
+ * is live until it's published.
  */
 export function ThemeHeaderActions() {
-  const { dirty, saving, canSave, save, undo, reset } = useThemeEditor();
-  const [confirming, setConfirming] = React.useState(false);
+  const { theme, setTheme, dirty, saving, canSave, save, undo } = useThemeEditor();
+  const pathname = usePathname();
+  const [publishing, setPublishing] = React.useState(false);
+  const [restoring, setRestoring] = React.useState<RestoreScope | null>(null);
+
+  // This page's part of the theme, if it has one.
+  const pageScope: RestoreScope | null = pathname?.endsWith("/typography/font-families")
+    ? "families"
+    : pathname?.endsWith("/typography/type-scale")
+      ? "type"
+      : null;
+
+  function restore(scope: RestoreScope) {
+    const before = theme;
+    setTheme(restored(theme, scope));
+    setRestoring(null);
+    dsToast(RESTORE[scope].done, { action: { label: "Undo", onClick: () => setTheme(before) } });
+  }
+
   return (
     <div className="flex items-center gap-ds-8">
-      <DsButton variant="text" onClick={reset} disabled={saving}>
-        Restore default
-      </DsButton>
       <DsButton onClick={undo} disabled={!dirty || saving}>
         Undo
       </DsButton>
       {canSave && (
-        <DsButton variant="primary" onClick={() => setConfirming(true)} disabled={!dirty} loading={saving}>
+        <DsButton variant="primary" onClick={() => setPublishing(true)} disabled={!dirty} loading={saving}>
           Publish
         </DsButton>
       )}
+      <DsDropdown>
+        <DsDropdownTrigger asChild>
+          <DsButton variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />
+        </DsDropdownTrigger>
+        <DsDropdownContent align="end">
+          {pageScope && (
+            <DsDropdownItem iconLeft={RotateCcw} onSelect={() => setRestoring(pageScope)}>
+              {RESTORE[pageScope].item}
+            </DsDropdownItem>
+          )}
+          <DsDropdownItem iconLeft={RotateCcw} onSelect={() => setRestoring("all")}>
+            {RESTORE.all.item}
+          </DsDropdownItem>
+        </DsDropdownContent>
+      </DsDropdown>
+
       <DsConfirmDialog
-        open={confirming}
-        onOpenChange={setConfirming}
+        open={publishing}
+        onOpenChange={setPublishing}
         title="Publish this theme?"
         description="This changes every site that uses it, and its admin, right away."
         confirmLabel="Publish"
         loading={saving}
         onConfirm={async () => {
           await save();
-          setConfirming(false);
+          setPublishing(false);
         }}
+      />
+      <DsConfirmDialog
+        open={restoring !== null}
+        onOpenChange={(open) => !open && setRestoring(null)}
+        title={restoring ? RESTORE[restoring].title : ""}
+        description={restoring ? `${RESTORE[restoring].description} Nothing changes on your site until you publish.` : undefined}
+        confirmLabel="Restore"
+        onConfirm={() => restoring && restore(restoring)}
       />
     </div>
   );

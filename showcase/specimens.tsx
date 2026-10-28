@@ -45,7 +45,7 @@ import { DsRadio, DsRadioGroup, DsRadioMark } from "../primitives/radio";
 import { DsSelect } from "../primitives/select";
 import { DS_ACCENTS } from "../accents";
 import { DsSwitch } from "../primitives/switch";
-import { DsToast, DsToastAction, DsToaster, dsToast } from "../primitives/toast";
+import { DsToast, DsToastAction, dsToast } from "../primitives/toast";
 import { DsTooltip } from "../primitives/tooltip";
 import { cn } from "../cn";
 import { DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
@@ -822,7 +822,6 @@ export function Toast() {
           >
             Show a toast
           </DsButton>
-          <DsToaster />
         </div>
       }
       controls={
