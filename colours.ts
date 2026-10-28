@@ -53,7 +53,7 @@ export const DS_BASE_COLOURS: DsBaseColour[] = [
       "fg-subtle": "#78716C",
       border: "#DCD9D2",
       "surface-subtle": "#EFECE4",
-      field: "#FFFFFF",
+      field: "#FAF7EF",
       surface: "#E2DFD9",
       "surface-inverse": "rgb(48 46 44 / 0.7)",
     },
@@ -63,7 +63,7 @@ export const DS_BASE_COLOURS: DsBaseColour[] = [
       "fg-subtle": "#A8A29E",
       border: "#44403C",
       "surface-subtle": "#1A1918",
-      field: "#211F1E",
+      field: "#121110",
       surface: "#302E2C",
       "surface-inverse": darkInverse,
     },
@@ -396,14 +396,6 @@ export function dsCounterpart(hex: string): string {
 }
 
 /**
- * A field's fill: solid, so it reads as a place to type wherever it sits.
- * White on a light page; on a dark one a step lighter than the cards.
- */
-function fieldOn(card: string, page: string, text: string): string {
-  return dsLuminance(page) > 0.18 ? WHITE : dsMix(text, card, 0.06);
-}
-
-/**
  * A colour in a theme as a hex, or null for Parabola's own as it is: the one
  * picked for this theme; else what it's based on (in dark, the light one's
  * counterpart; otherwise `auto`, Parabola's own or, for buttons, the
@@ -447,7 +439,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "fg-subtle": dsMix(fg, bg, 0.52),
       border: dsMix(fg, bg, 0.12),
       "surface-subtle": card,
-      field: fieldOn(card, bg, fg),
+      // Fields are the page itself, solid: a place to type that shows on a card.
+      field: bg,
       surface: dsMix(fg, card, 0.11),
       // Toasts and tooltips in the text colour, solid.
       "surface-inverse": fg,
@@ -465,7 +458,6 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
   if (card) {
     tokens["surface-subtle"] = card;
-    tokens.field = fieldOn(card, tokens.bg, tokens.fg);
     tokens.surface = dsMix(tokens.fg, card, 0.11);
   }
   // Buttons and selected states: their own colour with black or white on it, or the text on the page.

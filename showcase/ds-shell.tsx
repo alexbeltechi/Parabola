@@ -251,9 +251,9 @@ export function DsCanvas({
         >
           <div
             ref={setSlot}
-            className="flex flex-col gap-ds-20 p-ds-20 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
+            className="flex flex-col gap-ds-16 p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16"
           />
-          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-surface-subtle p-ds-20 empty:hidden" />
+          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-surface-subtle p-ds-16 empty:hidden" />
         </aside>
       </div>
       </PanelFooterSlotContext.Provider>

@@ -3,12 +3,12 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { ChevronDown, MoreVertical, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { MoreVertical, Redo2, RotateCcw, Undo2 } from "lucide-react";
+import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog } from "../primitives/dialog";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { dsToast } from "../primitives/toast";
-import { cn } from "../cn";
 import { useDsThemeLibrary } from "../provider";
 import {
   DS_DEFAULT_LIBRARY,
@@ -230,11 +230,7 @@ export function InPanelFooter({ children }: { children: React.ReactNode }) {
   return slot ? createPortal(children, slot) : null;
 }
 
-/**
- * One section of the right-hand panel, as Linear's properties panel: a muted
- * label with a small chevron that folds the section away, and at the
- * header's right end its `actions` (a ⋮ menu), then its rows.
- */
+/** One section of the right-hand panel: a Parabola accordion (DsAccordion), its fields filling the panel. */
 export function PanelSection({
   title,
   defaultOpen = true,
@@ -246,29 +242,10 @@ export function PanelSection({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = React.useState(defaultOpen);
-  const id = React.useId();
   return (
-    <section className="flex flex-col">
-      <div className="flex items-center justify-between gap-ds-8">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={id}
-          onClick={() => setOpen((o) => !o)}
-          className="group -mx-ds-8 flex items-center gap-ds-4 rounded-ds-control px-ds-8 py-ds-4 text-left text-p text-ds-fg-muted ds-focus hover:text-ds-fg"
-        >
-          {title}
-          <ChevronDown aria-hidden className={cn("size-4 transition-transform", !open && "-rotate-90")} />
-        </button>
-        {actions}
-      </div>
-      {open && (
-        <div id={id} className="ds-fields-fill flex flex-col gap-ds-16 pt-ds-16">
-          {children}
-        </div>
-      )}
-    </section>
+    <DsAccordion title={title} defaultOpen={defaultOpen} actions={actions} contentClassName="ds-fields-fill">
+      {children}
+    </DsAccordion>
   );
 }
 

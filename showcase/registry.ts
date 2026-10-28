@@ -181,6 +181,7 @@ export const DS_TIERS: DsTier[] = [
         label: "Layout",
         icon: LayoutPanelTop,
         pages: [
+          { slug: "accordion", label: "Accordion", component: S.Accordion },
           { slug: "divider", label: "Divider", component: S.Divider },
           { slug: "list-row", label: "List row", component: S.ListRow },
           { slug: "nav-fade", label: "Nav fade", component: S.NavFade },

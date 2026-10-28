@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
+import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
@@ -60,8 +61,7 @@ function ColourChoice({
   const at = (amount: number) => dsShift(unshifted, amount);
   const diff = Math.round((dsHexToHsl(shown)[2] - dsHexToHsl(unshifted)[2]) * 100);
   return (
-    <div className="flex flex-col gap-ds-8">
-      <span className="text-p text-ds-fg">{label}</span>
+    <DsAccordion title={label} inset contentClassName="gap-ds-8">
       {basedOn && (
         <label className="inline-flex items-center gap-ds-8 self-start">
           <DsCheckbox
@@ -92,7 +92,7 @@ function ColourChoice({
       <div className={cn(unset && "opacity-30 transition-opacity hover:opacity-60")}>
         <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
       </div>
-    </div>
+    </DsAccordion>
   );
 }
 

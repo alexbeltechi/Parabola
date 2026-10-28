@@ -47,6 +47,7 @@ import { DS_ACCENTS } from "../accents";
 import { DsSwitch } from "../primitives/switch";
 import { DsToast, DsToastAction, dsToast } from "../primitives/toast";
 import { DsTopBar } from "../primitives/top-bar";
+import { DsAccordion } from "../primitives/accordion";
 import { DsTooltip } from "../primitives/tooltip";
 import { cn } from "../cn";
 import { DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
@@ -725,6 +726,34 @@ export function NavFade() {
         </div>
       }
       controls={<Controls options={o} labels={{ subnav: "Sub-nav" }} onChange={setO} />}
+    />
+  );
+}
+
+export function Accordion() {
+  const [o, setO] = useState({ nested: true, actions: true });
+  const more = o.actions ? <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label="More" /> : undefined;
+  return (
+    <Specimen
+      preview={
+        <div className="flex w-full max-w-[360px] flex-col">
+          <DsAccordion title="Colours" actions={more}>
+            {o.nested ? (
+              <>
+                <DsAccordion title="Theme colour" inset>
+                  <p className="text-small text-ds-fg-muted">The page, and what&apos;s on it.</p>
+                </DsAccordion>
+                <DsAccordion title="Surface" inset defaultOpen={false}>
+                  <p className="text-small text-ds-fg-muted">Cards, panels and fields.</p>
+                </DsAccordion>
+              </>
+            ) : (
+              <p className="text-small text-ds-fg-muted">What the section holds.</p>
+            )}
+          </DsAccordion>
+        </div>
+      }
+      controls={<Controls options={o} labels={{ nested: "Nested", actions: "Actions" }} onChange={setO} />}
     />
   );
 }

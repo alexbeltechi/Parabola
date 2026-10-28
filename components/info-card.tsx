@@ -3,8 +3,9 @@ import { Info, type LucideIcon } from "lucide-react";
 import { cn } from "../cn";
 
 /**
- * Parabola info card: a side note on a screen, set apart on the subtle
- * surface with an icon: another way to do the thing at hand, a tip, what
+ * Parabola info card: a side note on a screen, set apart with an icon on the
+ * default button's see-through surface (`ds-surface` at 70%), so it shows
+ * on the page and on a card alike: another way to do the thing at hand, a tip, what
  * happens next. A title of a few words, then one short line (muted) and,
  * if needed, an action. Not for errors (those are toasts or field errors)
  * and not for page copy on the site.
@@ -23,7 +24,7 @@ export function DsInfoCard({
   return (
     <div
       data-slot="ds-info-card"
-      className={cn("flex gap-3 rounded-ds-lg bg-ds-surface-subtle p-4 text-p text-ds-fg", className)}
+      className={cn("flex gap-3 rounded-ds-lg bg-ds-surface/70 p-4 text-p text-ds-fg", className)}
       {...props}
     >
       <Icon aria-hidden className="mt-1 size-4 shrink-0 text-ds-fg-muted" />
