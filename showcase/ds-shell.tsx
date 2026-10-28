@@ -12,7 +12,7 @@ import { DsToaster } from "../primitives/toast";
 import { DS_THEME_SCOPE } from "../theme";
 import { DsModeScope } from "../provider";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
-import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
+import { PanelFooterSlotContext, PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -187,9 +187,11 @@ export function DsCanvas({
   children: React.ReactNode;
 }) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
+  const [footer, setFooter] = React.useState<HTMLElement | null>(null);
   const { previewMode, setPreviewMode } = useThemeEditor();
   return (
     <PanelSlotContext.Provider value={slot}>
+      <PanelFooterSlotContext.Provider value={footer}>
       {/* One grid for the header, the page and its panel, so the header stays pinned
           over all of it: on phones the panel comes under the page, and a header
           sticky only within the page's own column would scroll away there. From
@@ -217,12 +219,20 @@ export function DsCanvas({
         </div>
         {/* The page's properties; hidden while it has none. A rule between sections,
             so folded ones still read as separate. */}
+        {/* Its sections scroll; its foot (a page's main action) stays pinned under them, on the panel's own colour.
+            Hidden while the page puts nothing there. */}
         <aside
-          ref={setSlot}
           aria-label="Properties"
-          className="flex flex-col gap-ds-20 self-start border-t border-ds-border p-ds-20 empty:hidden lg:col-start-2 lg:row-start-2 lg:h-full lg:min-h-0 lg:self-stretch lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
-        />
+          className="flex flex-col border-t border-ds-border [&:has(>div:first-child:empty)]:hidden lg:col-start-2 lg:row-start-2 lg:min-h-0 lg:border-t-0 lg:border-l"
+        >
+          <div
+            ref={setSlot}
+            className="flex flex-col gap-ds-20 p-ds-20 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
+          />
+          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-surface-subtle p-ds-20 empty:hidden" />
+        </aside>
       </div>
+      </PanelFooterSlotContext.Provider>
     </PanelSlotContext.Provider>
   );
 }

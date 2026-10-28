@@ -113,11 +113,11 @@ export function DsColourBar({
 
 /**
  * Parabola colour picker, inline (no pop-up): a square for saturation (left
- * to right) and brightness (bottom to top) in the chosen hue, a hue bar of
- * the whole rainbow, with `warmth` a bar from cold to warm (white balance,
- * for a page colour: white to paper), a brightness bar from black through
- * the colour to white (all DsColourBar), and the hex, typed or pasted. Drag either, or use the
- * arrow keys on them (Shift for bigger steps). Every change is reported at
+ * to right) and brightness (bottom to top) in the chosen hue, the hex right
+ * under it (typed or pasted), a hue bar of the whole rainbow, with `warmth`
+ * a bar from cold to warm (white balance, for a page colour: white to
+ * paper), and a brightness bar from black through the colour to white (all
+ * DsColourBar). Drag any of them, or use the arrow keys on them (Shift for bigger steps). Every change is reported at
  * once, so whatever wears the colour follows live. Controlled: `value` is a
  * `#RRGGBB`, `onChange` gets the new one.
  */
@@ -189,6 +189,26 @@ export function DsColourPicker({
       >
         <span className={THUMB} style={{ boxShadow: THUMB_RING, left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: shown }} />
       </div>
+      <DsInput
+        aria-label="Hex"
+        className="w-full font-mono"
+        value={editing ? text : shown}
+        onFocus={() => {
+          setText(shown);
+          setEditing(true);
+        }}
+        onBlur={() => setEditing(false)}
+        onChange={(e) => {
+          setText(e.target.value);
+          const hex = dsNormalizeHex(e.target.value);
+          if (hex) {
+            setHsv(dsHexToHsv(hex));
+            setLast(hex);
+            onChange(hex);
+          }
+        }}
+        placeholder="#FFE35A"
+      />
       <DsColourBar
         label="Hue"
         readout={`${Math.round(hsv.h) % 360}°`}
@@ -224,26 +244,6 @@ export function DsColourPicker({
         }}
         track={`linear-gradient(to right, #000000, ${pure}, #FFFFFF)`}
         thumb={shown}
-      />
-      <DsInput
-        aria-label="Hex"
-        className="w-full font-mono"
-        value={editing ? text : shown}
-        onFocus={() => {
-          setText(shown);
-          setEditing(true);
-        }}
-        onBlur={() => setEditing(false)}
-        onChange={(e) => {
-          setText(e.target.value);
-          const hex = dsNormalizeHex(e.target.value);
-          if (hex) {
-            setHsv(dsHexToHsv(hex));
-            setLast(hex);
-            onChange(hex);
-          }
-        }}
-        placeholder="#FFE35A"
       />
     </div>
   );

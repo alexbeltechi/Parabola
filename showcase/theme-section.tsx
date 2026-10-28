@@ -20,7 +20,7 @@ import { cn } from "../cn";
 import { DsLink } from "../provider";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
-import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
+import { InPanel, InPanelFooter, PanelSection, useThemeEditor } from "./theme-editor";
 
 /**
  * One of the theme's five colours in the panel, for the light or the dark
@@ -317,8 +317,8 @@ export function ThemeSection() {
           <DsSelect
             aria-label="Theme"
             key={library.themes.map((t) => t.id).join()}
-            // The site's own theme reads "(default)".
-            options={library.themes.map((t) => ({ value: t.id, label: t.id === library.active ? `${t.name} (default)` : t.name }))}
+            // Parabola, Parabola's own, is the default every theme starts from and restores to.
+            options={library.themes.map((t) => ({ value: t.id, label: t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name }))}
             value={entry.id}
             onValueChange={select}
           />
@@ -426,20 +426,21 @@ export function ThemeSection() {
           </DsField>
         </PanelSection>
 
-        {/* Pinned to the panel's foot while the open theme has something to keep. */}
-        {(status === "new" || status === "changed") && (
-          <div className="sticky bottom-0 mt-auto -mx-ds-20 -mb-ds-20 bg-ds-bg p-ds-20">
-            <DsButton
-              variant="primary"
-              className="w-full"
-              loading={saving}
-              onClick={() => (status === "new" ? setNaming("create") : entry.id === library.active ? setConfirmSave(true) : save())}
-            >
-              {status === "new" ? "Create theme" : "Save theme"}
-            </DsButton>
-          </div>
-        )}
       </InPanel>
+
+      {/* At the panel's foot while the open theme has something to keep. */}
+      {(status === "new" || status === "changed") && (
+        <InPanelFooter>
+          <DsButton
+            variant="primary"
+            className="w-full"
+            loading={saving}
+            onClick={() => (status === "new" ? setNaming("create") : entry.id === library.active ? setConfirmSave(true) : save())}
+          >
+            {status === "new" ? "Create theme" : "Save theme"}
+          </DsButton>
+        </InPanelFooter>
+      )}
 
       {naming === "create" && (
         <ThemeNameDialog

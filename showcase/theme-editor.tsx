@@ -56,6 +56,11 @@ type ThemeEditor = {
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
+  /**
+   * Back to Parabola: open it, and make it the site's again when the themes
+   * are published. Other themes stay as they are. Returns what undoes it.
+   */
+  backToParabola: () => () => void;
   /** Not yet published. */
   dirty: boolean;
   saving: boolean;
@@ -181,6 +186,16 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         change({ ...library, themes: library.themes.filter((t) => t.id !== id) });
         if (selected === id) setSelected(library.active);
       },
+      backToParabola: () => {
+        const wasSelected = entry.id;
+        const moved = library.active !== DS_DEFAULT_THEME_ID;
+        if (moved) change({ ...library, active: DS_DEFAULT_THEME_ID });
+        setSelected(DS_DEFAULT_THEME_ID);
+        return () => {
+          if (moved) undo();
+          setSelected(wasSelected);
+        };
+      },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
       saving,
       canSave: Boolean(onThemeLibraryChange),
@@ -203,6 +218,15 @@ export const PanelSlotContext = React.createContext<HTMLElement | null>(null);
 /** Puts its children in the canvas's right-hand panel. */
 export function InPanel({ children }: { children: React.ReactNode }) {
   const slot = React.useContext(PanelSlotContext);
+  return slot ? createPortal(children, slot) : null;
+}
+
+/** Where the panel's foot is: pinned under its sections, which scroll above it. */
+export const PanelFooterSlotContext = React.createContext<HTMLElement | null>(null);
+
+/** Puts its children at the foot of the right-hand panel (a page's main action there: Create theme). */
+export function InPanelFooter({ children }: { children: React.ReactNode }) {
+  const slot = React.useContext(PanelFooterSlotContext);
   return slot ? createPortal(children, slot) : null;
 }
 
@@ -261,18 +285,17 @@ const RESTORE: Record<RestoreScope, { item: string; title: string; description: 
   },
   all: {
     item: "Restore all defaults",
-    title: "Restore the whole theme?",
-    description: "Its colours, font families, type scale, radius and icons go back to Parabola's defaults. Fonts you added stay in the list.",
-    done: "Theme restored",
+    title: "Back to Parabola?",
+    description:
+      "Parabola opens, and becomes your site's theme again when you publish. Your other themes stay as they are, to pick again any time.",
+    done: "Back to Parabola",
   },
 };
 
 /** The theme with one part back at Parabola's defaults, cleaned (styles in a family that's gone move to Font). */
-function restored(theme: DsThemeConfig, scope: RestoreScope): DsThemeConfig {
+function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConfig {
   if (scope === "families") return parseDsThemeConfig({ ...theme, families: DS_DEFAULT_THEME.families, hiddenFonts: [] });
-  if (scope === "type") return parseDsThemeConfig({ ...theme, type: DS_DEFAULT_THEME.type });
-  // Keeping the fonts this theme added, so they stay pickable.
-  return { ...DS_DEFAULT_THEME, customFonts: theme.customFonts };
+  return parseDsThemeConfig({ ...theme, type: DS_DEFAULT_THEME.type });
 }
 
 /**
@@ -280,12 +303,13 @@ function restored(theme: DsThemeConfig, scope: RestoreScope): DsThemeConfig {
  * (its icon and label) and Redo (icon only), one change at a time and off
  * when there's none; Publish (after a confirm, since published themes
  * change every site that uses them); and, last, a ⋮ menu to restore
- * Parabola's defaults for this page's part of the open theme or all of it,
- * each after a confirm and with Undo in the toast that follows. Nothing
- * restored is live until it's published.
+ * Parabola's defaults for this page's part of the open theme, or to go back
+ * to Parabola itself (all defaults: it opens, and is the site's theme again
+ * once published), each after a confirm and with Undo in the toast that
+ * follows. Nothing restored is live until it's published.
  */
 export function ThemeHeaderActions() {
-  const { theme, setTheme, entry, dirty, saving, canSave, save, canUndo, canRedo, undo, redo } = useThemeEditor();
+  const { theme, setTheme, entry, dirty, saving, canSave, save, canUndo, canRedo, undo, redo, backToParabola } = useThemeEditor();
   const pathname = usePathname();
   const [publishing, setPublishing] = React.useState(false);
   const [restoring, setRestoring] = React.useState<RestoreScope | null>(null);
@@ -298,9 +322,14 @@ export function ThemeHeaderActions() {
       : null;
 
   function restore(scope: RestoreScope) {
+    setRestoring(null);
+    if (scope === "all") {
+      const undoIt = backToParabola();
+      dsToast(RESTORE.all.done, { action: { label: "Undo", onClick: undoIt } });
+      return;
+    }
     const before = theme;
     setTheme(restored(theme, scope));
-    setRestoring(null);
     dsToast(`${RESTORE[scope].done} (${entry.name})`, { action: { label: "Undo", onClick: () => setTheme(before) } });
   }
 
@@ -348,7 +377,11 @@ export function ThemeHeaderActions() {
         onOpenChange={(open) => !open && setRestoring(null)}
         title={restoring ? RESTORE[restoring].title : ""}
         description={
-          restoring ? `${RESTORE[restoring].description} This is ${entry.name}; nothing changes on your site until you publish.` : undefined
+          restoring === "all"
+            ? RESTORE.all.description
+            : restoring
+              ? `${RESTORE[restoring].description} This is ${entry.name}; nothing changes on your site until you publish.`
+              : undefined
         }
         confirmLabel="Restore"
         onConfirm={() => restoring && restore(restoring)}
