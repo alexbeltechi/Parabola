@@ -477,7 +477,17 @@ export function parseDsThemeLibrary(value: unknown, legacy?: unknown): DsThemeLi
     theme: legacy !== undefined ? parseDsThemeConfig(legacy) : DS_DEFAULT_THEME,
   };
   const first = themes.find((t) => t.id === DS_DEFAULT_THEME_ID) ?? fallbackDefault;
-  const all = [first, ...themes.filter((t) => t.id !== DS_DEFAULT_THEME_ID)];
-  const active = typeof raw.active === "string" && all.some((t) => t.id === raw.active) ? raw.active : DS_DEFAULT_THEME_ID;
-  return { themes: all, active };
+  const others = themes.filter((t) => t.id !== DS_DEFAULT_THEME_ID);
+  let active = typeof raw.active === "string" && others.some((t) => t.id === raw.active) ? raw.active : DS_DEFAULT_THEME_ID;
+  // Parabola is Parabola's own and never changes. One changed before that (its colours, its fonts) becomes a
+  // theme of its own, Custom, and stays the site's if it was, so the site looks as it did.
+  if (JSON.stringify(first.theme) !== JSON.stringify(parseDsThemeConfig(DS_DEFAULT_THEME))) {
+    const names = new Set(others.map((t) => t.name));
+    let name = "Custom";
+    for (let n = 2; names.has(name); n++) name = `Custom ${n}`;
+    const id = dsThemeEntryId({ themes: [first, ...others], active }, name);
+    others.push({ id, name, theme: first.theme });
+    if (active === DS_DEFAULT_THEME_ID) active = id;
+  }
+  return { themes: [{ ...first, theme: DS_DEFAULT_THEME }, ...others], active };
 }

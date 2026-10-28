@@ -4,12 +4,11 @@ import * as React from "react";
 import { Moon, MoreVertical, Pencil, Plus, Sun, Trash2 } from "lucide-react";
 import { DsButton } from "../primitives/button";
 import { DsCopyField } from "../primitives/copy-field";
-import { DsDialog, DsDialogActions } from "../primitives/dialog";
+import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { DsField, DsInput } from "../primitives/field";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
-import { DsSwitch } from "../primitives/switch";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
@@ -21,24 +20,6 @@ import { DsLink } from "../provider";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
-
-/**
- * One card of the preview: a few words on what it shows, then the pieces
- * themselves, on the theme's surface with no outline, floating on the
- * canvas in the theme colour, as a site's cards sit on its page.
- * Fields fill it unless it's wide.
- */
-function Tile({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <section className="@container rounded-ds-lg bg-ds-surface-subtle p-ds-20">
-      {/* Fields fill the tile while it's narrow (under 672px), as on a phone; a wider tile gives them their usual width. */}
-      <div className="flex flex-col gap-ds-16 @max-2xl:ds-fields-fill">
-        <p className="text-small text-ds-fg-muted">{label}</p>
-        {children}
-      </div>
-    </section>
-  );
-}
 
 /**
  * One of the theme's five colours in the panel, for the light or the dark
@@ -205,19 +186,36 @@ function ThemeNameDialog({
 
 /**
  * Theme: Parabola's home screen for making a theme, in the manner of
- * shadcn's create page (decisions, 2026-10-28). The page is Parabola's
- * pieces wearing the open theme, one card under another at the CMS's
- * reading width (600px), the theme as data last; the panel on the right holds the
- * theme's main choices: which theme (Default and any added; Add theme
- * copies the open one under a new name), light or dark, the theme
- * colour, fonts and UI and the accent colour, the Heading and Font families' fonts, and the icon
- * library. The rest is on Typography. Publish is top right; a site picks
- * its theme in Settings › Design. Every spacing is a Parabola one.
+ * shadcn's create page (decisions, 2026-10-28). The page is a site's page
+ * wearing the open theme (its nav, a post's opening, buttons, a list of
+ * writing, one card on the surface), the theme as data last; the panel on
+ * the right holds the theme's main choices: which theme (the site's reads
+ * "(default)"; Parabola itself never changes, a change to it opens a copy,
+ * Custom, to create), light or dark for the preview, the five colours, the
+ * Heading and Font families' fonts, the radius and the icon library. The
+ * rest is on Typography. Create theme or Save theme sits at the panel's
+ * foot while there's something to keep; a site picks its theme in
+ * Settings › Design. Every spacing is a Parabola one.
  */
 export function ThemeSection() {
-  const { library, entry, theme, setTheme, select, addTheme, renameTheme, removeTheme, previewMode: mode, setPreviewMode } =
-    useThemeEditor();
-  const [naming, setNaming] = React.useState<"add" | "rename" | null>(null);
+  const {
+    library,
+    entry,
+    theme,
+    setTheme,
+    status,
+    createTheme,
+    save,
+    saving,
+    select,
+    addTheme,
+    renameTheme,
+    removeTheme,
+    previewMode: mode,
+    setPreviewMode,
+  } = useThemeEditor();
+  const [naming, setNaming] = React.useState<"add" | "rename" | "create" | null>(null);
+  const [confirmSave, setConfirmSave] = React.useState(false);
 
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({ ...theme, families: theme.families.map((f) => (f.id === familyId ? { ...f, font } : f)) });
@@ -226,66 +224,71 @@ export function ThemeSection() {
   const body = theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // One column at the reading width the CMS uses (600px), each card as tall as what's in it.
-    <div className="flex w-full max-w-[600px] flex-col gap-ds-20">
-      <Tile label="Type">
-        <p className="text-display text-ds-fg">Ars longa</p>
-        <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
-        <p className="text-prose text-ds-fg-muted">
-          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
-        </p>
-        <p className="text-small text-ds-fg-muted">Small, the floor</p>
-      </Tile>
-      <Tile label="Buttons">
-        <div className="flex flex-wrap items-center gap-ds-8">
-          <DsButton variant="primary" size="large">
-            Book a call
+    // A page of a site at the CMS's reading width (600px), as the site lays one out: most of it on the
+    // page itself, in the theme colour; a card (the surface) only where a site puts one.
+    <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
+      <div className="flex items-center justify-between gap-ds-16">
+        <span className="text-p text-ds-fg">Ilo Odena</span>
+        <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
+          <DsButton variant="text" current>
+            Writing
           </DsButton>
-        </div>
-        <div className="flex flex-wrap items-center gap-ds-8">
-          <DsButton variant="primary">Publish</DsButton>
-          <DsButton>Save</DsButton>
-          <DsButton variant="text">Writing</DsButton>
+          <DsButton variant="text">About</DsButton>
           <DsThemeToggle variant="text" />
-        </div>
-      </Tile>
-      <Tile label="Pills">
+        </nav>
+      </div>
+
+      <article className="flex flex-col gap-ds-20">
         <div className="flex flex-wrap items-center gap-ds-8">
           <DsPill variant="highlight">New</DsPill>
-          <DsPill>Draft</DsPill>
+          <DsPill>Essay</DsPill>
           <DsPill variant="dark">Published</DsPill>
         </div>
-      </Tile>
-      <Tile label="Fields">
-        <DsField label="Name" description="The project's name, and the site's.">
-          <DsInput defaultValue="Ilo Odena" />
-        </DsField>
-        <DsField label="Layout">
-          <DsSelect
-            value="list"
-            options={[
-              { value: "list", label: "Stacked like a blog" },
-              { value: "wall", label: "Posts only" },
-            ]}
-          />
-        </DsField>
-        <label className="inline-flex items-center gap-ds-8 self-start">
-          <span className="text-p text-ds-fg">In the site&apos;s nav</span>
-          <DsSwitch defaultChecked />
-        </label>
-      </Tile>
-      <Tile label="Lists and notes">
+        <h1 className="text-display text-ds-fg">Ars longa</h1>
+        <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
+        <p className="text-prose text-ds-fg">
+          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
+        </p>
+        <p className="text-prose text-ds-fg-muted">
+          So now I start with the smallest thing that could stand on its own, and let it ask for more.
+        </p>
+        <p className="text-small text-ds-fg-muted">2026 · 2 min · Small, the floor</p>
+      </article>
+
+      <div className="flex flex-wrap items-center gap-ds-8">
+        <DsButton variant="primary" size="large">
+          Book a call
+        </DsButton>
+        <DsButton size="large">Read more</DsButton>
+      </div>
+
+      <section className="flex flex-col gap-ds-20">
+        <h2 className="text-h2 text-ds-fg">Writing</h2>
         <DsLinkList
           items={[
             { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
             { label: "Keep fewer moments", href: "#", meta: "2026 · 1 min" },
+            { label: "Make the small version first", href: "#", meta: "2026 · 2 min" },
           ]}
           more={{ label: "All 6 posts", href: "#" }}
         />
-        <DsInfoCard title="Not live yet">
-          <p>Changes to a published post wait until you publish them.</p>
-        </DsInfoCard>
-      </Tile>
+      </section>
+
+      {/* The one card: on the surface, as a site's newsletter box is. */}
+      <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
+        <h3 className="text-h3 text-ds-fg">Letters, now and then</h3>
+        <p className="text-p text-ds-fg-muted">What I&apos;m making, a few times a year.</p>
+        <div className="flex flex-wrap items-end gap-ds-8 @max-2xl:ds-fields-fill">
+          <DsField label="Email">
+            <DsInput placeholder="you@example.com" />
+          </DsField>
+          <DsButton variant="primary">Subscribe</DsButton>
+        </div>
+      </section>
+
+      <DsInfoCard title="Not live yet">
+        <p>Changes to a published post wait until you publish them.</p>
+      </DsInfoCard>
 
     <DsField
         label={`${entry.name} as data`}
@@ -297,14 +300,14 @@ export function ThemeSection() {
 
       <InPanel>
         <PanelSection title="Theme">
-          <DsField label="Editing">
-            <DsSelect
-              key={library.themes.map((t) => t.id).join()}
-              options={library.themes.map((t) => ({ value: t.id, label: t.id === library.active ? `${t.name} (in use)` : t.name }))}
-              value={entry.id}
-              onValueChange={select}
-            />
-          </DsField>
+          <DsSelect
+            aria-label="Theme"
+            key={library.themes.map((t) => t.id).join()}
+            // The site's own theme reads "(default)".
+            options={library.themes.map((t) => ({ value: t.id, label: t.id === library.active ? `${t.name} (default)` : t.name }))}
+            value={entry.id}
+            onValueChange={select}
+          />
           <div className="flex items-center gap-ds-8">
             <DsButton iconLeft={Plus} onClick={() => setNaming("add")}>
               Add theme
@@ -314,7 +317,7 @@ export function ThemeSection() {
                 <DsButton variant="text" iconLeft={MoreVertical} aria-label={`More for ${entry.name}`} />
               </DsDropdownTrigger>
               <DsDropdownContent align="start">
-                <DsDropdownItem iconLeft={Pencil} onSelect={() => setNaming("rename")}>
+                <DsDropdownItem iconLeft={Pencil} disabled={entry.id === DS_DEFAULT_THEME_ID} onSelect={() => setNaming("rename")}>
                   Rename
                 </DsDropdownItem>
                 <DsDropdownItem
@@ -408,7 +411,47 @@ export function ThemeSection() {
             />
           </DsField>
         </PanelSection>
+
+        {/* Pinned to the panel's foot while the open theme has something to keep. */}
+        {(status === "new" || status === "changed") && (
+          <div className="sticky bottom-0 mt-auto -mx-ds-20 -mb-ds-20 bg-ds-bg p-ds-20">
+            <DsButton
+              variant="primary"
+              className="w-full"
+              loading={saving}
+              onClick={() => (status === "new" ? setNaming("create") : entry.id === library.active ? setConfirmSave(true) : save())}
+            >
+              {status === "new" ? "Create theme" : "Save theme"}
+            </DsButton>
+          </div>
+        )}
       </InPanel>
+
+      {naming === "create" && (
+        <ThemeNameDialog
+          title="Create a theme"
+          description="Parabola stays as it is; this is a theme of its own, for a site to pick in Settings › Design."
+          initial={entry.name}
+          action="Create theme"
+          onClose={() => setNaming(null)}
+          onSave={async (name) => {
+            setNaming(null);
+            await createTheme(name);
+          }}
+        />
+      )}
+      <DsConfirmDialog
+        open={confirmSave}
+        onOpenChange={setConfirmSave}
+        title={`Save ${entry.name}?`}
+        description="It's your site's theme, so your site changes right away."
+        confirmLabel="Save theme"
+        loading={saving}
+        onConfirm={async () => {
+          await save();
+          setConfirmSave(false);
+        }}
+      />
 
       {naming === "add" && (
         <ThemeNameDialog

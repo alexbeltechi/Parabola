@@ -30,7 +30,9 @@ import {
  * added), one of them open for editing, shown on every page's canvas
  * (dsApplyTheme, scoped) so a font picked on Font families shows on Type
  * scale and Theme too; the sidebar, header and panel stay in Parabola's own,
- * so a theme that's hard to read never makes the controls hard to use. Every
+ * so a theme that's hard to read never makes the controls hard to use.
+ * Parabola itself never changes: the first change to it opens a copy,
+ * "Custom", with the change in it, to create as a theme of its own. Every
  * change goes on a history, so Undo and Redo step through them one at a
  * time; Publish hands the library to the app (DsProvider
  * `onThemeLibraryChange`). Which theme a site wears is the site's choice
@@ -41,7 +43,12 @@ type ThemeEditor = {
   /** The theme open for editing. */
   entry: DsThemeEntry;
   theme: DsThemeConfig;
+  /** Change the open theme; on Parabola, a copy of it ("Custom") opens with the change. */
   setTheme: (theme: DsThemeConfig) => void;
+  /** Where the open theme stands against what's published: Parabola, new (not created yet), changed or as published. */
+  status: "parabola" | "new" | "changed" | "saved";
+  /** Name the open (new) theme and publish the library with it. */
+  createTheme: (name: string) => Promise<void>;
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
   /** Add a theme called `name`, a copy of the open one, and open it. */
@@ -53,7 +60,8 @@ type ThemeEditor = {
   dirty: boolean;
   saving: boolean;
   canSave: boolean;
-  save: () => Promise<void>;
+  /** Publish the library (`library`, or the one given). */
+  save: (next?: DsThemeLibrary) => Promise<void>;
   canUndo: boolean;
   canRedo: boolean;
   undo: () => void;
@@ -102,17 +110,30 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const setTheme = React.useCallback(
-    (theme: DsThemeConfig) =>
-      change({ ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, theme } : t)) }),
-    [change, library, entry.id]
+    (theme: DsThemeConfig) => {
+      if (JSON.stringify(theme) === JSON.stringify(entry.theme)) return;
+      if (entry.id === DS_DEFAULT_THEME_ID) {
+        // Parabola stays as it is: the change goes into a copy, Custom (Custom 2…), opened.
+        const names = new Set(library.themes.map((t) => t.name));
+        let name = "Custom";
+        for (let n = 2; names.has(name); n++) name = `Custom ${n}`;
+        const id = dsThemeEntryId(library, name);
+        change({ ...library, themes: [...library.themes, { id, name, theme }] });
+        setSelected(id);
+        return;
+      }
+      change({ ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, theme } : t)) });
+    },
+    [change, library, entry]
   );
 
-  const save = React.useCallback(async () => {
+  const save = React.useCallback(async (next?: DsThemeLibrary) => {
     if (!onThemeLibraryChange) return;
+    const publishing = next ?? library;
     setSaving(true);
     try {
-      await onThemeLibraryChange(library);
-      setSaved(library);
+      await onThemeLibraryChange(publishing);
+      setSaved(publishing);
       dsToast.success("Themes published");
     } catch (error) {
       dsToast.error("Couldn't publish the themes", { description: error instanceof Error ? error.message : undefined });
@@ -121,12 +142,33 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     }
   }, [onThemeLibraryChange, library]);
 
+  const savedEntry = saved.themes.find((t) => t.id === entry.id);
+  const status: ThemeEditor["status"] =
+    entry.id === DS_DEFAULT_THEME_ID
+      ? "parabola"
+      : !savedEntry
+        ? "new"
+        : JSON.stringify(savedEntry) !== JSON.stringify(entry)
+          ? "changed"
+          : "saved";
+
+  const createTheme = React.useCallback(
+    async (name: string) => {
+      const next = { ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, name } : t)) };
+      change(next);
+      await save(next);
+    },
+    [library, entry.id, change, save]
+  );
+
   const value = React.useMemo<ThemeEditor>(
     () => ({
       library,
       entry,
       theme: entry.theme,
       setTheme,
+      status,
+      createTheme,
       select: setSelected,
       addTheme: (name) => {
         const id = dsThemeEntryId(library, name);
@@ -150,7 +192,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       previewMode,
       setPreviewMode,
     }),
-    [library, entry, setTheme, change, selected, saved, saving, onThemeLibraryChange, save, history.past.length, history.future.length, undo, redo, previewMode]
+    [library, entry, setTheme, status, createTheme, change, selected, saved, saving, onThemeLibraryChange, save, history.past.length, history.future.length, undo, redo, previewMode]
   );
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;
 }
