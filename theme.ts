@@ -292,6 +292,8 @@ function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string
   for (const [name, value] of Object.entries(base)) vars[`--ds-${name}`] = value;
   // A background or surface picked brings the page, its surfaces and (with a background) its text along.
   const { background, surface } = theme.colours;
+  // Text is always set, so a theme's CSS stands on its own over another's (a background may have turned it white).
+  vars["--ds-fg"] = mode === "light" ? "#000000" : "#FFFFFF";
   if (background || surface) {
     for (const [name, value] of Object.entries(dsBackgroundTokens({ background, surface, baseBg: base.bg, mode }))) {
       vars[`--ds-${name}`] = value;
@@ -359,6 +361,12 @@ export function dsApplyTheme(theme: DsThemeConfig): void {
     link.dataset.dsFont = font.id;
     document.head.appendChild(link);
   }
+}
+
+/** Takes away what dsApplyTheme showed, so the page wears the theme it was served with again. */
+export function dsClearAppliedTheme(): void {
+  if (typeof document === "undefined") return;
+  document.getElementById("ds-theme-live")?.remove();
 }
 
 // ---------------------------------------------------------------------------

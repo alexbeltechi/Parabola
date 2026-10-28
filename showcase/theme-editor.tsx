@@ -15,6 +15,7 @@ import {
   DS_DEFAULT_THEME,
   DS_DEFAULT_THEME_ID,
   dsApplyTheme,
+  dsClearAppliedTheme,
   dsThemeEntryId,
   parseDsThemeConfig,
   parseDsThemeLibrary,
@@ -77,14 +78,8 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
 
   // The open theme shows on the page, whatever changed it.
   React.useEffect(() => dsApplyTheme(entry.theme), [entry.theme]);
-  // Leaving /parabola puts the page back in the theme in use, as published.
-  React.useEffect(
-    () => () => {
-      const active = saved.themes.find((t) => t.id === saved.active) ?? saved.themes[0];
-      dsApplyTheme(active.theme);
-    },
-    [saved]
-  );
+  // Leaving /parabola puts the page back in the theme it was served with: the one in use, as published.
+  React.useEffect(() => dsClearAppliedTheme, []);
 
   // A new change starts a new branch: there's nothing to redo after it.
   const change = React.useCallback((next: DsThemeLibrary) => {

@@ -41,6 +41,7 @@ export {
   DS_TEXT_STYLE_DEFAULTS,
   dsActiveTheme,
   dsApplyTheme,
+  dsClearAppliedTheme,
   dsThemeCss,
   dsThemeDarkVars,
   dsThemeEntryId,
