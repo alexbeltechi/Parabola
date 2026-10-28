@@ -152,7 +152,12 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         if (publish) setPublished(publish);
         dsToast.success(publish ? `${publish.name} is on your website` : "Saved");
       } catch (error) {
-        dsToast.error(publish ? "Couldn't publish" : "Couldn't save", { description: error instanceof Error ? error.message : undefined });
+        // An app's error may carry what to do about it (DsProvider `onThemeLibraryChange`): Sign in, say.
+        const action = (error as { action?: { label: string; onClick: () => void } } | null)?.action;
+        dsToast.error(publish ? "Couldn't publish" : "Couldn't save", {
+          description: error instanceof Error ? error.message : undefined,
+          action,
+        });
       } finally {
         setSaving(false);
       }
