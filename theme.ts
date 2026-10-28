@@ -196,7 +196,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const lightPick = (value: unknown, presets: { id: string }[], own: string) =>
     hex(value) ?? (typeof value === "string" && value !== own && presets.some((c) => c.id === value) ? value : null);
   const shift = (value: unknown) =>
-    typeof value === "number" && Number.isFinite(value) && value !== 0
+    typeof value === "number" && Number.isFinite(value)
       ? { value: Math.min(DS_SHIFT_MAX, Math.max(-DS_SHIFT_MAX, value)) }
       : null;
   const colour = (value: unknown, presets: { id: string }[] = [], own = ""): DsThemeColour => {

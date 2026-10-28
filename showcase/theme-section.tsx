@@ -13,9 +13,10 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsColourShown, dsHexToHsl, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourBar, DsColourPicker } from "../components/colour-picker";
+import { cn } from "../cn";
 import { DsLink } from "../provider";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
@@ -51,10 +52,10 @@ function ColourChoice({
   const shiftKey = mode === "light" ? "lightShift" : "darkShift";
   const basedOn = mode === "dark" ? "light theme" : LIGHT_BASIS[kind];
   const based = basedOn !== null && colour[pick] === null;
-  const shift = colour[shiftKey] ?? 0;
-  // What it's based on, before the shift, for the bar's middle.
+  // What it's based on, for the bar's middle, and how much lighter or darker it is than that.
   const unshifted = dsColourShown({ ...colours, [kind]: { ...colour, [shiftKey]: 0 } }, kind, mode);
   const at = (amount: number) => dsShift(unshifted, amount);
+  const diff = Math.round((dsHexToHsl(shown)[2] - dsHexToHsl(unshifted)[2]) * 100);
   return (
     <div className="flex flex-col gap-ds-8">
       <span className="text-p text-ds-fg">{label}</span>
@@ -68,24 +69,26 @@ function ColourChoice({
           <span className="text-p text-ds-fg">Based on {basedOn}</span>
         </label>
       )}
-      {based ? (
+      {based && (
         <DsColourBar
           label={`${label} brightness`}
           title="Brightness"
-          // Lighter (+) or darker (−) than what it's based on, out of 100.
-          readout={shift === 0 ? "0" : `${shift > 0 ? "+" : "−"}${Math.abs(Math.round(shift * 100))}`}
-          value={(shift + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)}
+          // Lighter (+) or darker (−) than what it's based on, out of 100: what it is, not just what was moved.
+          readout={diff === 0 ? "0" : `${diff > 0 ? "+" : "−"}${Math.abs(diff)}`}
+          value={Math.min(1, Math.max(0, (diff / 100 + DS_SHIFT_MAX) / (2 * DS_SHIFT_MAX)))}
           onChange={(x) => {
             const amount = Math.round((x * 2 - 1) * DS_SHIFT_MAX * 100) / 100;
             set({ [shiftKey]: amount });
           }}
-          valueText={shift === 0 ? "As it is" : `${Math.abs(Math.round(shift * 100))}% ${shift < 0 ? "darker" : "lighter"}`}
+          valueText={diff === 0 ? "As it is" : `${Math.abs(diff)}% ${diff < 0 ? "darker" : "lighter"}`}
           track={`linear-gradient(to right, ${[-1, -0.5, 0, 0.5, 1].map((t) => at(t * DS_SHIFT_MAX)).join(", ")})`}
           thumb={shown}
         />
-      ) : (
-        <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
       )}
+      {/* Faint while it's based on something; touching it gives the colour its own, from where it is. */}
+      <div className={cn(based && "opacity-30 transition-opacity hover:opacity-60")}>
+        <DsColourPicker aria-label={label} value={shown} warmth={kind === "theme"} onChange={(hex) => set({ [pick]: hex })} />
+      </div>
     </div>
   );
 }
@@ -260,9 +263,7 @@ export function ThemeSection() {
         <h3 className="text-h3 text-ds-fg">The studio notebook</h3>
         <p className="text-p text-ds-fg-muted">One letter a season: what I made, what I dropped and why.</p>
         <div className="@max-2xl:ds-fields-fill">
-          <DsField label="Email">
-            <DsInput placeholder="you@example.com" />
-          </DsField>
+          <DsInput aria-label="Email" placeholder="you@example.com" />
         </div>
         <div className="flex flex-wrap items-center gap-ds-8">
           <DsButton variant="primary" size="large">

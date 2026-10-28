@@ -445,9 +445,16 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "surface-inverse": fg,
     });
   }
-  // Cards, side panels and fields: their own colour, or a shade of the theme colour (lighter or darker than
-  // Parabola's own step, for more or less contrast with the page); fields and quiet surfaces follow it.
-  const card = hexIn(colours.surface, mode, () => tokens["surface-subtle"]);
+  // Cards, side panels and fields: their own colour; or, based on the theme colour (in dark, on the light one's
+  // counterpart), that colour made lighter or darker by the bar, Parabola's own step (a shade toward the text)
+  // until it's moved. Fields and quiet surfaces follow it.
+  const surface = colours.surface;
+  const lightCard = dsIsHex(surface.light) ? surface.light : null;
+  const cardShift = mode === "light" ? surface.lightShift : surface.darkShift;
+  const cardBase = mode === "dark" && lightCard ? dsCounterpart(lightCard) : tokens.bg;
+  const card =
+    (mode === "light" ? lightCard : surface.dark) ??
+    (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
   if (card) {
     tokens["surface-subtle"] = card;
     tokens.field = dsMix(tokens.fg, card, 0.03);
