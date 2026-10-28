@@ -48,10 +48,13 @@ export function DsColourPicker({
   value,
   onChange,
   className,
+  "aria-label": label,
 }: {
   value: string;
   onChange: (hex: string) => void;
   className?: string;
+  /** What the colour is for, naming the picker's group. */
+  "aria-label"?: string;
 }) {
   // The picker keeps its own hue and saturation, so they survive black, white and greys.
   const [hsv, setHsv] = React.useState<Hsv>(() => dsHexToHsv(value));
@@ -88,7 +91,7 @@ export function DsColourPicker({
   };
 
   return (
-    <div data-slot="ds-colour-picker" className={cn("flex flex-col gap-ds-16", className)}>
+    <div data-slot="ds-colour-picker" role="group" aria-label={label} className={cn("flex flex-col gap-ds-16", className)}>
       <div
         role="slider"
         tabIndex={0}

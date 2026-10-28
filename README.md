@@ -137,7 +137,8 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   family, weight, size and line height. By default Display to H2 are in
   Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
   (Instrument Sans, Medium).
-- **Radius** (`radius.ts`): None, Small, Medium or Large (the default),
+- **Radius** (`radius.ts`): None, Small, Medium, Large (the default) or a
+  custom number of pixels (the cards' and pills' corner, the rest scaled),
   for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill
   (`rounded-ds-pill`: buttons, nav items, tooltips), which is fully round
   only at Large. Switches, radios, progress bars and avatars stay round.

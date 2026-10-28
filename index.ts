@@ -13,7 +13,7 @@
 export { DS_ACCENTS, type DsAccent } from "./accents";
 export { cn } from "./cn";
 export { DS_GUTTER_PX, DS_SPACES, type DsSpace } from "./spacing";
-export { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_TOKENS, dsRadius, type DsRadius, type DsRadiusToken } from "./radius";
+export { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius, type DsRadiusToken } from "./radius";
 export {
   DS_FONTS,
   DS_DEFAULT_FONT,

@@ -19,7 +19,7 @@ import {
   type DsCustomFont,
   type DsFont,
 } from "./fonts";
-import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_TOKENS, dsRadius, type DsRadius } from "./radius";
+import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -95,7 +95,7 @@ export type DsThemeConfig = {
   customFonts: DsCustomFont[];
   /** Parabola's fonts this theme took out of its list (never System). */
   hiddenFonts: string[];
-  /** How round every corner is (radius.ts). */
+  /** How round every corner is: a preset, or custom pixels (radius.ts). */
   radius: DsRadius;
   /** The icon library, by id (colours.ts). */
   icons: string;
@@ -281,7 +281,12 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
       )
     : [];
 
-  const radius = DS_RADII.some((r) => r.id === raw.radius) ? (raw.radius as DsRadius) : DS_DEFAULT_RADIUS;
+  const radius: DsRadius =
+    typeof raw.radius === "number" && Number.isFinite(raw.radius)
+      ? Math.min(DS_RADIUS_MAX, Math.max(0, Math.round(raw.radius)))
+      : DS_RADII.some((r) => r.id === raw.radius)
+        ? (raw.radius as DsRadius)
+        : DS_DEFAULT_RADIUS;
   const icons = DS_ICON_LIBRARIES.some((l) => l.id === raw.icons && l.ready) ? (raw.icons as string) : "lucide";
 
   return { colours, families, type, customFonts, hiddenFonts, radius, icons };
@@ -304,7 +309,7 @@ export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
     vars[`--ds-text-${s}-leading`] = `${t.lineHeight}px`;
     vars[`--ds-weight-${s}`] = String(dsNearestWeight(dsThemeFont(theme, family.font), t.weight));
   }
-  const { px } = dsRadius(theme.radius);
+  const px = dsRadiusPx(theme.radius);
   for (const token of DS_RADIUS_TOKENS) vars[`--ds-radius-${token}`] = `${px[token]}px`;
   return vars;
 }

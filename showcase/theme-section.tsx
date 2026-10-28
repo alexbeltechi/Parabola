@@ -14,12 +14,11 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, type DsColourKind, type DsThemeColours } from "../colours";
+import { DS_ICON_LIBRARIES, dsColourShown, type DsColourKind, type DsThemeColours } from "../colours";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DsColourPicker } from "../components/colour-picker";
-import { cn } from "../cn";
 import { DsLink, useDsSetTheme } from "../provider";
-import { DS_RADII } from "../radius";
+import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
 
@@ -54,16 +53,13 @@ function useDarkMode(): boolean {
   );
 }
 
-/** A swatch of the whole rainbow, for Custom. */
-const RAINBOW = "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)";
-
 /**
  * One of the theme's three colours in the panel, for the light or the dark
- * theme (whichever the page is in): its name with what it is now on the
- * right, then two swatches, Parabola's own and Custom (the rainbow), which
- * opens the colour picker right here, where you drag or type a hex and see
- * it change at once. In dark, "Based on light theme" (on by default) keeps
- * it the light one's counterpart; off, the picker sets a dark colour of its own.
+ * theme (whichever the page is in): its name, then the colour picker sitting
+ * on the colour it is now (Parabola's own until you move it), where you drag
+ * or type a hex and see it change at once. In dark, "Based on light theme"
+ * (on by default) keeps it the light one's counterpart; moving the picker
+ * gives it a dark colour of its own and turns that off.
  */
 function ColourChoice({
   kind,
@@ -79,65 +75,72 @@ function ColourChoice({
   onChange: (colours: DsThemeColours) => void;
 }) {
   const colour = colours[kind];
-  const shown = dsColourShown(colours, kind, mode);
   const set = (next: Partial<typeof colour>) => onChange({ ...colours, [kind]: { ...colour, ...next } });
-  const based = mode === "dark" && colour.dark === null;
-  const custom = mode === "light" ? colour.light !== null : !based;
-  const [open, setOpen] = React.useState(custom);
-  const name = based ? null : custom ? "Custom" : "Parabola's";
-  const ring = "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-bg";
   return (
     <div className="flex flex-col gap-ds-8">
-      <div className="flex items-baseline justify-between gap-ds-8">
-        <span className="text-p text-ds-fg">{label}</span>
-        <span className="truncate text-small text-ds-fg-muted">
-          {name && `${name} · `}
-          <span className="font-mono">{shown}</span>
-        </span>
-      </div>
+      <span className="text-p text-ds-fg">{label}</span>
       {mode === "dark" && (
         <label className="inline-flex items-center gap-ds-8 self-start">
           <DsCheckbox
-            checked={based}
-            // Off, it starts from the counterpart it had, so nothing jumps.
-            onCheckedChange={(on) => set({ dark: on ? null : shown })}
+            checked={colour.dark === null}
+            onCheckedChange={(on) => set({ dark: on ? null : dsColourShown(colours, kind, "dark") })}
           />
           <span className="text-p text-ds-fg">Based on light theme</span>
         </label>
       )}
-      {mode === "light" && (
-        <div className="flex items-center gap-ds-8" role="radiogroup" aria-label={label}>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={!custom}
-            aria-label="Parabola's"
-            title="Parabola's"
-            onClick={() => {
-              set({ light: null });
-              setOpen(false);
-            }}
-            className={cn("size-7 rounded-full border border-ds-fg/15 ds-focus", !custom && ring)}
-            // Parabola's own, with the theme's other colours as they are (its text on this theme colour).
-            style={{ backgroundColor: dsColourShown({ ...colours, [kind]: DS_DEFAULT_COLOURS[kind] }, kind, "light") }}
-          />
-          <button
-            type="button"
-            role="radio"
-            aria-checked={custom}
-            aria-label="Custom colour"
-            title="Custom"
-            onClick={() => {
-              setOpen((o) => !o);
-              if (!custom) set({ light: shown });
-            }}
-            className={cn("size-7 rounded-full ds-focus", custom && ring)}
-            style={{ backgroundImage: RAINBOW }}
-          />
-        </div>
-      )}
-      {((mode === "light" && open) || (mode === "dark" && !based)) && (
-        <DsColourPicker value={shown} onChange={(hex) => set(mode === "light" ? { light: hex } : { dark: hex })} />
+      <DsColourPicker
+        aria-label={label}
+        value={dsColourShown(colours, kind, mode)}
+        onChange={(hex) => set(mode === "light" ? { light: hex } : { dark: hex })}
+      />
+    </div>
+  );
+}
+
+/**
+ * The theme's radius: None, Small, Medium, Large and Custom in one row, the
+ * five sharing its width; Custom opens a field for the pixels (the cards'
+ * and buttons' corner, the smaller ones scaled from it).
+ */
+function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radius: DsRadius) => void }) {
+  const custom = typeof radius === "number";
+  const [text, setText] = React.useState(custom ? String(radius) : "");
+  return (
+    <div className="flex flex-col gap-ds-8">
+      <div className="flex items-center gap-ds-4" role="group" aria-label="Radius">
+        {DS_RADII.map((r) => (
+          <DsButton key={r.id} className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
+            {r.label}
+          </DsButton>
+        ))}
+        <DsButton
+          className="min-w-0 flex-1 px-0"
+          pressed={custom}
+          onClick={() => {
+            if (custom) return;
+            // From the cards' corner it had, so nothing jumps but the pills.
+            const px = dsRadiusPx(radius).lg;
+            setText(String(px));
+            onChange(px);
+          }}
+        >
+          Custom
+        </DsButton>
+      </div>
+      {custom && (
+        <DsInput
+          aria-label="Radius in pixels"
+          inputMode="numeric"
+          className="w-full"
+          value={text}
+          placeholder="24"
+          meta="px"
+          onChange={(e) => {
+            setText(e.target.value);
+            const px = Number.parseInt(e.target.value, 10);
+            if (Number.isFinite(px)) onChange(Math.min(DS_RADIUS_MAX, Math.max(0, px)));
+          }}
+        />
       )}
     </div>
   );
@@ -309,7 +312,6 @@ export function ThemeSection() {
               </DsDropdownContent>
             </DsDropdown>
           </div>
-          <p className="text-small text-ds-fg-muted">A site picks its theme in Settings › Design.</p>
         </PanelSection>
 
         <PanelSection title="Colours">
@@ -346,11 +348,11 @@ export function ThemeSection() {
 
         <PanelSection title="Type">
           {heading && (
-            <DsField label={heading.label} description="Display to H2, unless Type scale moves them.">
+            <DsField label={heading.label}>
               <DsSelect options={fontOptions} value={heading.font} onValueChange={(font) => setFamilyFont(heading.id, font)} />
             </DsField>
           )}
-          <DsField label={body.label} description="Everything else.">
+          <DsField label={body.label}>
             <DsSelect options={fontOptions} value={body.font} onValueChange={(font) => setFamilyFont(body.id, font)} />
           </DsField>
           {/* In-app, so the unpublished draft comes along. */}
@@ -363,20 +365,11 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection title="Radius">
-          <div className="flex flex-col gap-ds-8">
-            <div className="flex flex-wrap items-center gap-ds-8" role="group" aria-label="Radius">
-              {DS_RADII.map((r) => (
-                <DsButton key={r.id} pressed={theme.radius === r.id} onClick={() => setTheme({ ...theme, radius: r.id })}>
-                  {r.label}
-                </DsButton>
-              ))}
-            </div>
-            <p className="text-small text-ds-fg-muted">Every corner: cards, fields, menus and buttons, which are round only at Large.</p>
-          </div>
+          <RadiusChoice radius={theme.radius} onChange={(radius) => setTheme({ ...theme, radius })} />
         </PanelSection>
 
         <PanelSection title="Icons">
-          <DsField label="Icon library" description="Lucide for now; the others need Parabola's icons in one place first.">
+          <DsField label="Icon library">
             <DsSelect
               options={DS_ICON_LIBRARIES.map((l) => ({ value: l.id, label: l.ready ? l.label : `${l.label} (soon)`, disabled: !l.ready }))}
               value={theme.icons}
