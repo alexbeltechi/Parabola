@@ -34,7 +34,10 @@ function useDrag(onMove: (x: number, y: number) => void) {
   };
 }
 
-const THUMB = "pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ds-bg shadow-ds-raised";
+const THUMB = "pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full";
+
+/** A white ring and a thin black line outside it, so the thumb shows on any colour, white and black included. */
+const THUMB_RING = "inset 0 0 0 2px white, 0 0 0 1px black";
 
 /**
  * Parabola colour bar: a slider whose track shows the colours it gives, left
@@ -85,7 +88,7 @@ export function DsColourBar({
       }}
       {...drag}
     >
-      <span className={THUMB} style={{ left: `${value * 100}%`, top: "50%", backgroundColor: thumb }} />
+      <span className={THUMB} style={{ boxShadow: THUMB_RING, left: `${value * 100}%`, top: "50%", backgroundColor: thumb }} />
     </div>
   );
 }
@@ -162,7 +165,7 @@ export function DsColourPicker({
         onKeyDown={step}
         {...area}
       >
-        <span className={THUMB} style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: shown }} />
+        <span className={THUMB} style={{ boxShadow: THUMB_RING, left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: shown }} />
       </div>
       <DsColourBar
         label="Hue"

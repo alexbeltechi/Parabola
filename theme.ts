@@ -387,8 +387,8 @@ export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
 
 /**
  * Shows a theme on this page right away, before it's saved or reloaded: puts
- * its CSS in a <style> at the end of the <head>, over what the page was
- * served with, and loads the fonts the theme added (from Google) that the
+ * its CSS in a <style> at the end of the page, after (so over) the theme it
+ * was served with (DsThemeStyle, wherever the app rendered it), and loads the fonts the theme added (from Google) that the
  * page hasn't loaded yet, so they can be seen before they're picked;
  * Parabola's own come with the page (DsThemeStyle). With `scope`, only on
  * that class (dsThemeCss). Browser only.
@@ -398,8 +398,9 @@ export function dsApplyTheme(theme: DsThemeConfig, scope?: string): void {
   let style = document.getElementById("ds-theme-live") as HTMLStyleElement | null;
   if (!style) {
     style = Object.assign(document.createElement("style"), { id: "ds-theme-live" });
-    document.head.appendChild(style);
   }
+  // Last on the page, whatever was added since: the later of two equal rules wins.
+  if (style !== document.body.lastElementChild) document.body.appendChild(style);
   style.textContent = dsThemeCss(theme, scope);
   for (const font of theme.customFonts.map(dsCustomFont)) {
     if (document.querySelector(`link[data-ds-font="${font.id}"]`)) continue;
