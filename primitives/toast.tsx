@@ -19,7 +19,7 @@ import { cn } from "../cn";
 const TOAST_CLASS =
   "flex w-[var(--width)] items-center gap-3 rounded-ds-lg bg-ds-surface-inverse px-4 py-2 text-ds-bg shadow-ds-raised backdrop-blur-[24px]";
 const ACTION_CLASS =
-  "ml-auto flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-ds-surface-inverse px-3 text-p whitespace-nowrap text-ds-bg backdrop-blur-[8px] ds-hover-inverse ds-focus [&_svg]:size-4";
+  "ml-auto flex h-9 shrink-0 items-center justify-center gap-2 rounded-ds-pill bg-ds-surface-inverse px-3 text-p whitespace-nowrap text-ds-bg backdrop-blur-[8px] ds-hover-inverse ds-focus [&_svg]:size-4";
 
 // Sonner's own styling is off (`unstyled`); the toast draws from Parabola
 // tokens, which follow the theme by themselves, so Sonner needn't know it.

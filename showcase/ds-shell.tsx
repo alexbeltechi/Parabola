@@ -191,7 +191,7 @@ export function DsCanvas({
           over all of it: on phones the panel comes under the page, and a header
           sticky only within the page's own column would scroll away there. From
           lg the panel is a column of its own on the right. */}
-      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_1fr]">
+      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_1fr]">
         {/* Pinned on the canvas's own colour, so the page never shows through behind
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of

@@ -25,7 +25,7 @@ export const dsNavItemVariants = cva(
   {
     variants: {
       size: {
-        default: "h-9 gap-2 rounded-full px-3 text-p",
+        default: "h-9 gap-2 rounded-ds-pill px-3 text-p",
         small: "h-6 gap-1 rounded-ds-control px-2 text-small",
       },
       selected: {

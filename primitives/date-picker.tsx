@@ -202,7 +202,7 @@ export function DsDatePicker(allProps: {
                       aria-current={sameDay(day, today) ? "date" : undefined}
                       onClick={() => pick(day)}
                       className={cn(
-                        "grid size-9 place-content-center rounded-full text-p transition-colors ds-focus",
+                        "grid size-9 place-content-center rounded-ds-pill text-p transition-colors ds-focus",
                         selected
                           ? "bg-ds-surface-inverse text-ds-bg ds-hover-inverse"
                           : cn(

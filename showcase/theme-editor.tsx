@@ -216,7 +216,7 @@ const RESTORE: Record<RestoreScope, { item: string; title: string; description: 
   all: {
     item: "Restore all defaults",
     title: "Restore the whole theme?",
-    description: "Its colours, font families, type scale and icons go back to Parabola's defaults. Fonts you added stay in the list.",
+    description: "Its colours, font families, type scale, radius and icons go back to Parabola's defaults. Fonts you added stay in the list.",
     done: "Theme restored",
   },
 };

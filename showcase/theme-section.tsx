@@ -28,18 +28,19 @@ import {
 import { DsColourPicker } from "../components/colour-picker";
 import { cn } from "../cn";
 import { DsLink, useDsSetTheme } from "../provider";
+import { DS_RADII } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY } from "../theme";
 import { InPanel, PanelSection, useThemeEditor } from "./theme-editor";
 
 /**
  * One card of the preview: a few words on what it shows, then the pieces
- * themselves, on the surface colour (`ds-surface-subtle`, as a site's cards
- * and panels are) with no outline, inside a page in the background colour.
+ * themselves, on the page colour with no outline, floating on the canvas,
+ * so pieces that sit on a surface of their own (the info card) stand out.
  * Fields fill it unless it's wide.
  */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="@container rounded-ds-lg bg-ds-surface-subtle p-ds-20">
+    <section className="@container rounded-ds-lg bg-ds-bg p-ds-20">
       {/* Fields fill the tile while it's narrow (under 672px), as on a phone; a wider tile gives them their usual width. */}
       <div className="flex flex-col gap-ds-16 @max-2xl:ds-fields-fill">
         <p className="text-small text-ds-fg-muted">{label}</p>
@@ -119,7 +120,7 @@ function ColourChoice({
                 setOpen(false);
               }}
               className={cn(
-                "size-7 rounded-full border border-ds-border ds-focus",
+                "size-7 rounded-full border border-ds-fg/15 ds-focus",
                 on && "ring-2 ring-ds-fg ring-offset-2 ring-offset-ds-surface-subtle"
               )}
               style={{ backgroundColor: preset.swatch }}
@@ -143,7 +144,7 @@ function ColourChoice({
       {open && <DsColourPicker value={current} onChange={onChange} />}
       {counterpart && (
         <p className="flex items-center gap-ds-8 text-small text-ds-fg-muted">
-          <span aria-hidden className="size-3 shrink-0 rounded-full border border-ds-border" style={{ backgroundColor: counterpart }} />
+          <span aria-hidden className="size-3 shrink-0 rounded-full border border-ds-fg/15" style={{ backgroundColor: counterpart }} />
           In dark: its counterpart, <span className="font-mono">{counterpart}</span>
         </p>
       )}
@@ -225,65 +226,66 @@ export function ThemeSection() {
   return (
     // One column at the reading width the CMS uses (600px), each card as tall as what's in it.
     <div className="flex w-full max-w-[600px] flex-col gap-ds-20">
-      {/* A page in the theme's background, its cards on the surface colour: as a site wears them. */}
-      <div className="flex flex-col gap-ds-20 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-20">
-        <Tile label="Type">
-          <p className="text-display text-ds-fg">Ars longa</p>
-          <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
-          <p className="text-prose text-ds-fg-muted">
-            Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
-          </p>
-          <p className="text-small text-ds-fg-muted">Small, the floor</p>
-        </Tile>
-        <Tile label="Buttons">
-          <div className="flex flex-wrap items-center gap-ds-8">
-            <DsButton variant="primary">Publish</DsButton>
-            <DsButton>Save</DsButton>
-            <DsButton variant="text">Writing</DsButton>
-            <DsThemeToggle variant="text" />
-          </div>
-        </Tile>
-        <Tile label="Pills">
-          <div className="flex flex-wrap items-center gap-ds-8">
-            <DsPill variant="highlight">New</DsPill>
-            <DsPill>Draft</DsPill>
-            <DsPill variant="dark">Published</DsPill>
-          </div>
-        </Tile>
-        <Tile label="Fields">
-          <DsField label="Name" description="The project's name, and the site's.">
-            <DsInput defaultValue="Ilo Odena" />
-          </DsField>
-          <DsField label="Layout">
-            <DsSelect
-              value="list"
-              options={[
-                { value: "list", label: "Stacked like a blog" },
-                { value: "wall", label: "Posts only" },
-              ]}
-            />
-          </DsField>
-          <label className="inline-flex items-center gap-ds-8 self-start">
-            <span className="text-p text-ds-fg">In the site&apos;s nav</span>
-            <DsSwitch defaultChecked />
-          </label>
-        </Tile>
-        <Tile label="Lists">
-          <DsLinkList
-            items={[
-              { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
-              { label: "Keep fewer moments", href: "#", meta: "2026 · 1 min" },
+      <Tile label="Type">
+        <p className="text-display text-ds-fg">Ars longa</p>
+        <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
+        <p className="text-prose text-ds-fg-muted">
+          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
+        </p>
+        <p className="text-small text-ds-fg-muted">Small, the floor</p>
+      </Tile>
+      <Tile label="Buttons">
+        <div className="flex flex-wrap items-center gap-ds-8">
+          <DsButton variant="primary" size="large">
+            Book a call
+          </DsButton>
+        </div>
+        <div className="flex flex-wrap items-center gap-ds-8">
+          <DsButton variant="primary">Publish</DsButton>
+          <DsButton>Save</DsButton>
+          <DsButton variant="text">Writing</DsButton>
+          <DsThemeToggle variant="text" />
+        </div>
+      </Tile>
+      <Tile label="Pills">
+        <div className="flex flex-wrap items-center gap-ds-8">
+          <DsPill variant="highlight">New</DsPill>
+          <DsPill>Draft</DsPill>
+          <DsPill variant="dark">Published</DsPill>
+        </div>
+      </Tile>
+      <Tile label="Fields">
+        <DsField label="Name" description="The project's name, and the site's.">
+          <DsInput defaultValue="Ilo Odena" />
+        </DsField>
+        <DsField label="Layout">
+          <DsSelect
+            value="list"
+            options={[
+              { value: "list", label: "Stacked like a blog" },
+              { value: "wall", label: "Posts only" },
             ]}
-            more={{ label: "All 6 posts", href: "#" }}
           />
-        </Tile>
-        {/* On the page itself, as notes sit on a site: its own surface shows against the background. */}
+        </DsField>
+        <label className="inline-flex items-center gap-ds-8 self-start">
+          <span className="text-p text-ds-fg">In the site&apos;s nav</span>
+          <DsSwitch defaultChecked />
+        </label>
+      </Tile>
+      <Tile label="Lists and notes">
+        <DsLinkList
+          items={[
+            { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
+            { label: "Keep fewer moments", href: "#", meta: "2026 · 1 min" },
+          ]}
+          more={{ label: "All 6 posts", href: "#" }}
+        />
         <DsInfoCard title="Not live yet">
           <p>Changes to a published post wait until you publish them.</p>
         </DsInfoCard>
-      </div>
+      </Tile>
 
-      <DsField
+    <DsField
         label={`${entry.name} as data`}
         description="Paste it into another Parabola site, or hand it to an agent."
         className="w-full pt-ds-20"
@@ -395,6 +397,19 @@ export function ThemeSection() {
           >
             More families, fonts and the type scale
           </DsLink>
+        </PanelSection>
+
+        <PanelSection title="Radius">
+          <div className="flex flex-col gap-ds-8">
+            <div className="flex flex-wrap items-center gap-ds-8" role="group" aria-label="Radius">
+              {DS_RADII.map((r) => (
+                <DsButton key={r.id} pressed={theme.radius === r.id} onClick={() => setTheme({ ...theme, radius: r.id })}>
+                  {r.label}
+                </DsButton>
+              ))}
+            </div>
+            <p className="text-small text-ds-fg-muted">Every corner: cards, fields, menus and buttons, which are round only at Large.</p>
+          </div>
         </PanelSection>
 
         <PanelSection title="Icons">

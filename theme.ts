@@ -18,6 +18,7 @@ import {
   type DsCustomFont,
   type DsFont,
 } from "./fonts";
+import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_TOKENS, dsRadius, type DsRadius } from "./radius";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -33,6 +34,8 @@ import {
  *   or one added to the theme (`customFonts`);
  * - the type scale: for each text style, its name, family (Display to H2 in
  *   Heading, the rest in Font, by default), weight, size and line height;
+ * - a radius (None, Small, Medium, Large) for every corner, buttons
+ *   included: fully round only at Large (radius.ts);
  * - an icon library (Lucide, for now).
  *
  * Themes are kept in a library (DsThemeLibrary): Parabola (the default) and
@@ -97,6 +100,8 @@ export type DsThemeConfig = {
   customFonts: DsCustomFont[];
   /** Parabola's fonts this theme took out of its list (never System). */
   hiddenFonts: string[];
+  /** How round every corner is (radius.ts). */
+  radius: DsRadius;
   /** The icon library, by id (colours.ts). */
   icons: string;
 };
@@ -115,6 +120,7 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   ) as Record<DsTextStyle, DsTextStyleConfig>,
   customFonts: [],
   hiddenFonts: [],
+  radius: DS_DEFAULT_RADIUS,
   icons: "lucide",
 };
 
@@ -269,9 +275,10 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
       )
     : [];
 
+  const radius = DS_RADII.some((r) => r.id === raw.radius) ? (raw.radius as DsRadius) : DS_DEFAULT_RADIUS;
   const icons = DS_ICON_LIBRARIES.some((l) => l.id === raw.icons && l.ready) ? (raw.icons as string) : "lucide";
 
-  return { colours, families, type, customFonts, hiddenFonts, icons };
+  return { colours, families, type, customFonts, hiddenFonts, radius, icons };
 }
 
 /**
@@ -308,6 +315,8 @@ export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
     vars[`--ds-text-${s}-leading`] = `${t.lineHeight}px`;
     vars[`--ds-weight-${s}`] = String(dsNearestWeight(dsThemeFont(theme, family.font), t.weight));
   }
+  const { px } = dsRadius(theme.radius);
+  for (const token of DS_RADIUS_TOKENS) vars[`--ds-radius-${token}`] = `${px[token]}px`;
   return vars;
 }
 

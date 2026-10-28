@@ -61,10 +61,14 @@
   --spacing-ds-80: var(--ds-space-80);
   --spacing-ds-160: var(--ds-space-160);
 
-  --radius-ds-sm: 4px;
-  --radius-ds-control: 8px;
-  --radius-ds-md: 12px;
-  --radius-ds-lg: 16px;
+  /* Parabola corners (values in :root, set by the theme's radius; radius.ts):
+     `rounded-ds-sm` … `rounded-ds-lg`, and `rounded-ds-pill` for buttons,
+     nav items and tooltips, fully round at Large. */
+  --radius-ds-sm: var(--ds-radius-sm);
+  --radius-ds-control: var(--ds-radius-control);
+  --radius-ds-md: var(--ds-radius-md);
+  --radius-ds-lg: var(--ds-radius-lg);
+  --radius-ds-pill: var(--ds-radius-pill);
 
   /* Parabola type scale (Figma: Folio Dharmify 693:5061), named for the
      element each style is for: text-display, text-h1 … text-h3, text-p, text-prose,
@@ -328,6 +332,13 @@
   --ds-space-40: 40px;
   --ds-space-80: 80px;
   --ds-space-160: 160px;
+
+  /* Corners: the theme's radius (radius.ts), Large by default. */
+  --ds-radius-sm: 4px;
+  --ds-radius-control: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 16px;
+  --ds-radius-pill: 9999px;
 
   /* Field width: the one width of a field (the DsField, and any input,
      select, date picker, search, textarea or multi-select on its own), so a

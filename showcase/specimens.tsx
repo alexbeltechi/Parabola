@@ -135,10 +135,10 @@ function Specimen({
 }
 
 export function IconOnlyButton() {
-  const [o, setO] = useState({ small: false, destructive: false, pressed: false, tooltip: true, focus: false });
+  const [o, setO] = useState({ large: false, small: false, destructive: false, pressed: false, tooltip: true, focus: false });
   const button = (
     <DsButton
-      size={o.small ? "small" : "default"}
+      size={o.large ? "large" : o.small ? "small" : "default"}
       destructive={o.destructive}
       iconLeft={o.destructive ? Trash2 : Filter}
       aria-label={o.destructive ? "Delete" : "Filter"}
@@ -150,7 +150,11 @@ export function IconOnlyButton() {
     <Specimen
       preview={o.tooltip ? <DsTooltip content="Filter">{button}</DsTooltip> : button}
       controls={
-        <Controls options={o} labels={{ small: "Small", destructive: "Destructive", pressed: "Pressed", tooltip: "Tooltip", focus: "Focus" }} onChange={setO} />
+        <Controls
+          options={o}
+          labels={{ large: "Large", small: "Small", destructive: "Destructive", pressed: "Pressed", tooltip: "Tooltip", focus: "Focus" }}
+          onChange={(next) => setO(exclusive(o, next, ["large", "small"]))}
+        />
       }
     />
   );
@@ -158,6 +162,7 @@ export function IconOnlyButton() {
 
 export function LabelButton() {
   const [o, setO] = useState({
+    large: false,
     small: false,
     destructive: false,
     primary: false,
@@ -175,7 +180,7 @@ export function LabelButton() {
       preview={
         <DsButton
           variant={o.danger ? "danger" : o.primary ? "primary" : "default"}
-          size={o.small ? "small" : "default"}
+          size={o.large ? "large" : o.small ? "small" : "default"}
           destructive={o.destructive}
           pressed={o.pressed}
           iconLeft={o.iconLeft ? File : undefined}
@@ -192,6 +197,7 @@ export function LabelButton() {
         <Controls
           options={o}
           labels={{
+            large: "Large",
             small: "Small",
             destructive: "Destructive",
             primary: "Primary",
@@ -204,7 +210,7 @@ export function LabelButton() {
             loading: "Loading",
             focus: "Focus",
           }}
-          onChange={(next) => setO(exclusive(o, next, ["primary", "danger", "pressed"]))}
+          onChange={(next) => setO(exclusive(o, exclusive(o, next, ["primary", "danger", "pressed"]), ["large", "small"]))}
         />
       }
     />
@@ -212,13 +218,13 @@ export function LabelButton() {
 }
 
 export function TextButton() {
-  const [o, setO] = useState({ small: false, destructive: false, iconLeft: false, iconRight: false, meta: false, focus: false });
+  const [o, setO] = useState({ large: false, small: false, destructive: false, iconLeft: false, iconRight: false, meta: false, focus: false });
   return (
     <Specimen
       preview={
         <DsButton
           variant="text"
-          size={o.small ? "small" : "default"}
+          size={o.large ? "large" : o.small ? "small" : "default"}
           destructive={o.destructive}
           iconLeft={o.iconLeft ? File : undefined}
           iconRight={o.iconRight ? ChevronRight : undefined}
@@ -231,8 +237,8 @@ export function TextButton() {
       controls={
         <Controls
           options={o}
-          labels={{ small: "Small", destructive: "Destructive", iconLeft: "Icon left", iconRight: "Icon right", meta: "Meta", focus: "Focus" }}
-          onChange={setO}
+          labels={{ large: "Large", small: "Small", destructive: "Destructive", iconLeft: "Icon left", iconRight: "Icon right", meta: "Meta", focus: "Focus" }}
+          onChange={(next) => setO(exclusive(o, next, ["large", "small"]))}
         />
       }
     />

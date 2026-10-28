@@ -42,7 +42,7 @@ export function DsTooltip({
             sideOffset={6}
             collisionPadding={8}
             className={cn(
-              "z-(--ds-z-tooltip) flex h-9 items-center rounded-full px-3 text-p whitespace-nowrap select-none",
+              "z-(--ds-z-tooltip) flex h-9 items-center rounded-ds-pill px-3 text-p whitespace-nowrap select-none",
               "bg-ds-surface-inverse text-ds-bg backdrop-blur-[24px]",
               "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95",
               "data-[state=closed]:motion-safe:animate-out data-[state=closed]:motion-safe:fade-out-0 data-[state=closed]:motion-safe:zoom-out-95",

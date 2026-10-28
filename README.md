@@ -138,13 +138,18 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   family, weight, size and line height. By default Display to H2 are in
   Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
   (Instrument Sans, Medium).
+- **Radius** (`radius.ts`): None, Small, Medium or Large (the default),
+  for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill
+  (`rounded-ds-pill`: buttons, nav items, tooltips), which is fully round
+  only at Large. Switches, radios, progress bars and avatars stay round.
 - **Icons**: the library, Lucide for now.
 
 Themes are kept in a **library** (`DsThemeLibrary`): Parabola (the default)
 and any added, one of them in use. A style's weight snaps to the nearest one its family's
 font has (`dsNearestWeight`). The tokens a theme sets are `--ds-*` variables
 (`--ds-bg`… `--ds-highlight`, `--ds-family-<id>`, `--ds-font-<style>`,
-`--ds-text-<style>`, `--ds-text-<style>-leading`, `--ds-weight-<style>`), light
+`--ds-text-<style>`, `--ds-text-<style>-leading`, `--ds-weight-<style>`,
+`--ds-radius-<sm|control|md|lg|pill>`), light
 on `:root` and dark on `.dark`, so a theme changes them at run time. Make
 themes on `/parabola`: Theme (the pieces in one 600px column, and the main
 choices in the panel on the right) and Typography (Font families, Type
