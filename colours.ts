@@ -10,7 +10,8 @@
  *   need attention (a highlight pill), and its tint. Purple is Parabola's own.
  * - a **background colour**: the page itself, set apart for light and dark,
  *   by default the base colour's own (white, charcoal); any colour, a bright
- *   yellow included, to see what the rest does on it.
+ *   yellow included. Picked, it also sets the surfaces on it (cards, fields,
+ *   side panels, borders) as shades of itself (`dsBackgroundTokens`).
  *
  * Each of the three is a preset or a custom colour, a hex: a custom base or
  * accent derives its other shades from it (`dsBaseTokens`, `dsAccentTokens`).
@@ -282,6 +283,32 @@ export function dsAccentTokens(accent: string, mode: "light" | "dark"): { highli
   return mode === "light"
     ? { highlight: accent, tint: dsMix(accent, WHITE, 0.14) }
     : { highlight: dsMix(accent, WHITE, 0.55), tint: dsMix(accent, BLACK, 0.4) };
+}
+
+/** How light a colour is, 0 (black) to 1 (white): relative luminance. */
+export function dsLuminance(hex: string): number {
+  const [r, g, b] = toRgb(hex).map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * A background and the surfaces on it, as shades of the same colour: darker
+ * steps on a light background, lighter ones on a dark one, so a card, a
+ * field, a side panel and a border all read as the background's own.
+ */
+export function dsBackgroundTokens(background: string): Pick<DsBaseTokens, "bg" | "surface-subtle" | "field" | "surface" | "border"> {
+  const toward = dsLuminance(background) > 0.18 ? BLACK : WHITE;
+  const shade = (amount: number) => dsMix(toward, background, amount);
+  return {
+    bg: background,
+    "surface-subtle": shade(0.035),
+    field: shade(0.06),
+    surface: shade(0.14),
+    border: shade(0.2),
+  };
 }
 
 /** The swatch a colour choice shows: a preset's own, or the hex itself. */

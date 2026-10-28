@@ -5,6 +5,7 @@ import {
   DS_DEFAULT_BASE_COLOUR,
   DS_ICON_LIBRARIES,
   dsAccentTokens,
+  dsBackgroundTokens,
   dsBaseTokens,
   dsIsHex,
 } from "./colours";
@@ -272,8 +273,9 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
 function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string, string> {
   const vars: Record<string, string> = {};
   for (const [name, value] of Object.entries(dsBaseTokens(theme.colours.base, mode))) vars[`--ds-${name}`] = value;
+  // A picked background brings the surfaces on it along, as shades of itself.
   const background = theme.colours.background[mode];
-  if (background) vars["--ds-bg"] = background;
+  if (background) for (const [name, value] of Object.entries(dsBackgroundTokens(background))) vars[`--ds-${name}`] = value;
   const accent = dsAccentTokens(theme.colours.accent, mode);
   vars["--ds-highlight"] = accent.highlight;
   vars["--ds-highlight-tint"] = accent.tint;

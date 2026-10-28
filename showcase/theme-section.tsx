@@ -334,7 +334,7 @@ export function ThemeSection() {
             // A fresh one per theme (light, dark): each has its own background.
             key={mode}
             label={`Background, ${mode}`}
-            description={`The page in the ${mode} theme. Switch to ${mode === "light" ? "Dark" : "Light"} above to set the other.`}
+            description={`The page in the ${mode} theme, and its cards, fields and panels in shades of it. Switch to ${mode === "light" ? "Dark" : "Light"} above to set the other.`}
             presets={[
               { value: null, label: "Base", swatch: dsBaseTokens(theme.colours.base, mode).bg },
               ...DS_BACKGROUND_PRESETS[mode].map((p) => ({ value: p.value, label: p.label, swatch: p.value })),

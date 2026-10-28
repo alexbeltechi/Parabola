@@ -187,13 +187,16 @@ export function DsCanvas({
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   return (
     <PanelSlotContext.Provider value={slot}>
-      <div className="flex flex-1 flex-col lg:flex-row">
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Pinned over the page on the canvas's own colour, so the page never shows
-            through behind the title and the theme's actions. Below md it sits right
-            under the fixed nav bar (76px, its colour reaching up behind the bar),
-            with no padding of its own above. */}
-        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:pt-6 md:before:hidden">
+      {/* One grid for the header, the page and its panel, so the header stays pinned
+          over all of it: on phones the panel comes under the page, and a header
+          sticky only within the page's own column would scroll away there. From
+          lg the panel is a column of its own on the right. */}
+      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_1fr]">
+        {/* Pinned on the canvas's own colour, so the page never shows through behind
+            the title and the theme's actions. Below md it sits right under the fixed
+            nav bar (76px, its colour reaching up behind the bar), with no padding of
+            its own above. */}
+        <header className="sticky top-[76px] z-20 flex flex-wrap items-center justify-between gap-ds-16 self-start bg-ds-surface-subtle px-6 pt-0 pb-5 before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-surface-subtle md:top-0 md:pt-6 md:before:hidden lg:col-start-1 lg:row-start-1">
           <div className="flex min-w-0 flex-col gap-1">
             <p className="text-small text-ds-fg-subtle">{group}</p>
             <h1 className="text-h3 text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
@@ -201,15 +204,14 @@ export function DsCanvas({
           {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
           <ThemeHeaderActions />
         </header>
-        <div className="flex flex-1 items-center justify-center px-6 py-12">{children}</div>
-      </div>
-      {/* The page's properties; hidden while it has none. A rule between sections,
-          so folded ones still read as separate. */}
-      <aside
-        ref={setSlot}
-        aria-label="Properties"
-        className="flex flex-col gap-ds-20 border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
-      />
+        <div className="flex min-w-0 items-center justify-center px-6 py-12 lg:col-start-1 lg:row-start-2">{children}</div>
+        {/* The page's properties; hidden while it has none. A rule between sections,
+            so folded ones still read as separate. */}
+        <aside
+          ref={setSlot}
+          aria-label="Properties"
+          className="flex flex-col gap-ds-20 self-start border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-screen lg:overflow-y-auto lg:border-t-0 lg:border-l [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-20"
+        />
       </div>
     </PanelSlotContext.Provider>
   );
