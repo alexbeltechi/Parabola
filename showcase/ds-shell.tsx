@@ -9,6 +9,7 @@ import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
+import { PanelSlotContext, ThemeEditorProvider } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -127,7 +128,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <>
+    <ThemeEditorProvider>
       <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto p-5 md:flex">
         <div className="flex items-center justify-between">
           <DsButton href="/" iconLeft={ChevronLeft} aria-label="Back to site" />
@@ -152,23 +153,22 @@ export function DsShell({ children }: { children: React.ReactNode }) {
       <main className="flex min-h-screen flex-col bg-ds-surface-subtle pt-[76px] md:ml-[240px] md:pt-0">
         {children}
       </main>
-    </>
+    </ThemeEditorProvider>
   );
 }
 
 /**
- * Where a specimen's "Options" button lands: the right end of the page
- * header, centred on the group and title (under the nav bar on mobile, as the header is).
+ * One /parabola page on the canvas: its name top left, the content centred,
+ * and, when the page has any, its properties in a panel on the right (Linear's
+ * properties panel: collapsible sections of controls; under the content below
+ * `lg`). Pages put things there with `InPanel` (theme-editor.tsx).
  */
-const OptionsSlotContext = React.createContext<HTMLElement | null>(null);
-export const useDsOptionsSlot = () => React.useContext(OptionsSlotContext);
-
-/** One /parabola page on the canvas: its name top left, options top right, the content centred. */
 export function DsCanvas({ group, title, children }: { group: string; title: string; children: React.ReactNode }) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   return (
-    <OptionsSlotContext.Provider value={slot}>
-      <div className="flex flex-1 flex-col">
+    <PanelSlotContext.Provider value={slot}>
+      <div className="flex flex-1 flex-col lg:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Pinned over the page, which fades out beneath it (`ds-nav-fade`), as in the
             admin. The canvas isn't the page colour, so the fade takes the canvas's own
             (`--ds-bg` is reset here; nothing in the bar draws with it otherwise). Below
@@ -178,10 +178,16 @@ export function DsCanvas({ group, title, children }: { group: string; title: str
             <p className="text-small text-ds-fg-subtle">{group}</p>
             <h1 className="text-h3 text-ds-fg">{title}</h1>
           </div>
-          <div ref={setSlot} className="shrink-0" />
         </header>
         <div className="flex flex-1 items-center justify-center px-6 py-12">{children}</div>
       </div>
-    </OptionsSlotContext.Provider>
+      {/* The page's properties; hidden while it has none. */}
+      <aside
+        ref={setSlot}
+        aria-label="Properties"
+        className="flex flex-col gap-ds-20 border-t border-ds-border bg-ds-bg p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
+      />
+      </div>
+    </PanelSlotContext.Provider>
   );
 }

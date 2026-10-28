@@ -7,17 +7,15 @@ import { DsField, DsInput } from "../primitives/field";
 import { DsSelect } from "../primitives/select";
 import { DsSwitch } from "../primitives/switch";
 import { DsThemeToggle } from "../primitives/theme-toggle";
-import { dsToast } from "../primitives/toast";
 import { DsFontPairing } from "../components/font-pairing";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
-import { useDsThemeConfig } from "../provider";
-import { DS_DEFAULT_THEME, dsApplyTheme, type DsThemeConfig } from "../theme";
+import { InPanel, PanelSection, ThemeActions, useThemeEditor } from "./theme-editor";
 
 /** One tile of the preview grid: a few words on what it shows, then the pieces themselves. */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-ds-lg border border-ds-border p-5">
+    <section className="flex flex-col gap-ds-16 rounded-ds-lg border border-ds-border p-ds-20">
       <p className="text-small text-ds-fg-muted">{label}</p>
       {children}
     </section>
@@ -26,79 +24,35 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
 
 /**
  * Theme: the start of Parabola's home screen for making a theme (decisions,
- * 2026-10-28). The controls on top (fonts for now: text and headings), a grid
- * of Parabola's pieces under them that change as you pick, and the theme as
- * data to copy. With an app that can save it (DsProvider
- * `onThemeConfigChange`, the CMS), Save makes it the site's and the admin's;
- * without, it's a preview for this page.
+ * 2026-10-28). A grid of Parabola's pieces that change as the theme does,
+ * and the theme as data to copy. The controls are in the panel on the right:
+ * the two font families here, the type scale on Typography › Type scale, a
+ * font to add on Typography › Font families. Every spacing is a Parabola one.
  */
 export function ThemeSection() {
-  const { themeConfig, onThemeConfigChange } = useDsThemeConfig();
-  const [saved, setSaved] = React.useState<DsThemeConfig>(themeConfig ?? DS_DEFAULT_THEME);
-  const [theme, setTheme] = React.useState<DsThemeConfig>(saved);
-  const [saving, setSaving] = React.useState(false);
-  const dirty = JSON.stringify(theme) !== JSON.stringify(saved);
-
-  const pick = (next: DsThemeConfig) => {
-    setTheme(next);
-    dsApplyTheme(next);
-  };
-
-  // Leaving the page unsaved puts the page back in the theme it was served with.
-  React.useEffect(() => () => dsApplyTheme(saved), [saved]);
-
-  async function save() {
-    if (!onThemeConfigChange) return;
-    setSaving(true);
-    try {
-      await onThemeConfigChange(theme);
-      setSaved(theme);
-      dsToast.success("Theme saved");
-    } catch (error) {
-      dsToast.error("Couldn't save the theme", { description: error instanceof Error ? error.message : undefined });
-    } finally {
-      setSaving(false);
-    }
-  }
+  const { theme, setTheme, canSave } = useThemeEditor();
 
   return (
-    <div className="flex w-full max-w-5xl flex-col gap-10">
-      <div className="flex flex-col gap-2">
+    <div className="flex w-full max-w-5xl flex-col gap-ds-40">
+      <div className="flex flex-col gap-ds-8">
         <h1 className="text-h1 text-ds-fg">Theme</h1>
         <p className="text-prose text-ds-fg-muted">
-          Pick the fonts and watch everything below change.{" "}
-          {onThemeConfigChange ? "Save makes them this site's and its admin's." : "Copy the theme to use it."}
+          Change the theme in the panel and watch everything below follow.{" "}
+          {canSave ? "Save makes it this site's and its admin's." : "Copy the theme to use it."}
         </p>
       </div>
 
-      <div className="flex flex-col gap-5">
-        <DsFontPairing theme={theme} onChange={pick} disabled={saving} />
-        <div className="flex flex-wrap gap-2">
-          {onThemeConfigChange && (
-            <DsButton variant="primary" onClick={save} disabled={!dirty} loading={saving}>
-              Save
-            </DsButton>
-          )}
-          <DsButton onClick={() => pick(saved)} disabled={!dirty || saving}>
-            Undo changes
-          </DsButton>
-          <DsButton variant="text" onClick={() => pick(DS_DEFAULT_THEME)} disabled={saving}>
-            Parabola&apos;s default
-          </DsButton>
-        </div>
-      </div>
-
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-ds-20 md:grid-cols-2">
         <Tile label="Type">
           <p className="text-display text-ds-fg">Ars longa</p>
           <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
           <p className="text-prose text-ds-fg-muted">
             Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
           </p>
-          <p className="text-small text-ds-fg-muted">Small: 14 / 18</p>
+          <p className="text-small text-ds-fg-muted">Small, the floor</p>
         </Tile>
         <Tile label="Buttons">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-ds-8">
             <DsButton variant="primary">Publish</DsButton>
             <DsButton>Save</DsButton>
             <DsButton variant="text">Writing</DsButton>
@@ -118,7 +72,7 @@ export function ThemeSection() {
               ]}
             />
           </DsField>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-ds-16">
             <span className="flex-1 text-p text-ds-fg">In the site&apos;s nav</span>
             <DsSwitch defaultChecked />
           </div>
@@ -140,6 +94,13 @@ export function ThemeSection() {
       <DsField label="The theme as data" description="Paste it into another Parabola site, or hand it to an agent." className="w-full">
         <DsCopyField mono wrap value={JSON.stringify(theme)} />
       </DsField>
+
+      <InPanel>
+        <ThemeActions />
+        <PanelSection title="Families">
+          <DsFontPairing theme={theme} onChange={setTheme} stacked />
+        </PanelSection>
+      </InPanel>
     </div>
   );
 }

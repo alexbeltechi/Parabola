@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { AccentColoursSection, MainColoursSection } from "./colours-section";
 import { FontsSection } from "./fonts-section";
+import { FontFamiliesSection } from "./font-families-section";
 import { SpacingSection } from "./spacing-section";
 import { IntroSection } from "./intro-section";
 import { ThemeSection } from "./theme-section";
@@ -77,11 +78,13 @@ export const DS_TIERS: DsTier[] = [
         ],
       },
       {
-        slug: "fonts",
-        label: "Fonts",
+        slug: "typography",
+        label: "Typography",
         icon: Type,
-        single: true,
-        pages: [{ slug: "type-scale", label: "Type scale", component: FontsSection }],
+        pages: [
+          { slug: "font-families", label: "Font families", component: FontFamiliesSection },
+          { slug: "type-scale", label: "Type scale", component: FontsSection },
+        ],
       },
       {
         slug: "spacing",

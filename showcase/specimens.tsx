@@ -1,8 +1,6 @@
 "use client";
 
 import { useId, useState } from "react";
-import { createPortal } from "react-dom";
-import * as Popover from "@radix-ui/react-popover";
 import {
   Calendar,
   Check,
@@ -50,7 +48,7 @@ import { DsSwitch } from "../primitives/switch";
 import { DsToast, DsToastAction, DsToaster, dsToast } from "../primitives/toast";
 import { DsTooltip } from "../primitives/tooltip";
 import { cn } from "../cn";
-import { DS_TRAY_CLASS, DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
+import { DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
 import { DsMediaTile } from "../components/media-tile";
 import { DsNewsletterBlock } from "../blocks/newsletter";
 import { DsPlaceholder } from "../components/placeholder";
@@ -59,7 +57,7 @@ import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsProgress } from "../primitives/progress";
-import { useDsOptionsSlot } from "./ds-shell";
+import { InPanel, PanelSection } from "./theme-editor";
 
 const CATEGORIES = ["Design", "Product", "Design Systems", "Photography", "Portrait", "Still life"].map((label) => ({
   value: label.toLowerCase().replace(/\s+/g, "-"),
@@ -110,8 +108,7 @@ function Controls<T extends Record<string, boolean>>({
 
 /*
  * A specimen fills the /parabola canvas: the component centred. Its options sit in
- * an "Options" dropdown (a regular button opening a tray) at the right of the
- * page header; see DsCanvas.
+ * the Options section of the panel on the right; see DsCanvas.
  */
 function Specimen({
   preview,
@@ -124,26 +121,14 @@ function Specimen({
   /** Let the preview use the canvas width instead of a 360px column. */
   wide?: boolean;
 }) {
-  const slot = useDsOptionsSlot();
-
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <div className={cn("flex w-full flex-col items-center", !wide && "max-w-[360px]")}>{preview}</div>
-      {controls &&
-        slot &&
-        createPortal(
-          <Popover.Root>
-            <Popover.Trigger asChild>
-              <DsButton iconRight={ChevronDown}>Options</DsButton>
-            </Popover.Trigger>
-            <Popover.Portal>
-              <Popover.Content align="end" sideOffset={6} className={DS_TRAY_CLASS}>
-                {controls}
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>,
-          slot
-        )}
+      {controls && (
+        <InPanel>
+          <PanelSection title="Options">{controls}</PanelSection>
+        </InPanel>
+      )}
     </div>
   );
 }

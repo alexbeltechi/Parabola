@@ -1,44 +1,136 @@
-type TextStyle = {
-  name: string;
-  tag: "h1" | "h2" | "h3" | "p" | "small";
-  className: string;
-  spec: string;
-  muted?: boolean;
-};
+"use client";
 
-// The type scale classes from tokens.css (Figma: Folio Dharmify 693:5061),
-// each rendered with the element it's named for (Display, the editorial size,
-// is an h1 on large screens). All medium, in the theme's fonts (Theme page;
-// Display to H3 in its heading font), two colours: `ds-fg` and `ds-fg-muted`.
-export const TEXT_STYLES: TextStyle[] = [
-  { name: "Display", tag: "h1", className: "text-display", spec: "60 / 64" },
-  { name: "H1", tag: "h1", className: "text-h1", spec: "36 / 48" },
-  { name: "H2", tag: "h2", className: "text-h2", spec: "24 / 30" },
-  { name: "H3", tag: "h3", className: "text-h3", spec: "18 / 26" },
-  { name: "P", tag: "p", className: "text-p", spec: "16 / 22" },
-  { name: "P muted", tag: "p", className: "text-p", spec: "16 / 22", muted: true },
-  { name: "Prose", tag: "p", className: "text-prose", spec: "18 / 28", muted: true },
-  { name: "Small", tag: "small", className: "text-small", spec: "14 / 18", muted: true },
-];
+import * as React from "react";
+import { DsField, DsInput } from "../primitives/field";
+import { DsSelect } from "../primitives/select";
+import {
+  DS_TEXT_STYLES,
+  DS_TEXT_STYLE_DEFAULTS,
+  dsThemeFont,
+  type DsFamilyRole,
+  type DsTextStyle,
+  type DsTextStyleConfig,
+} from "../theme";
+import { InPanel, PanelSection, ThemeActions, useThemeEditor } from "./theme-editor";
+
+/** Each style's class and the element it's for, so the specimen is what a page gets. */
+const SPECIMEN: Record<DsTextStyle, { tag: "h1" | "h2" | "h3" | "p" | "small"; className: string }> = {
+  display: { tag: "h1", className: "text-display text-ds-fg" },
+  h1: { tag: "h1", className: "text-h1 text-ds-fg" },
+  h2: { tag: "h2", className: "text-h2 text-ds-fg" },
+  h3: { tag: "h3", className: "text-h3 text-ds-fg" },
+  p: { tag: "p", className: "text-p text-ds-fg" },
+  prose: { tag: "p", className: "text-prose text-ds-fg-muted" },
+  small: { tag: "small", className: "text-small text-ds-fg-muted" },
+};
 
 const SAMPLE = "Ars longa vita brevis";
 
-export function FontsSection() {
+/**
+ * A number in px, applied as soon as it's in range: what's typed stays in
+ * the box meanwhile, so typing "48" never shows the text at 4px.
+ */
+function PxField({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  const [text, setText] = React.useState(String(value));
+  const [focused, setFocused] = React.useState(false);
+  const shown = focused ? text : String(value);
   return (
-    <div className="flex w-full flex-col items-center gap-6 text-center">
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-h3 text-ds-fg">The theme&apos;s fonts</p>
-        <p className="text-small text-ds-fg-muted">Instrument Sans by default; pick others on Theme</p>
-      </div>
+    <DsField label={label}>
+      <DsInput
+        type="number"
+        min={min}
+        max={max}
+        value={shown}
+        onFocus={() => {
+          setText(String(value));
+          setFocused(true);
+        }}
+        onBlur={() => setFocused(false)}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = Number(e.target.value);
+          if (e.target.value && n >= min && n <= max) onChange(Math.round(n));
+        }}
+      />
+    </DsField>
+  );
+}
 
-      {TEXT_STYLES.map(({ name, tag: Tag, className, spec, muted }) => (
-        <div key={name} className="flex max-w-full flex-col items-center gap-2">
-          <Tag className={`block ${className} ${muted ? "text-ds-fg-muted" : "text-ds-fg"}`}>{SAMPLE}</Tag>
-          <p className="text-small text-ds-fg-muted">
-            {name}: {spec} · Medium
-          </p>
-        </div>
-      ))}
+/**
+ * Typography › Type scale: Parabola's text styles (tokens.css), each in the
+ * family, size and line height the theme gives it, with its spec. The panel
+ * sets them per style: which family (primary or secondary), the size and the
+ * line height (decisions, 2026-10-28).
+ */
+export function FontsSection() {
+  const { theme, setTheme } = useThemeEditor();
+
+  const setStyle = (style: DsTextStyle, patch: Partial<DsTextStyleConfig>) =>
+    setTheme({ ...theme, type: { ...theme.type, [style]: { ...theme.type[style], ...patch } } });
+
+  const familyOptions = (["primary", "secondary"] as DsFamilyRole[]).map((role) => ({
+    value: role,
+    label: `${role === "primary" ? "Primary" : "Secondary"}: ${dsThemeFont(theme, theme.fonts[role]).label}`,
+  }));
+
+  return (
+    <div className="flex w-full flex-col items-center gap-ds-40 text-center">
+      {DS_TEXT_STYLES.map((style) => {
+        const { tag: Tag, className } = SPECIMEN[style];
+        const t = theme.type[style];
+        const font = dsThemeFont(theme, theme.fonts[t.family]);
+        return (
+          <div key={style} className="flex max-w-full flex-col items-center gap-ds-8">
+            <Tag className={`block ${className}`}>{SAMPLE}</Tag>
+            <p className="text-small text-ds-fg-muted">
+              {DS_TEXT_STYLE_DEFAULTS[style].label}: {t.size} / {t.lineHeight} · {font.label} ·{" "}
+              {font.weight === 500 ? "Medium" : "Regular"}
+            </p>
+          </div>
+        );
+      })}
+
+      <InPanel>
+        <ThemeActions />
+        {DS_TEXT_STYLES.map((style) => {
+          const { label, use } = DS_TEXT_STYLE_DEFAULTS[style];
+          const t = theme.type[style];
+          return (
+            <PanelSection key={style} title={label} defaultOpen={style === "display"}>
+              <p className="text-small text-ds-fg-muted">{use}</p>
+              <DsField label="Font">
+                <DsSelect
+                  options={familyOptions}
+                  value={t.family}
+                  onValueChange={(family) => setStyle(style, { family: family as DsFamilyRole })}
+                />
+              </DsField>
+              <div className="grid grid-cols-2 gap-ds-8">
+                <PxField label="Size" value={t.size} min={10} max={200} onChange={(size) => setStyle(style, { size })} />
+                <PxField
+                  label="Line height"
+                  value={t.lineHeight}
+                  min={10}
+                  max={240}
+                  onChange={(lineHeight) => setStyle(style, { lineHeight })}
+                />
+              </div>
+            </PanelSection>
+          );
+        })}
+      </InPanel>
     </div>
   );
 }

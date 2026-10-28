@@ -13,13 +13,30 @@
 export { DS_ACCENTS, type DsAccent } from "./accents";
 export { cn } from "./cn";
 export { DS_GUTTER_PX, DS_SPACES, type DsSpace } from "./spacing";
-export { DS_FONTS, DS_DEFAULT_FONT, dsFont, dsGoogleFontsUrl, type DsFont, type DsFontId } from "./fonts";
+export {
+  DS_FONTS,
+  DS_DEFAULT_FONT,
+  DS_DEFAULT_SECONDARY_FONT,
+  dsFont,
+  dsCustomFont,
+  dsCustomFontFromInput,
+  dsGoogleFontsUrl,
+  type DsFont,
+  type DsCustomFont,
+} from "./fonts";
 export {
   DS_DEFAULT_THEME,
+  DS_TEXT_STYLES,
+  DS_TEXT_STYLE_DEFAULTS,
   dsApplyTheme,
   dsThemeCss,
+  dsThemeFont,
+  dsThemeFonts,
   dsThemeVars,
   parseDsThemeConfig,
+  type DsFamilyRole,
+  type DsTextStyle,
+  type DsTextStyleConfig,
   type DsThemeConfig,
 } from "./theme";
 export { DsThemeStyle } from "./theme-style";
@@ -95,4 +112,4 @@ export { DsPlaceholder } from "./components/placeholder";
 export { DsEmptyState } from "./components/empty-state";
 export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
-export { DsFontPairing } from "./components/font-pairing";
+export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
