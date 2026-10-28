@@ -203,39 +203,40 @@
 
 :root {
   /* Type (theme.ts, fonts.ts; decisions 2026-10-28): two families, a
-     primary and a secondary, and for each text style its family, size, line
-     height and weight. These are the defaults (Instrument Sans throughout,
-     Instrument Serif ready as the secondary); a theme overrides them on
+     primary (--ds-family-primary) and a display (--ds-family-display), and
+     for each text style its family, size, line height and weight. These are
+     the defaults (Instrument Sans throughout, Instrument Serif ready as the
+     display family); a theme overrides them on
      :root (DsThemeStyle). An app that hosts the font files sets
      --ds-font-instrument-sans / -serif to its family names. */
-  --ds-font-primary: var(--ds-font-instrument-sans, "Instrument Sans"), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --ds-font-secondary: var(--ds-font-instrument-serif, "Instrument Serif"), Georgia, serif;
-  --ds-font: var(--ds-font-primary);
-  --ds-font-display: var(--ds-font-primary);
+  --ds-family-primary: var(--ds-font-instrument-sans, "Instrument Sans"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ds-family-display: var(--ds-font-instrument-serif, "Instrument Serif"), Georgia, serif;
+  --ds-font: var(--ds-family-primary);
+  --ds-font-display: var(--ds-family-primary);
   --ds-text-display: 60px;
   --ds-text-display-leading: 64px;
   --ds-weight-display: 500;
-  --ds-font-h1: var(--ds-font-primary);
+  --ds-font-h1: var(--ds-family-primary);
   --ds-text-h1: 36px;
   --ds-text-h1-leading: 48px;
   --ds-weight-h1: 500;
-  --ds-font-h2: var(--ds-font-primary);
+  --ds-font-h2: var(--ds-family-primary);
   --ds-text-h2: 24px;
   --ds-text-h2-leading: 30px;
   --ds-weight-h2: 500;
-  --ds-font-h3: var(--ds-font-primary);
+  --ds-font-h3: var(--ds-family-primary);
   --ds-text-h3: 18px;
   --ds-text-h3-leading: 26px;
   --ds-weight-h3: 500;
-  --ds-font-p: var(--ds-font-primary);
+  --ds-font-p: var(--ds-family-primary);
   --ds-text-p: 16px;
   --ds-text-p-leading: 22px;
   --ds-weight-p: 500;
-  --ds-font-prose: var(--ds-font-primary);
+  --ds-font-prose: var(--ds-family-primary);
   --ds-text-prose: 18px;
   --ds-text-prose-leading: 28px;
   --ds-weight-prose: 500;
-  --ds-font-small: var(--ds-font-primary);
+  --ds-font-small: var(--ds-family-primary);
   --ds-text-small: 14px;
   --ds-text-small-leading: 18px;
   --ds-weight-small: 500;
@@ -374,7 +375,7 @@
 }
 
 /* Each text style is set in its family (--ds-font-<style>, primary unless a
-   theme says secondary), at any breakpoint. Whole class names only, so a
+   theme moves it to display), at any breakpoint. Whole class names only, so a
    wrapper that styles text inside it (prose) isn't caught; prose sets its
    own (DS_PROSE_CLASS). :where keeps it at no specificity. */
 :where([class~="text-display"], [class~="sm:text-display"], [class~="md:text-display"], [class~="lg:text-display"], [class~="xl:text-display"], [class~="2xl:text-display"]) {

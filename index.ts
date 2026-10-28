@@ -16,7 +16,7 @@ export { DS_GUTTER_PX, DS_SPACES, type DsSpace } from "./spacing";
 export {
   DS_FONTS,
   DS_DEFAULT_FONT,
-  DS_DEFAULT_SECONDARY_FONT,
+  DS_DEFAULT_DISPLAY_FONT,
   dsFont,
   dsCustomFont,
   dsCustomFontFromInput,

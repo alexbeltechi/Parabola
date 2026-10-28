@@ -49,10 +49,10 @@ export const DS_FONTS: DsFont[] = [
   { id: "system", label: "System", family: SYSTEM_STACK, weight: 500 },
 ];
 
-/** The primary family's default face: tokens.css sets `--ds-font-primary` to its stack (`npm run check:parabola` checks). */
+/** The primary family's default face: tokens.css sets `--ds-family-primary` to its stack (`npm run check:parabola` checks). */
 export const DS_DEFAULT_FONT = "instrument-sans";
-/** The secondary family's default face, for a pairing (`--ds-font-secondary`). */
-export const DS_DEFAULT_SECONDARY_FONT = "instrument-serif";
+/** The display family's default face, for a pairing (`--ds-family-display`). */
+export const DS_DEFAULT_DISPLAY_FONT = "instrument-serif";
 
 export function dsFont(id: string | undefined): DsFont {
   return DS_FONTS.find((f) => f.id === id) ?? DS_FONTS.find((f) => f.id === DS_DEFAULT_FONT)!;

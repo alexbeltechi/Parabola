@@ -4,6 +4,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { DsButton } from "../primitives/button";
+import { DsConfirmDialog } from "../primitives/dialog";
 import { dsToast } from "../primitives/toast";
 import { cn } from "../cn";
 import { useDsThemeConfig } from "../provider";
@@ -12,7 +13,7 @@ import { DS_DEFAULT_THEME, dsApplyTheme, parseDsThemeConfig, type DsThemeConfig 
 /**
  * The theme being made on /parabola: one draft for every page, so a font
  * picked on Font families shows on Type scale and Theme too. Each change
- * shows at once (dsApplyTheme); Save hands it to the app (DsProvider
+ * shows at once (dsApplyTheme); Publish hands it to the app (DsProvider
  * `onThemeConfigChange`), which makes it the site's and the admin's.
  */
 type ThemeEditor = {
@@ -54,9 +55,9 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     try {
       await onThemeConfigChange(theme);
       setSaved(theme);
-      dsToast.success("Theme saved");
+      dsToast.success("Theme published");
     } catch (error) {
-      dsToast.error("Couldn't save the theme", { description: error instanceof Error ? error.message : undefined });
+      dsToast.error("Couldn't publish the theme", { description: error instanceof Error ? error.message : undefined });
     } finally {
       setSaving(false);
     }
@@ -124,27 +125,40 @@ export function PanelSection({
   );
 }
 
-/** The panel's Theme section: save it to the site, undo, or go back to Parabola's default. */
-export function ThemeActions() {
+/**
+ * The theme's actions, top right of every /parabola page (DsCanvas): Undo
+ * (back to what's published), Restore default (Parabola's), and Publish,
+ * after a confirm, since a published theme changes every site that uses it.
+ * Without an app that can publish, only the first two.
+ */
+export function ThemeHeaderActions() {
   const { dirty, saving, canSave, save, undo, reset } = useThemeEditor();
+  const [confirming, setConfirming] = React.useState(false);
   return (
-    <PanelSection title="Theme">
-      <p className="text-small text-ds-fg-muted">
-        {canSave ? "Changes show here at once. Save makes them this site's and its admin's." : "A preview: copy the theme on the Theme page to use it."}
-      </p>
-      <div className="flex flex-wrap gap-ds-8">
-        {canSave && (
-          <DsButton variant="primary" onClick={save} disabled={!dirty} loading={saving}>
-            Save
-          </DsButton>
-        )}
-        <DsButton onClick={undo} disabled={!dirty || saving}>
-          Undo
+    <div className="flex items-center gap-ds-8">
+      <DsButton variant="text" onClick={reset} disabled={saving}>
+        Restore default
+      </DsButton>
+      <DsButton onClick={undo} disabled={!dirty || saving}>
+        Undo
+      </DsButton>
+      {canSave && (
+        <DsButton variant="primary" onClick={() => setConfirming(true)} disabled={!dirty} loading={saving}>
+          Publish
         </DsButton>
-        <DsButton variant="text" onClick={reset} disabled={saving}>
-          Default
-        </DsButton>
-      </div>
-    </PanelSection>
+      )}
+      <DsConfirmDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title="Publish this theme?"
+        description="This changes every site that uses it, and its admin, right away."
+        confirmLabel="Publish"
+        loading={saving}
+        onConfirm={async () => {
+          await save();
+          setConfirming(false);
+        }}
+      />
+    </div>
   );
 }

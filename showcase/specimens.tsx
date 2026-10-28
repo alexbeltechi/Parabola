@@ -91,7 +91,7 @@ function Controls<T extends Record<string, boolean>>({
   return (
     <div className="flex min-w-48 flex-col">
       {(Object.keys(labels) as (keyof T & string)[]).map((key) => (
-        <div key={key} className="flex h-9 items-center justify-between gap-6 px-3">
+        <div key={key} className="flex h-9 items-center gap-ds-8">
           <label htmlFor={`${baseId}-${key}`} className="text-p text-ds-fg">
             {labels[key]}
           </label>

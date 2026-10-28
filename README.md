@@ -117,18 +117,19 @@ namespace, short and brand-free, so a rename never touches code:
 
 A theme is data (`theme.ts`). For now it's typography:
 
-- **Two font families**, primary and secondary, each one of `DS_FONTS`
+- **Two font families**, primary and display, each one of `DS_FONTS`
   (`fonts.ts`: Instrument Sans, the default primary; Instrument Serif, the
-  default secondary; System) or a Google font added to the theme
+  default display; System) or a Google font added to the theme
   (`customFonts`, from its name or link: `dsCustomFontFromInput`).
 - **The type scale**: for each text style (`DS_TEXT_STYLES`, Display to
   Small) its family, size and line height. The defaults are tokens.css's.
 
-The type tokens are `--ds-*` variables (`--ds-font-primary`,
-`--ds-font-<style>`, `--ds-text-<style>`, `--ds-text-<style>-leading`,
+The type tokens are `--ds-*` variables (`--ds-family-primary`,
+`--ds-family-display`, `--ds-font-<style>`, `--ds-text-<style>`, `--ds-text-<style>-leading`,
 `--ds-weight-<style>`), so a theme changes them at run time. Make one on
 `/parabola`: Theme (a grid of pieces, the theme as JSON) and Typography (Font
-families, Type scale), with the controls in the panel on the right. An app
+families, Type scale: an edit button on each family and style opens its
+settings), then Publish, top right on every page. An app
 applies a theme once, in its `<head>`:
 
 ```tsx
@@ -165,6 +166,9 @@ left-aligned in a row that wraps, never stretched. Opt out deliberately:
   `DsDialog` and `DsSidePanel` already do.
 
 Don't size fields with `max-w-[…]` per screen. See `/parabola/fields/form`.
+
+A switch sits right after its label (`gap-ds-8`), never pushed to the far
+edge of the row. Rows in a nav are 4px apart (`ds-4`).
 
 Colours come from tokens only. No raw Tailwind palette (`bg-zinc-100`,
 `text-emerald-600`) and no hex values in components. Content that carries a

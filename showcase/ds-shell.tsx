@@ -9,7 +9,7 @@ import { DsMenu, DsNavBar } from "../primitives/nav";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
-import { PanelSlotContext, ThemeEditorProvider } from "./theme-editor";
+import { PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -40,7 +40,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex w-full flex-col gap-4">
       <DsSearch aria-label="Search components" value={query} onValueChange={setQuery} className="w-full" />
-      <nav aria-label="Parabola" className="flex flex-col">
+      <nav aria-label="Parabola" className="flex flex-col gap-ds-4">
         {tiers.map((tier, i) => (
           <React.Fragment key={tier.label ?? i}>
             {tier.label && <p className="px-3 pt-5 pb-1 text-small text-ds-fg-subtle">{tier.label}</p>}
@@ -158,8 +158,9 @@ export function DsShell({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * One /parabola page on the canvas: its name top left, the content centred,
- * and, when the page has any, its properties in a panel on the right (Linear's
+ * One /parabola page on the canvas: its name top left, the theme's actions
+ * top right, the content centred, and, when the page has any, its options in
+ * a panel on the right, set apart by a rule (Linear's
  * properties panel: collapsible sections of controls; under the content below
  * `lg`). Pages put things there with `InPanel` (theme-editor.tsx).
  */
@@ -178,6 +179,8 @@ export function DsCanvas({ group, title, children }: { group: string; title: str
             <p className="text-small text-ds-fg-subtle">{group}</p>
             <h1 className="text-h3 text-ds-fg">{title}</h1>
           </div>
+          {/* The theme's Undo, Restore default and Publish, wherever you are. */}
+          <ThemeHeaderActions />
         </header>
         <div className="flex flex-1 items-center justify-center px-6 py-12">{children}</div>
       </div>
@@ -185,7 +188,7 @@ export function DsCanvas({ group, title, children }: { group: string; title: str
       <aside
         ref={setSlot}
         aria-label="Properties"
-        className="flex flex-col gap-ds-20 border-t border-ds-border bg-ds-bg p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
+        className="flex flex-col gap-ds-20 border-t border-ds-border p-ds-20 empty:hidden lg:sticky lg:top-0 lg:h-screen lg:w-[300px] lg:shrink-0 lg:overflow-y-auto lg:border-t-0 lg:border-l"
       />
       </div>
     </PanelSlotContext.Provider>

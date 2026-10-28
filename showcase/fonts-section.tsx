@@ -1,17 +1,22 @@
 "use client";
 
 import * as React from "react";
+import { Pencil } from "lucide-react";
+import { DsButton } from "../primitives/button";
+import { DsDialog, DsDialogActions } from "../primitives/dialog";
 import { DsField, DsInput } from "../primitives/field";
 import { DsSelect } from "../primitives/select";
 import {
+  DS_DEFAULT_THEME,
   DS_TEXT_STYLES,
   DS_TEXT_STYLE_DEFAULTS,
   dsThemeFont,
   type DsFamilyRole,
   type DsTextStyle,
   type DsTextStyleConfig,
+  type DsThemeConfig,
 } from "../theme";
-import { InPanel, PanelSection, ThemeActions, useThemeEditor } from "./theme-editor";
+import { useThemeEditor } from "./theme-editor";
 
 /** Each style's class and the element it's for, so the specimen is what a page gets. */
 const SPECIMEN: Record<DsTextStyle, { tag: "h1" | "h2" | "h3" | "p" | "small"; className: string }> = {
@@ -26,9 +31,11 @@ const SPECIMEN: Record<DsTextStyle, { tag: "h1" | "h2" | "h3" | "p" | "small"; c
 
 const SAMPLE = "Ars longa vita brevis";
 
+const FAMILY_LABEL: Record<DsFamilyRole, string> = { primary: "Primary", display: "Display" };
+
 /**
  * A number in px, applied as soon as it's in range: what's typed stays in
- * the box meanwhile, so typing "48" never shows the text at 4px.
+ * the box meanwhile, so typing "48" never sets 4.
  */
 function PxField({
   label,
@@ -45,14 +52,13 @@ function PxField({
 }) {
   const [text, setText] = React.useState(String(value));
   const [focused, setFocused] = React.useState(false);
-  const shown = focused ? text : String(value);
   return (
     <DsField label={label}>
       <DsInput
         type="number"
         min={min}
         max={max}
-        value={shown}
+        value={focused ? text : String(value)}
         onFocus={() => {
           setText(String(value));
           setFocused(true);
@@ -69,21 +75,68 @@ function PxField({
 }
 
 /**
+ * One style's settings in a dialog: its family, size and line height. Save
+ * puts them in the theme (it shows at once; Publish, top right, makes it
+ * live), Restore default puts back Parabola's for this style.
+ */
+function StyleDialog({
+  style,
+  theme,
+  onClose,
+  onSave,
+}: {
+  style: DsTextStyle;
+  theme: DsThemeConfig;
+  onClose: () => void;
+  onSave: (config: DsTextStyleConfig) => void;
+}) {
+  const [draft, setDraft] = React.useState<DsTextStyleConfig>(theme.type[style]);
+  const { label, use } = DS_TEXT_STYLE_DEFAULTS[style];
+  const familyOptions = (["primary", "display"] as DsFamilyRole[]).map((role) => ({
+    value: role,
+    label: `${FAMILY_LABEL[role]}: ${dsThemeFont(theme, theme.fonts[role]).label}`,
+  }));
+  return (
+    <DsDialog open onOpenChange={(open) => !open && onClose()} title={label} description={use}>
+      <div className="flex flex-col gap-ds-16">
+        <DsField label="Font">
+          <DsSelect
+            options={familyOptions}
+            value={draft.family}
+            onValueChange={(family) => setDraft({ ...draft, family: family as DsFamilyRole })}
+          />
+        </DsField>
+        <div className="grid grid-cols-2 gap-ds-8">
+          <PxField label="Size" value={draft.size} min={10} max={200} onChange={(size) => setDraft({ ...draft, size })} />
+          <PxField
+            label="Line height"
+            value={draft.lineHeight}
+            min={10}
+            max={240}
+            onChange={(lineHeight) => setDraft({ ...draft, lineHeight })}
+          />
+        </div>
+      </div>
+      <DsDialogActions>
+        <DsButton variant="primary" onClick={() => onSave(draft)}>
+          Save
+        </DsButton>
+        <DsButton variant="text" onClick={() => setDraft(DS_DEFAULT_THEME.type[style])}>
+          Restore default
+        </DsButton>
+      </DsDialogActions>
+    </DsDialog>
+  );
+}
+
+/**
  * Typography › Type scale: Parabola's text styles (tokens.css), each in the
- * family, size and line height the theme gives it, with its spec. The panel
- * sets them per style: which family (primary or secondary), the size and the
- * line height (decisions, 2026-10-28).
+ * family, size and line height the theme gives it, with its spec and an edit
+ * button that opens its settings (decisions, 2026-10-28).
  */
 export function FontsSection() {
   const { theme, setTheme } = useThemeEditor();
-
-  const setStyle = (style: DsTextStyle, patch: Partial<DsTextStyleConfig>) =>
-    setTheme({ ...theme, type: { ...theme.type, [style]: { ...theme.type[style], ...patch } } });
-
-  const familyOptions = (["primary", "secondary"] as DsFamilyRole[]).map((role) => ({
-    value: role,
-    label: `${role === "primary" ? "Primary" : "Secondary"}: ${dsThemeFont(theme, theme.fonts[role]).label}`,
-  }));
+  const [editing, setEditing] = React.useState<DsTextStyle | null>(null);
 
   return (
     <div className="flex w-full flex-col items-center gap-ds-40 text-center">
@@ -91,46 +144,33 @@ export function FontsSection() {
         const { tag: Tag, className } = SPECIMEN[style];
         const t = theme.type[style];
         const font = dsThemeFont(theme, theme.fonts[t.family]);
+        const { label } = DS_TEXT_STYLE_DEFAULTS[style];
         return (
           <div key={style} className="flex max-w-full flex-col items-center gap-ds-8">
-            <Tag className={`block ${className}`}>{SAMPLE}</Tag>
+            <div className="flex max-w-full items-center gap-ds-8">
+              <Tag className={`block min-w-0 ${className}`}>{SAMPLE}</Tag>
+              <DsButton variant="text" iconLeft={Pencil} aria-label={`Edit ${label}`} onClick={() => setEditing(style)} />
+            </div>
             <p className="text-small text-ds-fg-muted">
-              {DS_TEXT_STYLE_DEFAULTS[style].label}: {t.size} / {t.lineHeight} · {font.label} ·{" "}
+              {label}: {t.size} / {t.lineHeight} · {FAMILY_LABEL[t.family]} ({font.label}) ·{" "}
               {font.weight === 500 ? "Medium" : "Regular"}
             </p>
           </div>
         );
       })}
 
-      <InPanel>
-        <ThemeActions />
-        {DS_TEXT_STYLES.map((style) => {
-          const { label, use } = DS_TEXT_STYLE_DEFAULTS[style];
-          const t = theme.type[style];
-          return (
-            <PanelSection key={style} title={label} defaultOpen={style === "display"}>
-              <p className="text-small text-ds-fg-muted">{use}</p>
-              <DsField label="Font">
-                <DsSelect
-                  options={familyOptions}
-                  value={t.family}
-                  onValueChange={(family) => setStyle(style, { family: family as DsFamilyRole })}
-                />
-              </DsField>
-              <div className="grid grid-cols-2 gap-ds-8">
-                <PxField label="Size" value={t.size} min={10} max={200} onChange={(size) => setStyle(style, { size })} />
-                <PxField
-                  label="Line height"
-                  value={t.lineHeight}
-                  min={10}
-                  max={240}
-                  onChange={(lineHeight) => setStyle(style, { lineHeight })}
-                />
-              </div>
-            </PanelSection>
-          );
-        })}
-      </InPanel>
+      {editing && (
+        <StyleDialog
+          key={editing}
+          style={editing}
+          theme={theme}
+          onClose={() => setEditing(null)}
+          onSave={(config) => {
+            setTheme({ ...theme, type: { ...theme.type, [editing]: config } });
+            setEditing(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ export function dsFontOptions(theme: DsThemeConfig): DsSelectOption[] {
 
 /**
  * Parabola font pairing: a theme's two font families (theme.ts), primary and
- * secondary, each a select of the theme's fonts (Parabola's and any it
+ * display, each a select of the theme's fonts (Parabola's and any it
  * added) with "Aa" in the face. Every text style is set in one of the two
  * (Typography › Type scale). On Settings › Design and in /parabola's panel
  * (decisions, 2026-10-28). Controlled: it shows `theme` and hands back the
@@ -46,8 +46,8 @@ export function DsFontPairing({
       <DsField label="Primary" description="Text, and every style set in it.">
         <DsSelect options={options} value={theme.fonts.primary} onValueChange={set("primary")} disabled={disabled} />
       </DsField>
-      <DsField label="Secondary" description="For the styles you set in it: a pairing.">
-        <DsSelect options={options} value={theme.fonts.secondary} onValueChange={set("secondary")} disabled={disabled} />
+      <DsField label="Display" description="For the styles you set in it, such as headings: a pairing.">
+        <DsSelect options={options} value={theme.fonts.display} onValueChange={set("display")} disabled={disabled} />
       </DsField>
     </div>
   );

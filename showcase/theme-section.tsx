@@ -7,15 +7,18 @@ import { DsField, DsInput } from "../primitives/field";
 import { DsSelect } from "../primitives/select";
 import { DsSwitch } from "../primitives/switch";
 import { DsThemeToggle } from "../primitives/theme-toggle";
-import { DsFontPairing } from "../components/font-pairing";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
-import { InPanel, PanelSection, ThemeActions, useThemeEditor } from "./theme-editor";
+import { useThemeEditor } from "./theme-editor";
 
-/** One tile of the preview grid: a few words on what it shows, then the pieces themselves. */
+/**
+ * One tile of the preview grid: a few words on what it shows, then the
+ * pieces themselves, on the page colour with no outline, so pieces that sit
+ * on a surface of their own (the info card) stand out from the canvas.
+ */
 function Tile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-ds-16 rounded-ds-lg border border-ds-border p-ds-20">
+    <section className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-bg p-ds-20">
       <p className="text-small text-ds-fg-muted">{label}</p>
       {children}
     </section>
@@ -25,23 +28,15 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
 /**
  * Theme: the start of Parabola's home screen for making a theme (decisions,
  * 2026-10-28). A grid of Parabola's pieces that change as the theme does,
- * and the theme as data to copy. The controls are in the panel on the right:
- * the two font families here, the type scale on Typography › Type scale, a
- * font to add on Typography › Font families. Every spacing is a Parabola one.
+ * and the theme as data to copy. The theme is edited on Typography (Font
+ * families, Type scale) and published top right. Every spacing is a
+ * Parabola one.
  */
 export function ThemeSection() {
-  const { theme, setTheme, canSave } = useThemeEditor();
+  const { theme } = useThemeEditor();
 
   return (
     <div className="flex w-full max-w-5xl flex-col gap-ds-40">
-      <div className="flex flex-col gap-ds-8">
-        <h1 className="text-h1 text-ds-fg">Theme</h1>
-        <p className="text-prose text-ds-fg-muted">
-          Change the theme in the panel and watch everything below follow.{" "}
-          {canSave ? "Save makes it this site's and its admin's." : "Copy the theme to use it."}
-        </p>
-      </div>
-
       <div className="grid gap-ds-20 md:grid-cols-2">
         <Tile label="Type">
           <p className="text-display text-ds-fg">Ars longa</p>
@@ -72,10 +67,10 @@ export function ThemeSection() {
               ]}
             />
           </DsField>
-          <div className="flex items-center gap-ds-16">
-            <span className="flex-1 text-p text-ds-fg">In the site&apos;s nav</span>
+          <label className="inline-flex items-center gap-ds-8 self-start">
+            <span className="text-p text-ds-fg">In the site&apos;s nav</span>
             <DsSwitch defaultChecked />
-          </div>
+          </label>
         </Tile>
         <Tile label="Lists and notes">
           <DsLinkList
@@ -95,12 +90,6 @@ export function ThemeSection() {
         <DsCopyField mono wrap value={JSON.stringify(theme)} />
       </DsField>
 
-      <InPanel>
-        <ThemeActions />
-        <PanelSection title="Families">
-          <DsFontPairing theme={theme} onChange={setTheme} stacked />
-        </PanelSection>
-      </InPanel>
     </div>
   );
 }

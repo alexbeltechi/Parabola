@@ -1,14 +1,14 @@
-import { DS_DEFAULT_FONT, DS_DEFAULT_SECONDARY_FONT, DS_FONTS, dsCustomFont, type DsCustomFont, type DsFont } from "./fonts";
+import { DS_DEFAULT_FONT, DS_DEFAULT_DISPLAY_FONT, DS_FONTS, dsCustomFont, type DsCustomFont, type DsFont } from "./fonts";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
  * data so a site, an agent or /parabola can set them (decisions,
  * 2026-10-28; BEL-109). It starts with typography:
  *
- * - two font families, a primary and a secondary, each a font from
+ * - two font families, a primary and a display, each a font from
  *   Parabola's list (fonts.ts) or one added to the theme (`customFonts`);
- * - the type scale: for each text style, which family it's set in, its size
- *   and its line height.
+ * - the type scale: for each text style, which family it's set in (primary
+ *   unless it's moved to display), its size and its line height.
  *
  * Colours, corners and the rest join it later; an older theme without them
  * keeps Parabola's defaults.
@@ -29,19 +29,19 @@ export const DS_TEXT_STYLE_DEFAULTS: Record<DsTextStyle, { label: string; size: 
   small: { label: "Small", size: 14, lineHeight: 18, use: "Meta and descriptions; the floor" },
 };
 
-export type DsFamilyRole = "primary" | "secondary";
+export type DsFamilyRole = "primary" | "display";
 
 export type DsTextStyleConfig = { family: DsFamilyRole; size: number; lineHeight: number };
 
 export type DsThemeConfig = {
-  fonts: { primary: string; secondary: string };
+  fonts: { primary: string; display: string };
   type: Record<DsTextStyle, DsTextStyleConfig>;
   /** Fonts added to this theme (a Google font by name or link), beside Parabola's. */
   customFonts: DsCustomFont[];
 };
 
 export const DS_DEFAULT_THEME: DsThemeConfig = {
-  fonts: { primary: DS_DEFAULT_FONT, secondary: DS_DEFAULT_SECONDARY_FONT },
+  fonts: { primary: DS_DEFAULT_FONT, display: DS_DEFAULT_DISPLAY_FONT },
   type: Object.fromEntries(
     DS_TEXT_STYLES.map((s) => [s, { family: "primary", size: DS_TEXT_STYLE_DEFAULTS[s].size, lineHeight: DS_TEXT_STYLE_DEFAULTS[s].lineHeight }])
   ) as Record<DsTextStyle, DsTextStyleConfig>,
@@ -66,8 +66,9 @@ const px = (value: unknown, fallback: number, min: number, max: number) =>
 
 /**
  * A stored theme, cleaned: anything missing or unknown reads as the default.
- * A theme from before the type scale (`fonts: { text, headings }`) becomes
- * text as the primary family and headings as the secondary.
+ * Older shapes still read: `fonts: { text, headings }` (the first version)
+ * as primary and display with headings in display, and `secondary` (before
+ * it was called display) as display.
  */
 export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
@@ -85,36 +86,38 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const fonts = (raw.fonts ?? {}) as Record<string, unknown>;
   const legacy = fonts.text !== undefined || fonts.headings !== undefined;
   const primary = known(legacy ? fonts.text : fonts.primary, DS_DEFAULT_FONT);
-  const secondary = known(legacy ? fonts.headings : fonts.secondary, DS_DEFAULT_SECONDARY_FONT);
+  const display = known(legacy ? fonts.headings : (fonts.display ?? fonts.secondary), DS_DEFAULT_DISPLAY_FONT);
 
-  const typeRaw = (raw.type ?? {}) as Record<string, Partial<DsTextStyleConfig> | undefined>;
+  const typeRaw = (raw.type ?? {}) as Record<string, { family?: unknown; size?: unknown; lineHeight?: unknown } | undefined>;
   const type = Object.fromEntries(
     DS_TEXT_STYLES.map((s) => {
       const d = DS_TEXT_STYLE_DEFAULTS[s];
       const t = typeRaw[s];
       const family: DsFamilyRole =
-        t?.family === "primary" || t?.family === "secondary"
-          ? t.family
-          : legacy && HEADINGS.includes(s) && secondary !== primary
-            ? "secondary"
-            : "primary";
+        t?.family === "primary"
+          ? "primary"
+          : t?.family === "display" || t?.family === "secondary"
+            ? "display"
+            : legacy && HEADINGS.includes(s) && display !== primary
+              ? "display"
+              : "primary";
       return [s, { family, size: px(t?.size, d.size, 10, 200), lineHeight: px(t?.lineHeight, d.lineHeight, 10, 240) }];
     })
   ) as Record<DsTextStyle, DsTextStyleConfig>;
 
-  return { fonts: { primary, secondary }, type, customFonts };
+  return { fonts: { primary, display }, type, customFonts };
 }
 
 /** The CSS custom properties a theme sets on the page (tokens.css has the defaults). */
 export function dsThemeVars(theme: DsThemeConfig): Record<string, string> {
   const family = (role: DsFamilyRole) => dsThemeFont(theme, theme.fonts[role]);
   const vars: Record<string, string> = {
-    "--ds-font-primary": family("primary").family,
-    "--ds-font-secondary": family("secondary").family,
+    "--ds-family-primary": family("primary").family,
+    "--ds-family-display": family("display").family,
   };
   for (const s of DS_TEXT_STYLES) {
     const t = theme.type[s];
-    vars[`--ds-font-${s}`] = `var(--ds-font-${t.family})`;
+    vars[`--ds-font-${s}`] = `var(--ds-family-${t.family})`;
     vars[`--ds-text-${s}`] = `${t.size}px`;
     vars[`--ds-text-${s}-leading`] = `${t.lineHeight}px`;
     vars[`--ds-weight-${s}`] = String(family(t.family).weight);
