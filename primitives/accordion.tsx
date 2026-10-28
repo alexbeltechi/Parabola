@@ -4,13 +4,28 @@ import * as React from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../cn";
 
+type DsAccordionGroupState = { open: boolean; version: number };
+
+const DsAccordionGroupContext = React.createContext<DsAccordionGroupState | null>(null);
+
+/**
+ * Opens or folds every accordion under it at once: each time `version`
+ * changes, they all take `open` (a page's Collapse all / Expand all).
+ * Between times each opens and folds on its own.
+ */
+export function DsAccordionGroup({ open, version, children }: DsAccordionGroupState & { children: React.ReactNode }) {
+  const value = React.useMemo(() => ({ open, version }), [open, version]);
+  return <DsAccordionGroupContext.Provider value={value}>{children}</DsAccordionGroupContext.Provider>;
+}
+
 /**
  * Parabola accordion: a title with a small chevron that folds what's under
  * it away, and at the header's right end its `actions` (a ⋮ menu). Compact:
  * a 32px header, 8px to what's under it. Accordions nest: one inside another
  * is `inset`, set in 16px from the left so it reads as part of the one above,
  * its title in the text colour where the outer one's is muted (as /parabola's
- * Colours holds Theme colour, Surface and the rest).
+ * Colours holds Theme colour, Surface and the rest). Under a
+ * DsAccordionGroup they all open or fold at once when the group says so.
  */
 export function DsAccordion({
   title,
@@ -33,6 +48,13 @@ export function DsAccordion({
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   const id = React.useId();
+  // The group said open all or fold all: follow it, once.
+  const group = React.useContext(DsAccordionGroupContext);
+  const [seen, setSeen] = React.useState(group?.version);
+  if (group && group.version !== seen) {
+    setSeen(group.version);
+    setOpen(group.open);
+  }
   return (
     <section data-slot="ds-accordion" className={cn("flex flex-col", inset && "pl-ds-16", className)}>
       <div className="flex h-8 items-center justify-between gap-ds-8">

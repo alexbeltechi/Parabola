@@ -22,7 +22,7 @@ import { cn } from "../cn";
 import { DsLink } from "../provider";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import { DS_BODY_FAMILY, DS_DEFAULT_THEME, DS_DEFAULT_THEME_ID, DS_HEADING_FAMILY, parseDsThemeConfig, type DsThemeConfig } from "../theme";
-import { InPanel, InPanelFooter, PanelSection, useThemeEditor } from "./theme-editor";
+import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
 
 /**
  * One of the theme's five colours in the panel, for the light or the dark
@@ -529,13 +529,13 @@ export function ThemeSection() {
       <DsConfirmDialog
         open={restoring}
         onOpenChange={setRestoring}
-        title="Back to Parabola?"
-        description="Parabola opens, and becomes your site's theme again when you publish. Your other themes stay as they are, to pick again any time."
+        title={RESTORE.all.title}
+        description={RESTORE.all.description}
         confirmLabel="Restore"
         onConfirm={() => {
           setRestoring(false);
           const undoIt = backToParabola();
-          dsToast("Back to Parabola", { action: { label: "Undo", onClick: undoIt } });
+          dsToast(RESTORE.all.done, { action: { label: "Undo", onClick: undoIt } });
         }}
       />
       <DsConfirmDialog

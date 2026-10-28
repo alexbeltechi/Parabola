@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, Bookmark, House, Menu } from "lucide-react";
+import { ArrowLeft, Bookmark, ChevronsDownUp, ChevronsUpDown, House, Menu } from "lucide-react";
+import { DsAccordionGroup } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { DsSearch } from "../primitives/field";
@@ -211,9 +212,13 @@ export function DsCanvas({
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   const [footer, setFooter] = React.useState<HTMLElement | null>(null);
   const { previewMode, setPreviewMode } = useThemeEditor();
+  // Collapse all, then Expand all: every accordion on the page (the panel's sections) at once.
+  const [allOpen, setAllOpen] = React.useState(true);
+  const [version, setVersion] = React.useState(0);
   return (
     <PanelSlotContext.Provider value={slot}>
       <PanelFooterSlotContext.Provider value={footer}>
+      <DsAccordionGroup open={allOpen} version={version}>
       {/* One grid for the header, the page and its panel, so the header stays pinned
           over all of it: on phones the panel comes under the page, and a header
           sticky only within the page's own column would scroll away there. From
@@ -230,8 +235,19 @@ export function DsCanvas({
               <p className="text-small text-ds-fg-subtle">{group}</p>
               <h1 className="text-p text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
             </div>
-            {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
-            <ThemeHeaderActions />
+            <div className="flex shrink-0 items-center gap-ds-8">
+              <DsButton
+                iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}
+                aria-label={allOpen ? "Collapse all" : "Expand all"}
+                title={allOpen ? "Collapse all" : "Expand all"}
+                onClick={() => {
+                  setAllOpen((o) => !o);
+                  setVersion((v) => v + 1);
+                }}
+              />
+              {/* The theme's Undo, Redo, Publish and ⋮ menu, wherever you are. */}
+              <ThemeHeaderActions />
+            </div>
           </div>
         </DsTopBar>
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
@@ -256,6 +272,7 @@ export function DsCanvas({
           <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-surface-subtle p-ds-16 empty:hidden" />
         </aside>
       </div>
+      </DsAccordionGroup>
       </PanelFooterSlotContext.Provider>
     </PanelSlotContext.Provider>
   );

@@ -252,7 +252,7 @@ export function PanelSection({
 /** What a restore puts back to Parabola's defaults: this page's part of the open theme, or all of it. */
 type RestoreScope = "families" | "type" | "all";
 
-const RESTORE: Record<RestoreScope, { item: string; title: string; description: string; done: string }> = {
+export const RESTORE: Record<RestoreScope, { item: string; title: string; description: string; done: string }> = {
   families: {
     item: "Restore the font families",
     title: "Restore the font families?",
@@ -267,11 +267,10 @@ const RESTORE: Record<RestoreScope, { item: string; title: string; description: 
     done: "Type scale restored",
   },
   all: {
-    item: "Restore all defaults",
-    title: "Back to Parabola?",
-    description:
-      "Parabola opens, and becomes your site's theme again when you publish. Your other themes stay as they are, to pick again any time.",
-    done: "Back to Parabola",
+    item: "Restore all settings",
+    title: "Restore all settings?",
+    description: "Restore all settings across the design system and components back to default.",
+    done: "All settings restored",
   },
 };
 
