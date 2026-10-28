@@ -11,13 +11,15 @@ import { useDsSetTheme } from "../provider";
  * page it's in: `data-ds-mode`, DsModeScope) and hands the new one to the app
  * through DsProvider `onThemeChange`. Extra props (and a ref) pass to the
  * button, so it can sit inside a DsTooltip. `variant="text"` makes it a
- * ghost, for a row of ghost buttons such as a site's nav.
+ * ghost, for a row of ghost buttons such as a site's nav; `size="small"`
+ * for a row of small controls.
  */
 export function DsThemeToggle({
   onClick,
   variant = "default",
+  size = "default",
   ...props
-}: Omit<React.ComponentProps<"button">, "children"> & { variant?: "default" | "text" }) {
+}: Omit<React.ComponentProps<"button">, "children"> & { variant?: "default" | "text"; size?: "default" | "small" }) {
   const setTheme = useDsSetTheme();
 
   // Both icons render; CSS picks one so there's no hydration flash.
@@ -25,6 +27,7 @@ export function DsThemeToggle({
     <DsButton
       iconOnly
       variant={variant}
+      size={size}
       aria-label="Toggle theme"
       {...props}
       onClick={(e) => {

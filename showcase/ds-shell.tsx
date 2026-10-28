@@ -126,7 +126,7 @@ function ShellMenu() {
   return (
     <DsDropdown>
       <DsDropdownTrigger asChild>
-        <DsButton iconLeft={Menu} aria-label="Menu" />
+        <DsButton size="small" iconLeft={Menu} aria-label="Menu" />
       </DsDropdownTrigger>
       <DsDropdownContent align="start">
         <DsDropdownItem iconLeft={House} onSelect={() => router.push("/parabola")}>
@@ -158,7 +158,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
       <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border bg-ds-surface-subtle p-5 md:flex">
         <div className="flex items-center justify-between">
           <ShellMenu />
-          <DsThemeToggle />
+          <DsThemeToggle size="small" />
         </div>
         <SidebarNav />
       </aside>
@@ -223,13 +223,14 @@ export function DsCanvas({
           over all of it: on phones the panel comes under the page, and a header
           sticky only within the page's own column would scroll away there. From
           lg the header runs across the page and the panel, a rule under it, and
-          the two scroll on their own beneath it, the panel a column on the right. */}
-      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_minmax(0,1fr)]">
+          the two scroll on their own beneath it, the panel a column on the right
+          only while the page puts something in it (otherwise the page takes the width). */}
+      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:[&:has(>aside>div:first-child:not(:empty))]:grid-cols-[minmax(0,1fr)_400px]">
         {/* Pinned on the page colour (as the panel is; the sidebar sits on the surface), so the page never shows through behind
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <DsTopBar className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-2 lg:row-start-1">
+        <DsTopBar className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
           <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
             <div className="flex min-w-0 flex-col">
               <p className="text-small text-ds-fg-subtle">{group}</p>
@@ -239,6 +240,7 @@ export function DsCanvas({
             <ThemeHeaderActions
               leading={
                 <DsButton
+                  size="small"
                   variant="text"
                   iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}
                   aria-label={allOpen ? "Collapse all" : "Expand all"}

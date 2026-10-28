@@ -341,22 +341,22 @@ export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
   return (
     <div className="flex shrink-0 items-center gap-ds-8">
       {leading}
-      <DsButton variant="text" iconLeft={Undo2} aria-label="Undo" title="Undo" onClick={undo} disabled={!canUndo || saving} />
-      <DsButton variant="text" iconLeft={Redo2} aria-label="Redo" title="Redo" onClick={redo} disabled={!canRedo || saving} />
+      <DsButton size="small" variant="text" iconLeft={Undo2} aria-label="Undo" title="Undo" onClick={undo} disabled={!canUndo || saving} />
+      <DsButton size="small" variant="text" iconLeft={Redo2} aria-label="Redo" title="Redo" onClick={redo} disabled={!canRedo || saving} />
       {canSave && (
         <>
           {/* Save keeps the changes; Publish puts the open theme on the website. */}
-          <DsButton onClick={() => save()} disabled={!dirty || saving}>
+          <DsButton size="small" onClick={() => save()} disabled={!dirty || saving}>
             Save
           </DsButton>
-          <DsButton variant="primary" onClick={() => setPublishing(true)} disabled={!(dirty || unpublished)} loading={saving}>
+          <DsButton size="small" variant="primary" onClick={() => setPublishing(true)} disabled={!(dirty || unpublished)} loading={saving}>
             Publish
           </DsButton>
         </>
       )}
       <DsDropdown>
         <DsDropdownTrigger asChild>
-          <DsButton variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />
+          <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />
         </DsDropdownTrigger>
         <DsDropdownContent align="end">
           {pageScope && (

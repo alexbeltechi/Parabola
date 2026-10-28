@@ -227,11 +227,12 @@ function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radiu
       <div className="flex items-center gap-ds-4" role="group" aria-label="Radius">
         {/* Small is left out of the choices (an older theme's still reads); Custom covers what's between. */}
         {DS_RADII.filter((r) => r.id !== "small").map((r) => (
-          <DsButton key={r.id} className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
+          <DsButton key={r.id} size="small" className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
             {r.label}
           </DsButton>
         ))}
         <DsButton
+          size="small"
           className="min-w-0 flex-1 px-0"
           pressed={custom}
           onClick={() => {
@@ -468,10 +469,10 @@ export function ThemeSection() {
         >
           <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
             {/* The preview's mode only; the UI's is the sidebar's toggle. */}
-            <DsButton iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
+            <DsButton size="small" iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
               Light
             </DsButton>
-            <DsButton iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
+            <DsButton size="small" iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
               Dark
             </DsButton>
           </div>
