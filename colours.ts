@@ -383,16 +383,26 @@ function fromHsl(h: number, s: number, l: number): string {
 
 /**
  * A colour's counterpart for the other theme: the same hue at the other end
- * of light, so whatever contrasted with it still does. A light colour gets a
- * deep one (lightness 6–24%), a dark colour a pale one (88–97%), its
- * saturation softened a little so a bright pick doesn't glow in the dark.
+ * of light, so whatever contrasted with it still does. A dark colour gets a
+ * pale one (88–97%). A light colour gets a deep one, biased dark: its
+ * lightness falls from 24% (a mid colour) to 6% (white) along a curve that
+ * drops fastest near the middle, and it's then darkened further until it
+ * looks dark (luminance under 4%), so a mid yellow or green, which look
+ * brighter than their lightness, still sinks. Saturation is softened a
+ * little so a bright pick doesn't glow in the dark.
  */
 export function dsCounterpart(hex: string): string {
   const [h, s, l] = toHsl(hex);
-  const flipped = 1 - l;
-  return l >= 0.5
-    ? fromHsl(h, s * 0.75, Math.min(0.24, Math.max(0.06, flipped)))
-    : fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, flipped)));
+  if (l < 0.5) return fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, 1 - l)));
+  // 0 at a mid colour, 1 at white; the square root makes the first steps from the middle count most.
+  const away = Math.sqrt(Math.min(1, (l - 0.5) / 0.5));
+  let lightness = 0.24 - 0.18 * away;
+  let out = fromHsl(h, s * 0.75, lightness);
+  while (dsLuminance(out) > 0.04 && lightness > 0.04) {
+    lightness -= 0.01;
+    out = fromHsl(h, s * 0.75, lightness);
+  }
+  return out;
 }
 
 /**
