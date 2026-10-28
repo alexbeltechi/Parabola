@@ -21,9 +21,9 @@ export const ROLES: Role[] = [
     role: "Surface",
     note: "Backgrounds, from the page up to selected controls",
     colours: [
-      { name: "Background", token: "--ds-bg", light: hex("#FFFFFF"), dark: hex("#121110") },
-      { name: "Surface subtle", token: "--ds-surface-subtle", light: hex("#FAFAF9"), dark: hex("#1A1918") },
-      { name: "Field", token: "--ds-field", light: hex("#F7F5F2"), dark: hex("#211F1E") },
+      { name: "Background", token: "--ds-bg", light: hex("#FAF7EF"), dark: hex("#121110") },
+      { name: "Surface subtle", token: "--ds-surface-subtle", light: hex("#EFECE4"), dark: hex("#1A1918") },
+      { name: "Field", token: "--ds-field", light: hex("#E8E5DD"), dark: hex("#211F1E") },
       { name: "Surface", token: "--ds-surface", light: hex("#E2DFD9"), dark: hex("#302E2C") },
       {
         name: "Surface inverse",
@@ -63,7 +63,7 @@ export const ROLES: Role[] = [
     note: "The tag accent, e.g. the Claude pill: text on its own solid tint",
     colours: [
       { name: "Highlight", token: "--ds-highlight", light: hex("#000000"), dark: hex("#FFFFFF") },
-      { name: "Highlight tint", token: "--ds-highlight-tint", light: hex("#DBDBDB"), dark: hex("#333231") },
+      { name: "Highlight tint", token: "--ds-highlight-tint", light: hex("#D7D4CE"), dark: hex("#333231") },
     ],
   },
 ];

@@ -76,6 +76,8 @@ export {
   dsColourShown,
   dsColourTokens,
   dsShift,
+  dsWarmth,
+  dsWithWarmth,
   dsHexToHsl,
   dsHslToHex,
   DS_SHIFT_MAX,

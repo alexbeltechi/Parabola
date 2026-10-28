@@ -46,13 +46,14 @@ export const DS_BASE_COLOURS: DsBaseColour[] = [
     id: "stone",
     label: "Stone",
     swatch: "#78716C",
+    // The page is paper, a warm off-white (Alex, 2026-10-28), its cards a step darker so they show.
     light: {
-      bg: "#FFFFFF",
+      bg: "#FAF7EF",
       "fg-muted": "#595959",
       "fg-subtle": "#78716C",
       border: "#D6D3D1",
-      "surface-subtle": "#FAFAF9",
-      field: "#F7F5F2",
+      "surface-subtle": "#EFECE4",
+      field: "#E8E5DD",
       surface: "#E2DFD9",
       "surface-inverse": "rgb(48 46 44 / 0.7)",
     },
@@ -246,6 +247,34 @@ export function dsMix(a: string, b: string, amount: number): string {
   return toHex([0, 1, 2].map((i) => x[i] * amount + y[i] * (1 - amount)) as Rgb);
 }
 
+/** How far warmth goes either way: red over blue (or blue over red), out of 255. */
+const WARMTH_RANGE = 60;
+
+/** How warm a colour is, 0 (cold, bluer) to 1 (warm, yellower), 0.5 neither: its red against its blue. */
+export function dsWarmth(hex: string): number {
+  const [r, , b] = toRgb(hex);
+  return Math.min(1, Math.max(0, 0.5 + (r - b) / (2 * WARMTH_RANGE)));
+}
+
+/**
+ * A colour made warmer or colder, as a photo's white balance is: its red
+ * and blue moved apart (warm) or the other way (cold), green as it is, so
+ * a white becomes paper or ice and keeps its lightness.
+ */
+export function dsWithWarmth(hex: string, warmth: number): string {
+  const [r, g, b] = toRgb(hex);
+  const target = (warmth - 0.5) * 2 * WARMTH_RANGE;
+  const half = (target - (r - b)) / 2;
+  const clamp255 = (n: number) => Math.min(255, Math.max(0, n));
+  let red = clamp255(r + half);
+  let blue = clamp255(b - half);
+  // Red or blue at its end: the other takes the rest.
+  const rest = target - (red - blue);
+  if (rest && (red === 0 || red === 255)) blue = clamp255(blue - rest);
+  else if (rest) red = clamp255(red + rest);
+  return toHex([red, g, blue]);
+}
+
 /** Hue (0–360), saturation and value (0–1), for the colour picker. */
 export function dsHexToHsv(hex: string): { h: number; s: number; v: number } {
   const [r, g, b] = toRgb(hex).map((c) => c / 255);
@@ -402,7 +431,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     // white if it wouldn't read on this page; a colour picked for it is kept as picked.
     const picked = mode === "light" ? dsIsHex(colours.text.light) : Boolean(colours.text.dark);
     const fg = text && (picked || dsContrast(text, bg) >= 3) ? text : readable;
-    const card = dsMix(fg, bg, 0.035);
+    const card = dsMix(fg, bg, 0.045);
     Object.assign(tokens, {
       bg,
       fg,

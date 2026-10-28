@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "../cn";
-import { dsHexToHsl, dsHexToHsv, dsHslToHex, dsHsvToHex, dsNormalizeHex } from "../colours";
+import { dsHexToHsl, dsHexToHsv, dsHslToHex, dsHsvToHex, dsNormalizeHex, dsWarmth, dsWithWarmth } from "../colours";
 import { DsInput } from "../primitives/field";
 
 type Hsv = { h: number; s: number; v: number };
@@ -96,8 +96,9 @@ export function DsColourBar({
 /**
  * Parabola colour picker, inline (no pop-up): a square for saturation (left
  * to right) and brightness (bottom to top) in the chosen hue, a hue bar of
- * the whole rainbow, a brightness bar from black through the colour to
- * white (both DsColourBar), and the hex, typed or pasted. Drag either, or use the
+ * the whole rainbow, with `warmth` a bar from cold to warm (white balance,
+ * for a page colour: white to paper), a brightness bar from black through
+ * the colour to white (all DsColourBar), and the hex, typed or pasted. Drag either, or use the
  * arrow keys on them (Shift for bigger steps). Every change is reported at
  * once, so whatever wears the colour follows live. Controlled: `value` is a
  * `#RRGGBB`, `onChange` gets the new one.
@@ -106,11 +107,14 @@ export function DsColourPicker({
   value,
   onChange,
   className,
+  warmth = false,
   "aria-label": label,
 }: {
   value: string;
   onChange: (hex: string) => void;
   className?: string;
+  /** Add the warmth bar, between hue and brightness. */
+  warmth?: boolean;
   /** What the colour is for, naming the picker's group. */
   "aria-label"?: string;
 }) {
@@ -174,6 +178,21 @@ export function DsColourPicker({
         track="linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)"
         thumb={dsHsvToHex(hsv.h, 1, 1)}
       />
+      {warmth && (
+        <DsColourBar
+          label="Warmth"
+          value={dsWarmth(shown)}
+          onChange={(w) => {
+            const hex = dsWithWarmth(shown, w);
+            setHsv(dsHexToHsv(hex));
+            setLast(hex);
+            onChange(hex);
+          }}
+          valueText={dsWarmth(shown) > 0.52 ? "Warm" : dsWarmth(shown) < 0.48 ? "Cold" : "Neither"}
+          track={`linear-gradient(to right, ${dsWithWarmth(shown, 0)}, ${dsWithWarmth(shown, 0.5)}, ${dsWithWarmth(shown, 1)})`}
+          thumb={shown}
+        />
+      )}
       <DsColourBar
         label="Brightness"
         value={light}
