@@ -31,12 +31,12 @@ import {
  * (dsApplyTheme, scoped) so a font picked on Font families shows on Type
  * scale and Theme too; the sidebar, header and panel stay in Parabola's own,
  * so a theme that's hard to read never makes the controls hard to use.
- * Parabola itself never changes: the first change to it opens a copy,
- * "Custom", with the change in it, to create as a theme of its own. Every
- * change goes on a history, so Undo and Redo step through them one at a
- * time; Publish hands the library to the app (DsProvider
- * `onThemeLibraryChange`). Which theme a site wears is the site's choice
- * (Settings › Design), shown here as "In use".
+ * Parabola itself never changes: a change to it goes into Custom, the one
+ * working copy (made if there's none, its contents replaced if there is),
+ * which Create theme turns into a theme of its own. Every change goes on a
+ * history, so Undo and Redo step through them one at a time. Save keeps the
+ * themes (DsProvider `onThemeLibraryChange`) without touching the website;
+ * Publish saves them and makes the open theme the website's.
  */
 type ThemeEditor = {
   library: DsThemeLibrary;
@@ -45,9 +45,9 @@ type ThemeEditor = {
   theme: DsThemeConfig;
   /** Change the open theme; on Parabola, a copy of it ("Custom") opens with the change. */
   setTheme: (theme: DsThemeConfig) => void;
-  /** Where the open theme stands against what's published: Parabola, new (not created yet), changed or as published. */
-  status: "parabola" | "new" | "changed" | "saved";
-  /** Name the open (new) theme and publish the library with it. */
+  /** Whether the open theme is Parabola, Custom (the working copy) or one of the themes made. */
+  status: "parabola" | "custom" | "theme";
+  /** Turn Custom into a theme of its own called `name`, and save. */
   createTheme: (name: string) => Promise<void>;
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
@@ -56,17 +56,18 @@ type ThemeEditor = {
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
-  /**
-   * Back to Parabola: open it, and make it the site's again when the themes
-   * are published. Other themes stay as they are. Returns what undoes it.
-   */
+  /** Back to Parabola: open it (Publish then makes it the website's). Other themes stay. Returns what undoes it. */
   backToParabola: () => () => void;
-  /** Not yet published. */
+  /** Changes not saved yet. */
   dirty: boolean;
+  /** The open theme isn't what the website wears, as it is. */
+  unpublished: boolean;
   saving: boolean;
   canSave: boolean;
-  /** Publish the library (`library`, or the one given). */
+  /** Save the themes (`library`, or the one given), the website as it was. */
   save: (next?: DsThemeLibrary) => Promise<void>;
+  /** Save, and make the open theme the website's. */
+  publish: () => Promise<void>;
   canUndo: boolean;
   canRedo: boolean;
   undo: () => void;
@@ -78,6 +79,9 @@ type ThemeEditor = {
 
 const ThemeEditorContext = React.createContext<ThemeEditor | null>(null);
 
+/** Custom: the one working copy that a change to Parabola goes into. */
+const CUSTOM_THEME_ID = "custom";
+
 export function useThemeEditor(): ThemeEditor {
   const editor = React.useContext(ThemeEditorContext);
   if (!editor) throw new Error("useThemeEditor needs ThemeEditorProvider (DsShell has it)");
@@ -85,8 +89,12 @@ export function useThemeEditor(): ThemeEditor {
 }
 
 export function ThemeEditorProvider({ children }: { children: React.ReactNode }) {
-  const { themeLibrary, onThemeLibraryChange } = useDsThemeLibrary();
+  const { themeLibrary, publishedTheme, onThemeLibraryChange } = useDsThemeLibrary();
   const [saved, setSaved] = React.useState<DsThemeLibrary>(() => parseDsThemeLibrary(themeLibrary ?? DS_DEFAULT_LIBRARY));
+  // What the website wears, as published.
+  const [published, setPublished] = React.useState<DsThemeEntry>(
+    () => publishedTheme ?? saved.themes.find((t) => t.id === saved.active) ?? saved.themes[0]
+  );
   const [history, setHistory] = React.useState<{ past: DsThemeLibrary[]; present: DsThemeLibrary; future: DsThemeLibrary[] }>(
     () => ({ past: [], present: saved, future: [] })
   );
@@ -118,13 +126,14 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     (theme: DsThemeConfig) => {
       if (JSON.stringify(theme) === JSON.stringify(entry.theme)) return;
       if (entry.id === DS_DEFAULT_THEME_ID) {
-        // Parabola stays as it is: the change goes into a copy, Custom (Custom 2…), opened.
-        const names = new Set(library.themes.map((t) => t.name));
-        let name = "Custom";
-        for (let n = 2; names.has(name); n++) name = `Custom ${n}`;
-        const id = dsThemeEntryId(library, name);
-        change({ ...library, themes: [...library.themes, { id, name, theme }] });
-        setSelected(id);
+        // Parabola stays as it is: the change goes into Custom, the one working copy, opened.
+        const custom = { id: CUSTOM_THEME_ID, name: "Custom", theme };
+        const has = library.themes.some((t) => t.id === CUSTOM_THEME_ID);
+        change({
+          ...library,
+          themes: has ? library.themes.map((t) => (t.id === CUSTOM_THEME_ID ? custom : t)) : [...library.themes, custom],
+        });
+        setSelected(CUSTOM_THEME_ID);
         return;
       }
       change({ ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, theme } : t)) });
@@ -132,35 +141,46 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     [change, library, entry]
   );
 
-  const save = React.useCallback(async (next?: DsThemeLibrary) => {
-    if (!onThemeLibraryChange) return;
-    const publishing = next ?? library;
-    setSaving(true);
-    try {
-      await onThemeLibraryChange(publishing);
-      setSaved(publishing);
-      dsToast.success("Themes published");
-    } catch (error) {
-      dsToast.error("Couldn't publish the themes", { description: error instanceof Error ? error.message : undefined });
-    } finally {
-      setSaving(false);
-    }
-  }, [onThemeLibraryChange, library]);
+  /** Save `next`; with `publish`, make that theme the website's too. */
+  const store = React.useCallback(
+    async (next: DsThemeLibrary, publish?: DsThemeEntry) => {
+      if (!onThemeLibraryChange) return;
+      setSaving(true);
+      try {
+        await onThemeLibraryChange(next, publish);
+        setSaved(next);
+        if (publish) setPublished(publish);
+        dsToast.success(publish ? `${publish.name} is on your website` : "Saved");
+      } catch (error) {
+        dsToast.error(publish ? "Couldn't publish" : "Couldn't save", { description: error instanceof Error ? error.message : undefined });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [onThemeLibraryChange]
+  );
+  const save = React.useCallback((next?: DsThemeLibrary) => store(next ?? library), [store, library]);
+  const publish = React.useCallback(async () => {
+    // The open theme becomes the site's: the library as it is now says so too (not a change to undo).
+    const next = { ...library, active: entry.id };
+    setHistory((h) => ({ ...h, present: next }));
+    await store(next, entry);
+  }, [store, library, entry]);
 
-  const savedEntry = saved.themes.find((t) => t.id === entry.id);
   const status: ThemeEditor["status"] =
-    entry.id === DS_DEFAULT_THEME_ID
-      ? "parabola"
-      : !savedEntry
-        ? "new"
-        : JSON.stringify(savedEntry) !== JSON.stringify(entry)
-          ? "changed"
-          : "saved";
+    entry.id === DS_DEFAULT_THEME_ID ? "parabola" : entry.id === CUSTOM_THEME_ID ? "custom" : "theme";
 
   const createTheme = React.useCallback(
     async (name: string) => {
-      const next = { ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, name } : t)) };
+      // Custom becomes a theme of its own (its own id), so the next change to Parabola starts a fresh Custom.
+      const id = dsThemeEntryId(library, name);
+      const next = {
+        ...library,
+        themes: library.themes.map((t) => (t.id === entry.id ? { id, name, theme: t.theme } : t)),
+        active: library.active === entry.id ? id : library.active,
+      };
       change(next);
+      setSelected(id);
       await save(next);
     },
     [library, entry.id, change, save]
@@ -188,18 +208,15 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       },
       backToParabola: () => {
         const wasSelected = entry.id;
-        const moved = library.active !== DS_DEFAULT_THEME_ID;
-        if (moved) change({ ...library, active: DS_DEFAULT_THEME_ID });
         setSelected(DS_DEFAULT_THEME_ID);
-        return () => {
-          if (moved) undo();
-          setSelected(wasSelected);
-        };
+        return () => setSelected(wasSelected);
       },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
+      unpublished: published.id !== entry.id || JSON.stringify(published.theme) !== JSON.stringify(entry.theme),
       saving,
       canSave: Boolean(onThemeLibraryChange),
       save,
+      publish,
       canUndo: history.past.length > 0,
       canRedo: history.future.length > 0,
       undo,
@@ -207,7 +224,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       previewMode,
       setPreviewMode,
     }),
-    [library, entry, setTheme, status, createTheme, change, selected, saved, saving, onThemeLibraryChange, save, history.past.length, history.future.length, undo, redo, previewMode]
+    [library, entry, setTheme, status, createTheme, change, selected, saved, published, saving, onThemeLibraryChange, save, publish, history.past.length, history.future.length, undo, redo, previewMode]
   );
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;
 }
@@ -283,15 +300,16 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
 /**
  * The theme's actions, top right of every /parabola page (DsCanvas): Undo
  * (its icon and label) and Redo (icon only), one change at a time and off
- * when there's none; Publish (after a confirm, since published themes
- * change every site that uses them); and, last, a ⋮ menu to restore
- * Parabola's defaults for this page's part of the open theme, or to go back
- * to Parabola itself (all defaults: it opens, and is the site's theme again
- * once published), each after a confirm and with Undo in the toast that
- * follows. Nothing restored is live until it's published.
+ * when there's none; Save, which keeps the changes without touching the
+ * website; Publish (after a confirm), which saves them and puts the open
+ * theme on the website; and, last, a ⋮ menu to restore Parabola's defaults
+ * for this page's part of the open theme, or all settings (Parabola opens),
+ * each after a confirm and with Undo in the toast that follows. Nothing
+ * restored is live until it's published.
  */
 export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNode }) {
-  const { theme, setTheme, entry, dirty, saving, canSave, save, canUndo, canRedo, undo, redo, backToParabola } = useThemeEditor();
+  const { theme, setTheme, entry, dirty, unpublished, saving, canSave, save, publish, canUndo, canRedo, undo, redo, backToParabola } =
+    useThemeEditor();
   const pathname = usePathname();
   const [publishing, setPublishing] = React.useState(false);
   const [restoring, setRestoring] = React.useState<RestoreScope | null>(null);
@@ -322,9 +340,15 @@ export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNod
       </DsButton>
       <DsButton variant="text" iconLeft={Redo2} aria-label="Redo" onClick={redo} disabled={!canRedo || saving} />
       {canSave && (
-        <DsButton variant="primary" onClick={() => setPublishing(true)} disabled={!dirty} loading={saving}>
-          Publish
-        </DsButton>
+        <>
+          {/* Save keeps the changes; Publish puts the open theme on the website. */}
+          <DsButton onClick={() => save()} disabled={!dirty || saving}>
+            Save
+          </DsButton>
+          <DsButton variant="primary" onClick={() => setPublishing(true)} disabled={!(dirty || unpublished)} loading={saving}>
+            Publish
+          </DsButton>
+        </>
       )}
       {beforeMenu}
       <DsDropdown>
@@ -346,12 +370,12 @@ export function ThemeHeaderActions({ beforeMenu }: { beforeMenu?: React.ReactNod
       <DsConfirmDialog
         open={publishing}
         onOpenChange={setPublishing}
-        title="Publish the themes?"
-        description="This changes every site that uses one of them, and its admin, right away."
+        title={`Publish ${entry.name}?`}
+        description="Your website wears it right away. Your changes are saved too."
         confirmLabel="Publish"
         loading={saving}
         onConfirm={async () => {
-          await save();
+          await publish();
           setPublishing(false);
         }}
       />

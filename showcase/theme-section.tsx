@@ -252,7 +252,6 @@ export function ThemeSection() {
     setTheme,
     status,
     createTheme,
-    save,
     saving,
     select,
     addTheme,
@@ -263,7 +262,6 @@ export function ThemeSection() {
     setPreviewMode,
   } = useThemeEditor();
   const [naming, setNaming] = React.useState<"add" | "rename" | "create" | null>(null);
-  const [confirmSave, setConfirmSave] = React.useState(false);
   const [restoring, setRestoring] = React.useState(false);
 
   const setFamilyFont = (familyId: string, font: string) =>
@@ -495,16 +493,11 @@ export function ThemeSection() {
 
       </InPanel>
 
-      {/* At the panel's foot while the open theme has something to keep. */}
-      {(status === "new" || status === "changed") && (
+      {/* At the panel's foot while Custom, the working copy, is open: name it a theme of its own. */}
+      {status === "custom" && (
         <InPanelFooter>
-          <DsButton
-            variant="primary"
-            className="w-full"
-            loading={saving}
-            onClick={() => (status === "new" ? setNaming("create") : entry.id === library.active ? setConfirmSave(true) : save())}
-          >
-            {status === "new" ? "Create theme" : "Save theme"}
+          <DsButton variant="primary" className="w-full" loading={saving} onClick={() => setNaming("create")}>
+            Create theme
           </DsButton>
         </InPanelFooter>
       )}
@@ -532,18 +525,6 @@ export function ThemeSection() {
           setRestoring(false);
           const undoIt = backToParabola();
           dsToast(RESTORE.all.done, { action: { label: "Undo", onClick: undoIt } });
-        }}
-      />
-      <DsConfirmDialog
-        open={confirmSave}
-        onOpenChange={setConfirmSave}
-        title={`Save ${entry.name}?`}
-        description="It's your site's theme, so your site changes right away."
-        confirmLabel="Save theme"
-        loading={saving}
-        onConfirm={async () => {
-          await save();
-          setConfirmSave(false);
         }}
       />
 

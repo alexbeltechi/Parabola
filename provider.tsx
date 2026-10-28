@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { DsThemeLibrary } from "./theme";
+import type { DsThemeEntry, DsThemeLibrary } from "./theme";
 
 /**
  * Parabola's hooks into the app's framework, set once near the root:
@@ -14,9 +14,10 @@ import type { DsThemeLibrary } from "./theme";
  * - `onThemeChange`: called by DsThemeToggle with the theme to switch to,
  *   e.g. next-themes' `setTheme`, so the choice is saved. Default: the toggle
  *   flips the `dark` class on <html> itself (not remembered across visits).
- * - `themeLibrary` / `onThemeLibraryChange`: the app's Parabola themes
- *   (theme.ts: Default, any added, the one in use) and how to publish them,
- *   for /parabola. Without them it previews and offers a theme to copy.
+ * - `themeLibrary` / `publishedTheme` / `onThemeLibraryChange`: the app's
+ *   Parabola themes as saved (theme.ts), the one its website wears as
+ *   published, and how to save them (and, with an entry, publish that one
+ *   too), for /parabola. Without them it previews and offers a theme to copy.
  *
  * Without a provider everything still works, in plain HTML.
  */
@@ -30,7 +31,10 @@ type DsConfig = {
   link: DsLinkComponent | "a";
   onThemeChange?: (theme: DsTheme) => void;
   themeLibrary?: DsThemeLibrary;
-  onThemeLibraryChange?: (library: DsThemeLibrary) => Promise<void> | void;
+  /** The theme the website wears, as published. */
+  publishedTheme?: DsThemeEntry;
+  /** Save the themes; with `publish`, make that theme the website's too. */
+  onThemeLibraryChange?: (library: DsThemeLibrary, publish?: DsThemeEntry) => Promise<void> | void;
 };
 
 const DsConfigContext = React.createContext<DsConfig>({ link: "a" });
@@ -39,12 +43,13 @@ export function DsProvider({
   link = "a",
   onThemeChange,
   themeLibrary,
+  publishedTheme,
   onThemeLibraryChange,
   children,
 }: Partial<DsConfig> & { children: React.ReactNode }) {
   const config = React.useMemo(
-    () => ({ link, onThemeChange, themeLibrary, onThemeLibraryChange }),
-    [link, onThemeChange, themeLibrary, onThemeLibraryChange]
+    () => ({ link, onThemeChange, themeLibrary, publishedTheme, onThemeLibraryChange }),
+    [link, onThemeChange, themeLibrary, publishedTheme, onThemeLibraryChange]
   );
   return <DsConfigContext.Provider value={config}>{children}</DsConfigContext.Provider>;
 }
@@ -71,9 +76,9 @@ export function DsLink(props: DsLinkProps) {
 }
 
 /** The app's Parabola themes, and how to publish them, if it said. */
-export function useDsThemeLibrary(): Pick<DsConfig, "themeLibrary" | "onThemeLibraryChange"> {
-  const { themeLibrary, onThemeLibraryChange } = React.useContext(DsConfigContext);
-  return { themeLibrary, onThemeLibraryChange };
+export function useDsThemeLibrary(): Pick<DsConfig, "themeLibrary" | "publishedTheme" | "onThemeLibraryChange"> {
+  const { themeLibrary, publishedTheme, onThemeLibraryChange } = React.useContext(DsConfigContext);
+  return { themeLibrary, publishedTheme, onThemeLibraryChange };
 }
 
 /** Switches the theme: through the provider when set, else the `dark` class on <html>. */
