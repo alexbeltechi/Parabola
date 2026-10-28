@@ -155,7 +155,7 @@ export function DsShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeEditorProvider>
-      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto p-5 md:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border p-5 md:flex">
         <div className="flex items-center justify-between">
           <ShellMenu />
           <DsThemeToggle />
