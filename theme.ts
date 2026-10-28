@@ -388,6 +388,30 @@ export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
   ].join(" ");
 }
 
+let release: number | undefined;
+
+/**
+ * Holds every transition while a theme is applied, and for two frames
+ * after the last time (a drag applies one many times a second), so
+ * buttons and fields change with the page instead of fading behind it.
+ */
+function holdTransitions(): void {
+  if (!document.getElementById("ds-theme-still")) {
+    const still = Object.assign(document.createElement("style"), {
+      id: "ds-theme-still",
+      textContent: "*, *::before, *::after { transition: none !important; }",
+    });
+    document.head.appendChild(still);
+  }
+  if (release !== undefined) cancelAnimationFrame(release);
+  release = requestAnimationFrame(() => {
+    release = requestAnimationFrame(() => {
+      document.getElementById("ds-theme-still")?.remove();
+      release = undefined;
+    });
+  });
+}
+
 /**
  * Shows a theme on this page right away, before it's saved or reloaded: puts
  * its CSS in a <style> at the end of the page, after (so over) the theme it
@@ -398,6 +422,7 @@ export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
  */
 export function dsApplyTheme(theme: DsThemeConfig, scope?: string): void {
   if (typeof document === "undefined") return;
+  holdTransitions();
   let style = document.getElementById("ds-theme-live") as HTMLStyleElement | null;
   if (!style) {
     style = Object.assign(document.createElement("style"), { id: "ds-theme-live" });
@@ -405,6 +430,8 @@ export function dsApplyTheme(theme: DsThemeConfig, scope?: string): void {
   // Last on the page, whatever was added since: the later of two equal rules wins.
   if (style !== document.body.lastElementChild) document.body.appendChild(style);
   style.textContent = dsThemeCss(theme, scope);
+  // Paint the new colours now, while transitions are held, so nothing fades into them.
+  void getComputedStyle(document.body).color;
   for (const font of theme.customFonts.map(dsCustomFont)) {
     if (document.querySelector(`link[data-ds-font="${font.id}"]`)) continue;
     const link = Object.assign(document.createElement("link"), {
