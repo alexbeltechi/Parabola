@@ -58,8 +58,8 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
  * changes nothing. The list: the six as nav items, each a solid dot of its
  * colour, its hex or what it's based on, and a ⋮ to copy or paste its hex
  * (to give two the same colour) and restore it (back to what it's based
- * on; the base to Parabola's). Delete or Backspace on the chosen point
- * does the same.
+ * on; the base to Parabola's). Delete or Backspace on the chosen point,
+ * or a double click on any point, does the same.
  */
 function ColourWheelChoice({
   colours,

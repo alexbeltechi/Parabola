@@ -113,7 +113,8 @@ function drag(onMove: (p: { deg: number; dist: number }) => void, slop = 0) {
  * to move it; a click on the disc itself changes nothing. The arc on the left is its saturation, the arc on the
  * right its brightness. The chosen point takes the keyboard: the arrow
  * keys turn its hue (left, right) and saturation (up, down; Shift for
- * bigger steps), and Delete or Backspace hands it to `onRemove`. Controlled:
+ * bigger steps), and Delete or Backspace, or a double click on a point,
+ * hands it to `onRemove`. Controlled:
  * every change goes to `onChange` with the point's id and its new
  * `#RRGGBB`.
  */
@@ -131,7 +132,7 @@ export function DsColourWheel({
   /** A point pressed on the wheel. */
   onSelect: (id: string) => void;
   onChange: (id: string, hex: string) => void;
-  /** Delete or Backspace on a chosen point. */
+  /** Delete or Backspace on a chosen point, or a double click on one. */
   onRemove?: (id: string) => void;
   className?: string;
 }) {
@@ -333,6 +334,8 @@ export function DsColourWheel({
                 onSelect(p.id);
                 drag(({ deg, dist }) => set(p, { h: deg, s: toSaturation(dist), v: Math.max(h.v, p.floor ?? 0) }), SLOP)(event);
               }}
+              // A double click restores it, as Delete does.
+              onDoubleClick={() => onRemove?.(p.id)}
               onKeyDown={(event) => {
                 if ((event.key === "Delete" || event.key === "Backspace") && onRemove) {
                   event.preventDefault();
