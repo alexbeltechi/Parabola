@@ -43,14 +43,15 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
 
 /**
  * The theme's five colours on one wheel, for the light or the dark theme
- * (whichever the preview is in): each a point, all alike, whether it has a
- * colour of its own or is still based on another (the tertiary on the
- * secondary, the surface on the primary, buttons on the tertiary; in dark,
- * each on the light one). Drag a point to give it a colour of its own.
- * Under the wheel, the chosen colour's hex, then the five as nav items,
- * each with a ⋮: copy or paste its hex (to give two the same colour), and
- * delete it (back to what it's based on) or, for the primary and secondary,
- * restore Parabola's. Delete or Backspace on a chosen point does the same.
+ * (whichever the preview is in): each a point of one size, solid when it
+ * has a colour of its own, an outline while it's based on another (the
+ * secondary and the surface on the primary, the tertiary on the secondary,
+ * buttons on the tertiary; in dark, each on the light one). Pick one in
+ * the list under the wheel, then click or drag anywhere on the wheel to
+ * put it there. The list: the five as nav items, each with a ⋮ to copy or
+ * paste its hex (to give two the same colour) and delete it (back to what
+ * it's based on) or, for the primary, restore Parabola's. Delete or
+ * Backspace on the chosen point does the same.
  */
 function ColourWheelChoice({
   colours,
@@ -67,6 +68,7 @@ function ColourWheelChoice({
   const set = (kind: DsColourKind, next: Partial<DsThemeColour>) => onChange({ ...colours, [kind]: { ...colours[kind], ...next } });
   const basis = (kind: DsColourKind) => (mode === "dark" ? "light theme" : LIGHT_BASIS[kind]);
   const own = (kind: DsColourKind) => colours[kind][pick] !== null;
+  const based = (kind: DsColourKind) => !own(kind) && basis(kind) !== null;
   const shown = (kind: DsColourKind) => dsColourShown(colours, kind, mode);
   const label = (kind: DsColourKind) => WHEEL.find((w) => w.kind === kind)?.label ?? kind;
   const remove = (kind: DsColourKind) => {
@@ -87,11 +89,11 @@ function ColourWheelChoice({
           id: w.kind,
           label: w.label,
           colour: shown(w.kind),
+          based: based(w.kind),
           // Pages and cards keep their brightness; text, buttons and the tertiary come out as a colour, not black.
           floor: w.kind === "theme" || w.kind === "surface" ? 0 : w.kind === "text" ? 0.45 : 0.7,
         }))}
         selected={selected}
-        onSelect={(id) => setSelected(id as DsColourKind)}
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
         onRemove={(id) => remove(id as DsColourKind)}
       />
@@ -117,10 +119,14 @@ function ColourWheelChoice({
             selected={selected === w.kind}
             onClick={() => setSelected(w.kind)}
             leading={
+              // As on the wheel: solid when it's its own colour, an outline while it's based on another.
               <span
                 aria-hidden
-                className="size-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_var(--ds-border)]"
-                style={{ backgroundColor: shown(w.kind) }}
+                className="size-4 shrink-0 rounded-full"
+                style={{
+                  backgroundColor: based(w.kind) ? "transparent" : shown(w.kind),
+                  boxShadow: `inset 0 0 0 ${based(w.kind) ? 3 : 1}px ${based(w.kind) ? shown(w.kind) : "var(--ds-border)"}`,
+                }}
               />
             }
             meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)?.replace(" colour", "")}`}
@@ -277,7 +283,8 @@ function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: stri
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   theme: null,
   surface: "primary colour",
-  text: null,
+  // Black or white, whichever reads on the primary colour, until it's given its own.
+  text: "primary colour",
   button: "tertiary colour",
   accent: "secondary colour",
 };
