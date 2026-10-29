@@ -30,8 +30,6 @@ import {
   dsCharacterColourOptions,
   dsCharacterIsDefault,
   dsCharacterRadius,
-  dsExpressionDials,
-  dsExpressionWeight,
   dsMoodDials,
   dsMoodFonts,
   type DsFontPair,
@@ -395,16 +393,13 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
 }
 
 /**
- * The theme at an expression (character.ts), quiet to loud: the buttons'
- * depth slid to it, and the headlines (Display, H1, H2) heavier as it rises.
- * Sizes stay the type scale's; contrast is Appearance's own.
+ * The theme at an expression (character.ts), quiet to loud: how boldly it
+ * uses colour, which the colour derivations read from the character
+ * (`vivid`). Type and shape stay as they are (Alex, 2026-10-29: "it's more
+ * around the use of colour than shape").
  */
 export function dsThemeWithExpression(theme: DsThemeConfig, expression: number): DsThemeConfig {
-  // The headlines' weight only: their sizes are the type scale's, which a look never changes (Alex, 2026-10-29).
-  const weight = dsExpressionWeight(expression);
-  const type = { ...theme.type };
-  for (const s of ["display", "h1", "h2"] as const) type[s] = { ...type[s], weight };
-  return { ...theme, type, character: { ...theme.character, expression, ...dsExpressionDials(expression) } };
+  return { ...theme, character: { ...theme.character, expression } };
 }
 
 /**

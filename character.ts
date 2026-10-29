@@ -12,9 +12,11 @@
  * formal, how loud, how warm):
  * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: the
  *   tone, moving roundness and the fonts' character.
- * - expression: 0 (quiet) to 1 (loud), 0.25 Parabola's own: how much it
- *   shouts, moving the headlines' weight and the buttons' depth (theme.ts,
- *   `dsThemeWithExpression`); the type scale's sizes never move.
+ * - expression: 0 (quiet) to 1 (loud), 0.25 Parabola's own: how boldly it
+ *   uses colour, not shape or weight (Alex, 2026-10-29): how far the button
+ *   colour spreads into the cards, the secondary buttons, the tints and the
+ *   quieter text (colours.ts, `vivid`). Quiet keeps them grey; loud washes
+ *   them in the brand's colour.
  * - warmth, the Temperature bar: -1 (cool) to 1 (warm): the human-or-
  *   technical feel, a white balance over the background and the greys drawn
  *   from it.
@@ -152,13 +154,6 @@ export function dsTemperatureLabel(warmth: number): string {
   return "Cosy";
 }
 
-/** The headlines' weight at an expression: regular when quiet, bold when loud (Display, H1, H2). */
-export const dsExpressionWeight = (expression: number) => (expression < 0.35 ? 400 : expression < 0.6 ? 500 : expression < 0.85 ? 600 : 700);
-
-/** The dials at an expression: the buttons' depth, flat to deep; Parabola's at 0.25 (contrast is Appearance's own). */
-export function dsExpressionDials(expression: number): Pick<DsCharacter, "depth"> {
-  return { depth: Math.round(Math.max(0, (expression - 0.3) / 0.7) * 100) / 100 };
-}
 
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
 export const DS_CHARACTER_DIALS = [
@@ -247,7 +242,7 @@ export function dsCharacterBase(c: DsCharacter): string | null {
 
 /** What the colour derivations take from the character (colours.ts). */
 export function dsCharacterColourOptions(c: DsCharacter): DsColourOptions {
-  return { base: dsCharacterBase(c), contrast: c.contrast };
+  return { base: dsCharacterBase(c), contrast: c.contrast, vivid: c.expression };
 }
 
 /** The corners from the roundness: None, then 2 to 20px, then Large (fully round pills). */

@@ -28,7 +28,7 @@
  * for is dials and overrides on their theme, not a new taste.
  */
 import type { DsFieldStyle } from "./button-style";
-import { dsCharacterBase, dsExpressionDials, dsMoodDials, type DsCharacter, type DsFontPair } from "./character";
+import { dsCharacterBase, dsMoodDials, type DsCharacter, type DsFontPair } from "./character";
 import { dsContrast, dsHexToHsl } from "./colours";
 
 type Range = readonly [number, number];
@@ -346,7 +346,7 @@ export function dsShuffleTaste(ids: string[], current: DsCharacter, wide = false
   const meet = meetOf;
   const mood = between(meet(tastes.map((t) => t.mood)));
   const expression = between(meet(tastes.map((t) => t.expression)));
-  const dials: Partial<DsCharacter> = { ...dsMoodDials(mood), ...dsExpressionDials(expression) };
+  const dials: Partial<DsCharacter> = { ...dsMoodDials(mood), depth: 0 };
   for (const key of ["warmth", "contrast", "roundness", "depth"] as const) {
     const ranges = tastes.flatMap((t) => (t.dials?.[key] ? [t.dials[key]!] : []));
     if (ranges.length) dials[key] = between(meet(ranges));
@@ -397,9 +397,8 @@ export function dsTasteFonts(ids: string[]): DsFontPair | null {
 export function dsTasteButtons(ids: string[], page: string): { roundness: number; depth: number; button: string | null } {
   const tastes = tastesOf(ids);
   const mood = between(meetOf(tastes.map((t) => t.mood)));
-  const expression = between(meetOf(tastes.map((t) => t.expression)));
   const roundness = tastes.some((t) => t.dials?.roundness) ? between(meetOf(tastes.flatMap((t) => (t.dials?.roundness ? [t.dials.roundness] : [])))) : dsMoodDials(mood).roundness;
-  const depth = tastes.some((t) => t.dials?.depth) ? between(meetOf(tastes.flatMap((t) => (t.dials?.depth ? [t.dials.depth] : [])))) : dsExpressionDials(expression).depth;
+  const depth = tastes.some((t) => t.dials?.depth) ? between(meetOf(tastes.flatMap((t) => (t.dials?.depth ? [t.dials.depth] : [])))) : 0;
   const buttons = tastes.flatMap((t) => t.buttons).filter((b) => b === null || dsContrast(b, page) >= 2);
   return { roundness, depth, button: buttons.length ? pick(buttons) : null };
 }
@@ -441,7 +440,6 @@ export function dsNudgeTaste(ids: string[], current: DsCharacter): DsTasteDraw {
   const character: DsCharacter = {
     ...current,
     ...dsMoodDials(mood),
-    ...dsExpressionDials(expression),
     mood,
     expression,
     warmth,

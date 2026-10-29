@@ -95,7 +95,6 @@ import {
   DS_DEFAULT_CHARACTER,
   dsCharacterBase,
   dsCharacterColourOptions,
-  dsExpressionDials,
   dsExpressionLabel,
   dsMoodDials,
   dsMoodLabel,
@@ -470,12 +469,12 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
 /** Ilo's photos for the preview, small copies of the seed's (seed/ilo/media). */
 const PREVIEW_MEDIA = "/parabola/preview";
 
-/** What Ilo says in one place or another: her post on X, her story's three bits, a carousel's cover, a letter. */
+/** What Ilo says in one place or another: her post on X, her story's three bits, a carousel's cover, her letter's opening. */
 type PreviewCopy = {
   x: string;
   story: [title: string, note: string, sticker: string];
   carousel: string;
-  email: { subject: string; title: string; body: string; action: string };
+  email: { subject: string; title: string; greeting: string; body: string };
 };
 
 /**
@@ -498,8 +497,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "A letter from the lake",
       title: "Dragonfly, finished",
-      body: "Three summers, one pair of glasses, and a few songs I recorded at the water while the silver set. Here's how it came together.",
-      action: "Read the letter",
+      greeting: "Hello again,",
+      body: "Here's what I've been up to lately. Dragonfly is finished, after three summers at the lake. I recorded the water while the silver set, and I've been writing about what it took.",
     },
   },
   precise: {
@@ -509,8 +508,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Dragonfly is finished",
       title: "How Dragonfly was made",
-      body: "Sketches, moulds, eleven failed casts and the one that worked. The whole process, with notes and recordings, is on the site.",
-      action: "See the process",
+      greeting: "Hi,",
+      body: "Three updates this month: Dragonfly is finished (silver, 38 g); the lake recordings are mixed; and the process notes are on the site, step by step.",
     },
   },
   warm: {
@@ -524,8 +523,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Hi, it's Ilo",
       title: "Come see what I made",
-      body: "I've worked on these by the lake for three summers, and I wanted you to see them first. Pour a coffee.",
-      action: "Read my letter",
+      greeting: "Hi friend,",
+      body: "It's been a full few weeks! I finally finished the dragonfly glasses, spent far too many mornings at the lake, and recorded a few songs there. Let me tell you about it.",
     },
   },
   elegant: {
@@ -535,8 +534,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Dragonfly",
       title: "One of one",
-      body: "Silver formed by hand over three summers at the lake. A single piece, signed.",
-      action: "View the piece",
+      greeting: "Dear reader,",
+      body: "This season, one piece: Dragonfly, silver formed by hand at the lake. A few recordings of the water, and a short essay on making it.",
     },
   },
   loud: {
@@ -550,8 +549,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Finish one thing.",
       title: "Done beats perfect.",
-      body: "Three summers, one piece, finished. Here's what it took, and why your next one should be finished too.",
-      action: "Read the letter",
+      greeting: "Listen up.",
+      body: "I finished something. Dragonfly is done. Three summers, eleven casts, one piece. Here's what I did, and what's next.",
     },
   },
   candid: {
@@ -565,8 +564,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Eleven failed casts",
       title: "What finishing actually looked like",
-      body: "It wasn't tidy and it wasn't quick. Here's the whole mess, and the one cast that worked.",
-      action: "Read the letter",
+      greeting: "Hey,",
+      body: "Honest update: the glasses nearly broke me. Eleven failed casts, a lot of mornings at the lake, and somehow it's finished. Here's the whole mess.",
     },
   },
   considered: {
@@ -580,8 +579,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "On finishing",
       title: "Keep fewer things",
-      body: "Three summers on one piece taught me that choosing is the work. This letter is about what it costs, and what it gives back.",
-      action: "Read the essay",
+      greeting: "Dear reader,",
+      body: "Lately I've been thinking about finishing. Dragonfly took three summers, and most of the work was deciding what to leave out. This letter is about that.",
     },
   },
   playful: {
@@ -591,8 +590,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "I made dragonfly glasses 🕶️",
       title: "Notes from the 4am club",
-      body: "Three summers, a lot of cold coffee and some very patient dragonflies. Here's what came out of it.",
-      action: "Come see",
+      greeting: "Hiya 👋",
+      body: "Big news from the 4am club: the dragonfly glasses are done 🕶️ Plus some lake songs, a lot of cold coffee and one very nosy dragonfly.",
     },
   },
   wild: {
@@ -602,8 +601,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "I MADE DRAGONFLY GLASSES",
       title: "It's another planet",
-      body: "Silver, glass, three summers and no explanations. Open at your own risk.",
-      action: "OPEN IT",
+      greeting: "HELLO!!!",
+      body: "WHAT A MONTH. Dragonfly is DONE. I recorded the LAKE. I may have cried on a rock. Details below!!!",
     },
   },
   futurist: {
@@ -613,8 +612,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Transmission 03: Dragonfly",
       title: "Unit complete",
-      body: "Built at the lake over three summers, in 04:00 sessions. Schematics, field recordings and the finished piece.",
-      action: "Open transmission",
+      greeting: "Incoming.",
+      body: "Status report from the lake: Dragonfly unit complete. Field recordings archived. Next build in planning. Full log below.",
     },
   },
   chic: {
@@ -624,8 +623,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "Dragonfly",
       title: "The silver series",
-      body: "Hand-formed eyewear, made at the water's edge. One of one, now online.",
-      action: "Shop the piece",
+      greeting: "Bonjour,",
+      body: "The season in brief: Dragonfly, silver eyewear, one of one. A soundtrack from the lake. And where to see it next.",
     },
   },
   grounded: {
@@ -635,8 +634,8 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
     email: {
       subject: "From the water's edge",
       title: "Slow mornings, a finished piece",
-      body: "The mist lifts around five. I worked at a bench by the reeds for three summers, and recorded the water while the silver set.",
-      action: "Read the letter",
+      greeting: "Morning,",
+      body: "The mist has been thick on the lake lately. I finished Dragonfly at the bench by the reeds, and recorded the water most mornings. Here's the season.",
     },
   },
 };
@@ -677,42 +676,45 @@ function PreviewAvatar({
 type Story = "boxed" | "plain" | "loud";
 
 /**
- * Words on a story's photo, as Instagram sets them: each line in its own
- * box, tight, the boxes following the lines (`box-decoration-break:
- * clone`), in the page colour, the button colour, or none at all with the
- * words in white held by a soft shadow.
+ * Words on a photo, as Instagram sets them: each line in its own box, tight,
+ * the boxes following the lines (`box-decoration-break: clone`), in the page
+ * colour or the button colour, or none at all with the words in white held
+ * by a soft shadow. One size for every bit, small, as a person sets them
+ * (Alex, 2026-10-29). `alt` swaps the box to the other colour, for the bit
+ * that asks for a tap: words, not a button, as Instagram has none.
  */
 function StoryText({
   story,
-  size,
+  alt = false,
   className,
   children,
 }: {
   story: Story;
-  size: "h3" | "small";
+  alt?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
-  const boxed = story !== "plain";
+  const box =
+    story === "plain"
+      ? alt
+        ? "button"
+        : null
+      : (story === "loud") !== alt
+        ? "button"
+        : "page";
   return (
-    <p
-      className={cn(
-        "absolute leading-[1.3]",
-        size === "h3" ? "text-h3" : "text-small",
-        className,
-      )}
-    >
+    <p className={cn("text-p leading-[1.35]", className)}>
       <span
         className={cn(
           "[-webkit-box-decoration-break:clone] [box-decoration-break:clone]",
-          boxed && "rounded-ds-sm px-[0.4em] py-[0.1em]",
-          story === "boxed" && "bg-ds-bg text-ds-fg",
-          story === "loud" && "bg-ds-button text-ds-on-button",
+          box && "rounded-ds-sm px-[0.4em] py-[0.12em]",
+          box === "page" && "bg-ds-bg text-ds-fg",
+          box === "button" && "bg-ds-button text-ds-on-button",
         )}
         style={
-          story === "plain"
-            ? { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" }
-            : undefined
+          box
+            ? undefined
+            : { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" }
         }
       >
         {children}
@@ -722,12 +724,28 @@ function StoryText({
 }
 
 /**
+ * The platforms' own look, which a theme can't brand (Alex, 2026-10-29:
+ * "you can't do custom branding there, so let's not mislead"): Instagram's
+ * and X's white, their inks and their system font. Only what Ilo puts in a
+ * post (her photo, her words on it, her avatar) carries the theme.
+ */
+const PLATFORM = {
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  bg: "white",
+  ink: "rgb(15 20 25)",
+  muted: "rgb(83 100 113)",
+  blue: "rgb(29 155 240)",
+  dot: "rgb(0 149 246)",
+  faint: "rgb(219 219 219)",
+} as const;
+
+/**
  * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
- * bars and her name at the top, and three bits of text in the theme's main
- * font, a line, a small note and a sticker, in the taste's voice, set the
- * way the taste asks (StoryText). They sit square, except in a playful or
- * wacky taste, which lets them sit loose and tilted, as a person would place
- * them (dsTasteTilt; Alex, 2026-10-29).
+ * bars and her name at the top, and near the foot three bits of words in the
+ * theme's main font, a line, a note and what to tap, in the taste's voice,
+ * set the way the taste asks (StoryText), the last in the other colour.
+ * They sit square, except in a playful or wacky taste, which tilts them a
+ * little, as a person would place them (dsTasteTilt).
  */
 function PreviewStory({
   people,
@@ -740,7 +758,7 @@ function PreviewStory({
   tilt: boolean;
   copy: PreviewCopy;
 }) {
-  const [title, note, sticker] = copy.story;
+  const [title, note, cta] = copy.story;
   return (
     <div className="relative min-h-[320px] overflow-hidden rounded-ds-lg bg-ds-surface">
       <img
@@ -761,9 +779,11 @@ function PreviewStory({
         <div className="flex items-center gap-ds-8">
           <PreviewAvatar people={people} className="size-6" />
           <span
-            className="text-small"
             style={{
               color: "white",
+              fontFamily: PLATFORM.font,
+              fontSize: 13,
+              fontWeight: 600,
               textShadow: "0 1px 12px rgb(0 0 0 / 0.45)",
             }}
           >
@@ -771,43 +791,33 @@ function PreviewStory({
           </span>
         </div>
       </div>
-      <StoryText
-        story={story}
-        size="h3"
-        className={cn("top-[32%] left-4 max-w-[78%]", tilt && "-rotate-3")}
-      >
-        {title}
-      </StoryText>
-      <StoryText
-        story={story}
-        size="small"
-        className={cn(
-          "top-[52%] max-w-[55%]",
-          tilt ? "right-5 rotate-2" : "left-4",
-        )}
-      >
-        {note}
-      </StoryText>
-      <span
-        className={cn(
-          "absolute bottom-4 left-4 rounded-ds-pill px-3 py-1.5 text-small",
-          tilt && "-rotate-2",
-          story === "loud"
-            ? "bg-ds-bg text-ds-fg"
-            : "bg-ds-button text-ds-on-button",
-        )}
-      >
-        {sticker}
-      </span>
+      <div className="absolute inset-x-4 bottom-5 flex flex-col items-start gap-ds-8">
+        <StoryText story={story} className={cn(tilt && "-rotate-3")}>
+          {title}
+        </StoryText>
+        <StoryText
+          story={story}
+          className={cn(tilt && "translate-x-3 rotate-2")}
+        >
+          {note}
+        </StoryText>
+        <StoryText
+          story={story}
+          alt
+          className={cn("mt-ds-8", tilt && "-rotate-2")}
+        >
+          {cta}
+        </StoryText>
+      </div>
     </div>
   );
 }
 
 /**
- * A post in the feed, beside the story (Alex, 2026-10-29): a carousel's
- * cover, square, another of Ilo's photos with its title on it ("5 …") the
- * way her story sets words, "1/5" in the corner, the actions under it and
- * the carousel's dots.
+ * A post in the feed, beside the story, on Instagram's white (PLATFORM): a
+ * carousel's cover, square, another of Ilo's photos with its title on it
+ * ("5 …") the way her story sets words, "1/5" in the corner, the actions
+ * under it and the carousel's dots.
  */
 function PreviewCarouselPost({
   people,
@@ -819,37 +829,41 @@ function PreviewCarouselPost({
   copy: PreviewCopy;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-ds-8 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
+    <div
+      className="flex min-w-0 flex-col gap-ds-8 rounded-ds-lg p-3"
+      style={{
+        backgroundColor: PLATFORM.bg,
+        color: PLATFORM.ink,
+        fontFamily: PLATFORM.font,
+      }}
+    >
       <div className="flex items-center gap-ds-8">
-        <PreviewAvatar people={people} className="size-6" />
-        <span className="text-small text-ds-fg">iloodena</span>
-        <MoreHorizontal
-          aria-hidden
-          className="ml-auto size-4 text-ds-fg-muted"
-        />
+        <PreviewAvatar people={people} className="size-7" />
+        <span style={{ fontSize: 14, fontWeight: 600 }}>iloodena</span>
+        <MoreHorizontal aria-hidden className="ml-auto size-4" />
       </div>
-      <div className="relative aspect-square w-full overflow-hidden rounded-ds-md bg-ds-surface">
+      <div className="relative -mx-3 aspect-square overflow-hidden bg-ds-surface">
         <img
           src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
           alt="A still lake at dawn"
           className="absolute inset-0 size-full object-cover"
         />
         <span
-          className="absolute top-3 right-3 rounded-ds-pill px-2 py-0.5 text-small"
-          style={{ color: "white", backgroundColor: "rgb(0 0 0 / 0.45)" }}
+          className="absolute top-3 right-3 rounded-full px-2 py-0.5"
+          style={{
+            color: "white",
+            backgroundColor: "rgb(0 0 0 / 0.55)",
+            fontSize: 12,
+          }}
         >
           1/5
         </span>
-        <StoryText
-          story={story}
-          size="h3"
-          className="bottom-4 left-4 max-w-[80%]"
-        >
+        <StoryText story={story} className="absolute right-4 bottom-4 left-4">
           {copy.carousel}
         </StoryText>
       </div>
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center text-ds-fg">
-        <span className="flex items-center gap-ds-8">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+        <span className="flex items-center gap-3">
           <Heart aria-label="Like" className="size-5" />
           <MessageCircle aria-label="Comment" className="size-5" />
           <Send aria-label="Share" className="size-5" />
@@ -858,10 +872,8 @@ function PreviewCarouselPost({
           {[1, 0, 0, 0, 0].map((on, i) => (
             <span
               key={i}
-              className={cn(
-                "size-1.5 rounded-full",
-                on ? "bg-ds-highlight" : "bg-ds-border",
-              )}
+              className="size-1.5 rounded-full"
+              style={{ backgroundColor: on ? PLATFORM.dot : PLATFORM.faint }}
             />
           ))}
         </span>
@@ -872,15 +884,16 @@ function PreviewCarouselPost({
 }
 
 /**
- * A post on X, laid out as X lays one out: her avatar beside the post, her
- * name, a check and her handle and time on one line, the ⋯, the text, the
- * photo (cropped square, her head in), then the counts with their icons (replies,
- * reposts, likes, views) and bookmark and share at the end.
+ * A post on X, on X's white with its inks and font (PLATFORM), laid out as
+ * X lays one out: her avatar beside the post, her name, the blue check, her
+ * handle and time, the ⋯, the text, the photo (square, her head in), then
+ * the counts with their icons and bookmark and share at the end.
  */
 function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
   const count = (Icon: LucideIcon, n: string, label: string) => (
     <span
-      className="flex items-center gap-1 text-small text-ds-fg-muted"
+      className="flex items-center gap-1"
+      style={{ color: PLATFORM.muted, fontSize: 13 }}
       aria-label={`${n} ${label}`}
     >
       <Icon aria-hidden className="size-4" />
@@ -888,33 +901,51 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
     </span>
   );
   return (
-    <div className="flex w-full gap-3 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
+    <div
+      className="flex w-full gap-3 rounded-ds-lg p-ds-16"
+      style={{
+        backgroundColor: PLATFORM.bg,
+        color: PLATFORM.ink,
+        fontFamily: PLATFORM.font,
+        fontSize: 15,
+        lineHeight: 1.35,
+      }}
+    >
       <PreviewAvatar people={people} className="size-10" />
       <div className="flex min-w-0 flex-1 flex-col gap-ds-8">
-        <div className="flex items-center gap-1 text-p">
-          <span className="truncate font-semibold text-ds-fg">Ilo Odena</span>
+        <div className="flex items-center gap-1">
+          <span className="truncate" style={{ fontWeight: 700 }}>
+            Ilo Odena
+          </span>
           <BadgeCheck
             aria-label="Verified"
-            className="size-4 shrink-0 text-ds-highlight"
+            className="size-4 shrink-0"
+            style={{ color: PLATFORM.blue }}
           />
-          <span className="truncate text-ds-fg-muted">@iloodena · 2h</span>
+          <span className="truncate" style={{ color: PLATFORM.muted }}>
+            @iloodena · 2h
+          </span>
           <MoreHorizontal
             aria-hidden
-            className="ml-auto size-4 shrink-0 text-ds-fg-muted"
+            className="ml-auto size-4 shrink-0"
+            style={{ color: PLATFORM.muted }}
           />
         </div>
-        <p className="text-p text-ds-fg">{copy.x}</p>
+        <p>{copy.x}</p>
         <img
           src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`}
           alt="Black sand and a line of foam"
-          className="aspect-square w-full rounded-ds-lg object-cover object-[50%_30%]"
+          className="aspect-square w-full rounded-2xl object-cover object-[50%_30%]"
         />
         <div className="flex items-center justify-between gap-ds-8 pr-1">
           {count(MessageCircle, "12", "replies")}
           {count(Repeat2, "48", "reposts")}
           {count(Heart, "310", "likes")}
           {count(BarChart3, "4.1K", "views")}
-          <span className="flex items-center gap-ds-8 text-ds-fg-muted">
+          <span
+            className="flex items-center gap-ds-8"
+            style={{ color: PLATFORM.muted }}
+          >
             <Bookmark aria-label="Bookmark" className="size-4" />
             <Upload aria-label="Share" className="size-4" />
           </span>
@@ -924,25 +955,43 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
   );
 }
 
-/** An email, as a reader's inbox opens one: who it's from, its subject, then the letter on the page colour, in the taste's voice. */
+/**
+ * The top of her newsletter, as a reader opens it (Alex, 2026-10-29: right
+ * after the subscribe box, cropped, "here's what I've been up to lately"):
+ * who it's from and the subject, then the letter in the theme, its
+ * masthead, the issue, the title, a greeting and the opening in the
+ * taste's voice, fading out where the rest would follow.
+ */
 function PreviewEmail({ copy }: { copy: PreviewCopy }) {
+  const fade = "linear-gradient(to bottom, black 70%, transparent)";
   return (
-    <div className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-16">
-      <div className="flex flex-col gap-ds-4">
-        <span className="text-small text-ds-fg-muted">
-          Ilo Odena · The studio notebook
-        </span>
-        <span className="text-p text-ds-fg">{copy.email.subject}</span>
-      </div>
-      <div className="flex flex-col gap-ds-16 rounded-ds-md bg-ds-bg p-ds-20">
-        <h3 className="text-h2 text-ds-fg">{copy.email.title}</h3>
-        <p className="text-prose text-ds-fg-muted">{copy.email.body}</p>
-        <div>
-          <DsButton variant="primary">{copy.email.action}</DsButton>
+    <div className="flex flex-col gap-ds-16">
+      <div className="flex items-baseline justify-between gap-ds-16">
+        <div className="flex min-w-0 flex-col gap-ds-4">
+          <span className="text-small text-ds-fg-muted">Ilo Odena</span>
+          <span className="truncate text-p text-ds-fg">
+            {copy.email.subject}
+          </span>
         </div>
-        <p className="text-small text-ds-fg-subtle">
-          You&apos;re getting this because you subscribed at iloodena.com.
-          Unsubscribe.
+        <span className="shrink-0 text-small text-ds-fg-muted">9:14</span>
+      </div>
+      <div
+        className="flex max-h-[360px] flex-col gap-ds-20 overflow-hidden rounded-ds-lg border border-ds-border bg-ds-bg p-ds-20"
+        style={{ maskImage: fade, WebkitMaskImage: fade }}
+      >
+        <div className="flex items-baseline justify-between gap-ds-16">
+          <span className="text-h3 text-ds-fg">Ilo Odena</span>
+          <span className="text-small text-ds-fg-muted">
+            Letter 14 · October 2026
+          </span>
+        </div>
+        <DsDivider />
+        <h3 className="text-h2 text-ds-fg">{copy.email.title}</h3>
+        <p className="text-prose text-ds-fg">{copy.email.greeting}</p>
+        <p className="text-prose text-ds-fg-muted">{copy.email.body}</p>
+        <p className="text-prose text-ds-fg-muted">
+          First, the piece itself. It started as a sketch on the back of a ferry
+          ticket, and for a long time it stayed there.
         </p>
       </div>
     </div>
@@ -1224,8 +1273,8 @@ const TEMPERATURE_TRACK =
 /**
  * The taste feeder (taste.ts; Alex, 2026-10-29): three bars, the levers a
  * taste is defined by, Mood (Serious to Wacky: roundness and the fonts),
- * Expression (Quiet to Loud: contrast, the headlines' weight, the buttons'
- * depth) and Temperature (Cool to Warm: the background's warmth and the
+ * Expression (Quiet to Loud: how boldly it uses colour, the button colour
+ * spreading into cards, secondary buttons and tints) and Temperature (Cool to Warm: the background's warmth and the
  * greys from it), then the style pills with icons in two
  * groups, Feel (how the brand comes across) and World (where it belongs);
  * the bars and the pills work together, a pill drawing inside its ranges on
@@ -1362,7 +1411,7 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
  * as dials, Brightness first (dark to light), then Hue (a hue dragged onto a
  * white gives it a tint; a pill or Colours sets more), then Contrast.
  * Warmth is the Temperature bar in Taste, roundness lives with the
- * buttons, and depth under Expression.
+ * buttons; depth comes with the tastes.
  * Each bar is drawn in what it does. Taste pills at the top draw a
  * background; "Show advanced options" opens the dials and the colours
  * themselves (the wheel, for the mode picked under the theme), for a
@@ -1889,7 +1938,7 @@ export function ThemeSection() {
 
   return (
     // The brand, not just the UI (Alex, 2026-10-29): the look in each place, at the CMS's reading width (600px),
-    // the site (Web), a story, a feed post and a post on X (Social), a letter (Email) and the admin's own card
+    // the site (Web), the top of a letter (Email), a story, a feed post and a post on X (Social), and the admin's own card
     // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
       <PreviewPart title="Web" className="gap-ds-40">
@@ -1962,6 +2011,10 @@ export function ThemeSection() {
         </section>
       </PreviewPart>
 
+      <PreviewPart title="Email">
+        <PreviewEmail copy={copy} />
+      </PreviewPart>
+
       <PreviewPart title="Social">
         {/* Two columns sized so the story comes out about 9:16 beside the card at the preview's width; the story
             stretches to the card's height, so the two line up top and bottom. */}
@@ -1970,10 +2023,6 @@ export function ThemeSection() {
           <PreviewCarouselPost people={people} story={story} copy={copy} />
         </div>
         <PreviewXPost people={people} copy={copy} />
-      </PreviewPart>
-
-      <PreviewPart title="Email">
-        <PreviewEmail copy={copy} />
       </PreviewPart>
 
       <PreviewPart title="App">
@@ -2243,7 +2292,7 @@ export function ThemeSection() {
                   character: {
                     ...t.character,
                     roundness: dsMoodDials(t.character.mood).roundness,
-                    depth: dsExpressionDials(t.character.expression).depth,
+                    depth: DS_DEFAULT_CHARACTER.depth,
                   },
                   colours: {
                     ...t.colours,

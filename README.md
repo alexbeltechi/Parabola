@@ -127,7 +127,8 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   panel opens with **Taste** (`taste.ts`): three bars, the levers a taste
   is defined by, Mood (Serious to Wacky, `DS_MOODS`, `dsThemeWithMood`:
   roundness, fonts), Expression (Quiet to Loud, `dsThemeWithExpression`:
-  contrast, headline weight, depth) and Temperature (Cool to Warm:
+  how boldly it uses colour, the button colour spreading into cards,
+  secondary buttons, tints and quieter text; `vivid` in colours.ts) and Temperature (Cool to Warm:
   warmth), all `DsSlider`; then style pills in two groups, Feel and World (`DS_TASTES`,
   `dsShuffleTaste`, `dsRandomTastes`, `dsTastePeople`), whose ranges a
   draw takes a whole look from; Parabola's own is Restrained + Editorial
