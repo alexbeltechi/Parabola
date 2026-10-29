@@ -11,11 +11,14 @@
  * - **type: secondary** (`muted`): the quieter text (`fg-muted`, and
  *   `fg-subtle` a step fainter). By default the primary type mixed toward
  *   the page.
- * - **button** (`accent`): the calls to action and what needs attention:
+ * - **button: primary** (`accent`): the calls to action and what needs attention:
  *   the solid buttons (Publish) and selected states (the current nav item,
  *   a pressed button, a checked box, the dark pill), with black or white on
  *   them, whichever reads, and the highlight pill and its tint. By default
  *   the primary type's.
+ * - **button: secondary** (`buttonSecondary`): the quiet buttons (Learn
+ *   more) and the pills, `surface`. By default a wash of the primary
+ *   button colour on the page, or Parabola's stone while that's its own.
  * - **field** (`field`): the fields' background. By default the base.
  * - **surface** (`surface`): cards and side panels. By default a shade of
  *   the base.
@@ -214,7 +217,7 @@ export type DsThemeColour = {
 
 /** How far a shift goes either way. */
 export const DS_SHIFT_MAX = 0.5;
-export type DsColourKind = "theme" | "text" | "muted" | "accent" | "field" | "surface";
+export type DsColourKind = "theme" | "text" | "muted" | "accent" | "buttonSecondary" | "field" | "surface";
 export type DsThemeColours = Record<DsColourKind, DsThemeColour>;
 
 export const DS_DEFAULT_COLOURS: DsThemeColours = {
@@ -223,6 +226,7 @@ export const DS_DEFAULT_COLOURS: DsThemeColours = {
   text: { light: null, dark: null },
   muted: { light: null, dark: null },
   accent: { light: null, dark: null },
+  buttonSecondary: { light: null, dark: null },
   field: { light: null, dark: null },
 };
 
@@ -538,6 +542,16 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   // text on the page.
   tokens.button = accent ?? tokens.fg;
   tokens["on-button"] = accent ? (dsLuminance(accent) > 0.18 ? BLACK : WHITE) : tokens.bg;
+  // Button: secondary, the quiet buttons and the pills (`surface`): its own colour (in dark, a dark one of the same
+  // hue), or, with a primary button colour of its own, a wash of that on the page; otherwise Parabola's stone.
+  const secondary = hexIn(
+    colours.buttonSecondary,
+    mode,
+    () => (accent ? dsMix(accent, tokens.bg, 0.16) : tokens.surface),
+    (hex) => dsCounterpart(hex, DARK_CARD + 0.06)
+  );
+  if (secondary) tokens.surface = secondary;
+  else if (accent) tokens.surface = dsMix(accent, tokens.bg, 0.16);
   return tokens;
 }
 
@@ -546,6 +560,7 @@ const SHOWN: Record<DsColourKind, string> = {
   text: "fg",
   muted: "fg-muted",
   accent: "highlight",
+  buttonSecondary: "surface",
   field: "field",
   surface: "surface-subtle",
 };

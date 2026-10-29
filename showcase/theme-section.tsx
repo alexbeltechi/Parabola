@@ -19,7 +19,9 @@ import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsColourTokens, d
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
-import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "../button-style";
+import { DS_DEFAULT_BUTTON_STYLE, DS_OUTLINE_WIDTHS, type DsButtonStyle } from "../button-style";
+import { DsAngleDial } from "../components/angle-dial";
+import { DsCheckbox } from "../primitives/checkbox";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import {
   DS_BODY_FAMILY,
@@ -38,18 +40,20 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Base" },
   { kind: "text", label: "Type: primary" },
   { kind: "muted", label: "Type: secondary" },
-  { kind: "accent", label: "Button" },
+  { kind: "accent", label: "Button: primary" },
+  { kind: "buttonSecondary", label: "Button: secondary" },
   { kind: "field", label: "Field" },
   { kind: "surface", label: "Surface" },
 ];
 
 /**
- * The theme's six colours on one wheel, for the light or the dark theme
+ * The theme's seven colours on one wheel, for the light or the dark theme
  * (whichever the preview is in): each a point of one size, the chosen one
  * filled with its colour, the others a thin ring. Each is based on another
  * until given its own (the primary type, the field and the surface on the
- * base; the secondary type and the button on the primary type; in dark,
- * each on the light one). Pick one in the list under the wheel (or press
+ * base; the secondary type and the primary button on the primary type;
+ * the secondary button on the primary button; in dark, each on the light
+ * one). The list says Auto while it's based, Custom once it's its own. Pick one in the list under the wheel (or press
  * its point), then drag its point to move it; clicking the wheel itself
  * changes nothing. The list: the six as nav items, each a solid dot of its
  * colour, its hex or what it's based on, and a ⋮ to copy or paste its hex
@@ -131,7 +135,8 @@ function ColourWheelChoice({
                 style={{ backgroundColor: shown(w.kind) }}
               />
             }
-            meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)}`}
+            // Auto while it's worked out from another (or Parabola's own); Custom once it has a colour of its own.
+            meta={own(w.kind) ? "Custom" : "Auto"}
             actions={
               <DsDropdown>
                 <DsDropdownTrigger asChild>
@@ -283,30 +288,38 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   text: "base",
   muted: "type: primary",
   accent: "type: primary",
+  // A wash of the primary button colour on the page, until it's given its own.
+  buttonSecondary: "button: primary",
   field: "base",
   surface: "base",
 };
 
 /**
  * The theme's buttons (button-style.ts; Alex, 2026-10-29): their fill,
- * Solid or Gradient, and for a gradient its contrast, a bar from a hint of
- * sheen to a strong one, drawn in the button colour; an outline; a 3D
- * label (a 1px shadow on the text only); and their roundness, which rounds
- * every corner of the theme.
+ * Solid or Gradient, and a gradient's contrast, a bar from -50 to +50 that
+ * starts at 0 (flat) in the middle, drawn in the button colour, darker at
+ * the top to the left of 0 and lighter at the top to the right; an outline
+ * and its thickness; a text shadow on the label and the direction its
+ * light comes from (a dial, as in Photoshop); and their roundness, which
+ * rounds every corner of the theme, with the pills the same or their own.
  */
 function ButtonChoice({
   style,
   button,
   radius,
+  pillRadius,
   onStyle,
   onRadius,
+  onPillRadius,
 }: {
   style: DsButtonStyle;
-  /** The button colour in the mode shown, for the contrast bar. */
+  /** The primary button colour in the mode shown, for the contrast bar. */
   button: string;
   radius: DsRadius;
+  pillRadius: DsRadius | null;
   onStyle: (style: DsButtonStyle) => void;
   onRadius: (radius: DsRadius) => void;
+  onPillRadius: (radius: DsRadius | null) => void;
 }) {
   const set = (next: Partial<DsButtonStyle>) => onStyle({ ...style, ...next });
   const toggle = (label: string, on: boolean, change: (on: boolean) => void) => (
@@ -316,6 +329,7 @@ function ButtonChoice({
       <DsSwitch checked={on} onCheckedChange={change} />
     </label>
   );
+  const contrast = Math.round(style.contrast * 50);
   return (
     <div className="flex flex-col gap-ds-16">
       <div className="flex items-center gap-ds-4" role="group" aria-label="Fill">
@@ -329,19 +343,48 @@ function ButtonChoice({
         <DsColourBar
           label="Gradient contrast"
           title="Contrast"
-          readout={String(Math.round(style.contrast * 100))}
-          value={style.contrast}
-          onChange={(contrast) => set({ contrast: Math.round(contrast * 100) / 100 })}
-          // From flat to a strong sheen, in the button colour: its lighter end on the left, the darker on the right.
-          track={`linear-gradient(to right, ${dsShift(button, 0.2)}, ${button}, ${dsShift(button, -0.2)})`}
+          // -50 to +50 from a flat 0 in the middle, as the colours' brightness reads.
+          readout={contrast === 0 ? "0" : `${contrast > 0 ? "+" : "−"}${Math.abs(contrast)}`}
+          value={(style.contrast + 1) / 2}
+          onChange={(x) => set({ contrast: Math.round((x * 2 - 1) * 50) / 50 })}
+          valueText={contrast === 0 ? "Flat" : contrast > 0 ? `${contrast}, lighter at the top` : `${-contrast}, darker at the top`}
+          // The top of the button across the range: darker on the left, the colour itself at 0, lighter on the right.
+          track={`linear-gradient(to right, ${dsShift(button, -0.2)}, ${button}, ${dsShift(button, 0.2)})`}
           thumb={button}
         />
       )}
       {toggle("Outline", style.outline, (outline) => set({ outline }))}
-      {toggle("3D label", style.emboss, (emboss) => set({ emboss }))}
+      {style.outline && (
+        <div className="flex items-center gap-ds-4" role="group" aria-label="Outline thickness">
+          {DS_OUTLINE_WIDTHS.map((w) => (
+            <DsButton key={w} size="small" className="min-w-0 flex-1 px-0" pressed={style.outlineWidth === w} onClick={() => set({ outlineWidth: w })}>
+              {w}px
+            </DsButton>
+          ))}
+        </div>
+      )}
+      {toggle("Text shadow", style.shadow, (shadow) => set({ shadow }))}
+      {style.shadow && (
+        <DsField label="Direction">
+          <DsAngleDial label="Text shadow direction" value={style.shadowAngle} onChange={(shadowAngle) => set({ shadowAngle })} />
+        </DsField>
+      )}
       <DsField label="Roundness">
-        <RadiusChoice radius={radius} onChange={onRadius} />
+        <RadiusChoice label="Roundness" radius={radius} onChange={onRadius} />
       </DsField>
+      <label className="inline-flex items-center gap-ds-8 self-start text-p text-ds-fg">
+        <DsCheckbox
+          checked={pillRadius === null}
+          // Unticked, the pills start from the buttons' corner, so nothing jumps until it's changed.
+          onCheckedChange={(on) => onPillRadius(on ? null : radius)}
+        />
+        Same for buttons and pills
+      </label>
+      {pillRadius !== null && (
+        <DsField label="Pill roundness">
+          <RadiusChoice label="Pill roundness" radius={pillRadius} onChange={onPillRadius} />
+        </DsField>
+      )}
     </div>
   );
 }
@@ -352,12 +395,12 @@ function ButtonChoice({
  * the pixels (the cards' and buttons' corner, the smaller ones scaled from
  * it). It rounds every corner, buttons first.
  */
-function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radius: DsRadius) => void }) {
+function RadiusChoice({ label, radius, onChange }: { label: string; radius: DsRadius; onChange: (radius: DsRadius) => void }) {
   const custom = typeof radius === "number";
   const [text, setText] = React.useState(custom ? String(radius) : "");
   return (
     <div className="flex flex-col gap-ds-8">
-      <div className="flex items-center gap-ds-4" role="group" aria-label="Roundness">
+      <div className="flex items-center gap-ds-4" role="group" aria-label={label}>
         {DS_RADII.map((r) => (
           <DsButton key={r.id} size="small" className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
             {r.label}
@@ -380,7 +423,7 @@ function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radiu
       </div>
       {custom && (
         <DsInput
-          aria-label="Roundness in pixels"
+          aria-label={`${label} in pixels`}
           inputMode="numeric"
           className="w-full"
           value={text}
@@ -643,7 +686,7 @@ export function ThemeSection() {
               section="Buttons"
               theme={theme}
               setTheme={setTheme}
-              restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS, buttons: DS_DEFAULT_BUTTON_STYLE })}
+              restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS, pillRadius: null, buttons: DS_DEFAULT_BUTTON_STYLE })}
             />
           }
         >
@@ -651,8 +694,10 @@ export function ThemeSection() {
             style={theme.buttons}
             button={dsColourTokens(theme.colours, mode).button}
             radius={theme.radius}
+            pillRadius={theme.pillRadius}
             onStyle={(buttons) => setTheme({ ...theme, buttons })}
             onRadius={(radius) => setTheme({ ...theme, radius })}
+            onPillRadius={(pillRadius) => setTheme({ ...theme, pillRadius })}
           />
         </PanelSection>
 

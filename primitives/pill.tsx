@@ -5,7 +5,8 @@ import { cn } from "../cn";
 
 /**
  * Parabola pill (Figma: Folio Dharmify 699:6599): a small status or tag chip,
- * 22px tall, `text-small`, 8px corners (like the small button). Optional 12px icons sit before
+ * 22px tall, `text-small`, the theme's pill corner (`rounded-ds-chip`: the
+ * buttons' by default, so fully round at Large; Alex, 2026-10-29). Optional 12px icons sit before
  * and after the label, 4px from it. The pill itself isn't interactive; give
  * it `onRemove` and its trailing × becomes a real button.
  *
@@ -15,7 +16,7 @@ import { cn } from "../cn";
  */
 export const dsPillVariants = cva(
   [
-    "inline-flex h-[22px] shrink-0 items-center justify-center gap-1 rounded-ds-control px-1.5",
+    "inline-flex h-[22px] shrink-0 items-center justify-center gap-1 rounded-ds-chip px-1.5",
     "text-small whitespace-nowrap",
     "[&_svg]:pointer-events-none [&_svg]:size-3 [&_svg]:shrink-0",
   ],

@@ -148,10 +148,12 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
   (Instrument Sans, Medium).
 - **Buttons** (`button-style.ts`): the solid buttons' fill, solid or a
-  gradient of the button colour (lighter top, darker bottom, its contrast
-  0 to 1), an inset outline, a 3D label (a 1px text shadow, never on the
-  icons), each `none` until on (`--ds-button-image`, `--ds-button-ring`,
-  `--ds-button-text-shadow`); and their roundness, the radius below.
+  gradient of the button colour (contrast -1 to 1, 0 flat, above it the
+  top lighter), an inset outline 1 to 4px, a label text shadow cast from a
+  light's angle (`DsAngleDial`; never on the icons), each `none` until on
+  (`--ds-button-image`, `--ds-button-ring`, `--ds-button-text-shadow`); and
+  their roundness, the radius below, with the pills the same or their own
+  (`pillRadius`, `--ds-radius-chip`, `rounded-ds-chip`).
 - **Radius** (`radius.ts`): None, Small (2px), Medium, Large (the default) or a
   custom number of pixels (the cards' and pills' corner, the rest scaled),
   for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill

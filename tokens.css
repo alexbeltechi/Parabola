@@ -74,6 +74,7 @@
   --radius-ds-md: var(--ds-radius-md);
   --radius-ds-lg: var(--ds-radius-lg);
   --radius-ds-pill: var(--ds-radius-pill);
+  --radius-ds-chip: var(--ds-radius-chip);
 
   /* Parabola type scale (Figma: Folio Dharmify 693:5061), named for the
      element each style is for: text-display, text-h1 … text-h3, text-p, text-prose,
@@ -357,6 +358,8 @@
   --ds-radius-md: 12px;
   --ds-radius-lg: 16px;
   --ds-radius-pill: 9999px;
+  /* Pills (DsPill): the buttons' corner, or a theme's own for them. */
+  --ds-radius-chip: 9999px;
 
   /* Field width: the one width of a field (the DsField, and any input,
      select, date picker, search, textarea or multi-select on its own), so a
