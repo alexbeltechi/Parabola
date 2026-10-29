@@ -187,6 +187,8 @@ export function DsColourWheel({
         </defs>
         {/* A wide invisible stroke to grab, then the arc and its tick. */}
         <path d={path} fill="none" stroke="transparent" strokeWidth={24} />
+        {/* A faint track under the gradient, so a white or pale end still shows on a white panel. */}
+        <path d={path} fill="none" className="stroke-ds-border" strokeWidth={6} strokeLinecap="round" />
         <path d={path} fill="none" stroke={`url(#${id})`} strokeWidth={4} strokeLinecap="round" />
         <path
           d={`M ${inner.x} ${inner.y} L ${outer.x} ${outer.y}`}

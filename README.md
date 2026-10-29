@@ -117,20 +117,21 @@ namespace, short and brand-free, so a rename never touches code:
 
 A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
-- **Colours** (`colours.ts`, `DsThemeColours`): the theme colour (the
-  website's background; Parabola's is white, its cards a warm off-white #F7F5F2; `dsWithWarmth` makes
-  one warmer or colder), the surface (cards and panels; a shade of
-  the theme colour by default), typography (the text, and the quiet text, borders and shades drawn
-  from it; Parabola's is black or white, whichever reads on the page),
-  the tertiary colour (`accent`: buttons, `ds-button` and `ds-on-button`,
-  selected states and the highlight; the typography's by default) and the
-  quaternary (`field`: the fields' background; the page's by default). Each is Parabola's own (null) or a
+- **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
+  colour: base (`theme`, the website's background; Parabola's is white,
+  its cards a warm off-white #F7F5F2), type: primary (`text`, the text and
+  borders; black or white, whichever reads on the base), type: secondary
+  (`muted`, the quieter text; the primary type toward the page by
+  default), button (`accent`: `ds-button`, `ds-on-button`, selected states
+  and the highlight; the primary type's by default), field (`field`, the
+  fields' background; the base's by default) and surface (`surface`, cards
+  and panels; a shade of the base by default). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one unless a dark
   colour is picked for it: the page and cards the same hue, about 87% dark
   (`dsCounterpart`, not a flip), text, buttons and the accent moved just
   far enough to read on it (`dsInkCounterpart`). A
   colour based on another can be shifted lighter or darker (`lightShift`,
-  `darkShift`, `dsShift`). `dsColourTokens` turns the four into every
+  `darkShift`, `dsShift`). `dsColourTokens` turns the six into every
   colour token; `DsColourWheel` shows them all as points on one wheel (hue
   round it, saturation out from the centre, saturation and brightness on
   the arcs; one size, solid when its own, an outline when based; choose one,

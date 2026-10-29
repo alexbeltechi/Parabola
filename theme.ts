@@ -89,7 +89,7 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /** The primary, secondary, tertiary and quaternary colours and the surface, each for light and dark (colours.ts). */
+  /** Base, type (primary and secondary), button, field and surface, each for light and dark (colours.ts). */
   colours: DsThemeColours;
   /** Font (text, always there) first; then Heading and any the theme added. */
   families: DsFontFamily[];
@@ -229,6 +229,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
           surface: colour(coloursRaw.surface),
           // Typography was "fonts and UI" for a day.
           text: colour(coloursRaw.text ?? coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
+          muted: colour(coloursRaw.muted),
           accent: accent.light === null && buttons.light ? buttons : accent,
           field: colour(coloursRaw.field),
         }
@@ -236,6 +237,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
           theme: { light: hex(legacyBackground), dark: null },
           surface: { light: null, dark: null },
           text: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
+          muted: { light: null, dark: null },
           accent: { light: lightPick(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR), dark: null },
           field: { light: null, dark: null },
         };
@@ -368,19 +370,19 @@ const SCOPE_DERIVED: Record<string, string> = {
 
 /** Each colour token's role, in plain words, for an export a person or an AI reads. */
 const COLOUR_ROLES: [token: string, role: string][] = [
-  ["bg", "page background"],
-  ["fg", "text"],
-  ["fg-muted", "secondary text"],
-  ["fg-subtle", "quiet text (captions, placeholders)"],
+  ["bg", "base: the page background"],
+  ["fg", "type: primary, the text"],
+  ["fg-muted", "type: secondary, quieter text"],
+  ["fg-subtle", "faintest text (captions, placeholders)"],
   ["border", "borders and field outlines"],
-  ["surface-subtle", "cards and panels"],
-  ["field", "quaternary colour, input fields"],
+  ["surface-subtle", "surface: cards and panels"],
+  ["field", "field: input backgrounds"],
   ["surface", "secondary buttons and image placeholders"],
   ["surface-inverse", "toasts and tooltips"],
-  ["highlight", "tertiary colour, the accent (calls to action, highlight pills, what needs attention)"],
-  ["highlight-tint", "accent background"],
-  ["button", "primary buttons and selected states"],
+  ["button", "button: primary buttons and selected states"],
   ["on-button", "text on primary buttons"],
+  ["highlight", "button colour as an accent (highlight pills, what needs attention)"],
+  ["highlight-tint", "accent background"],
 ];
 
 /**

@@ -30,28 +30,26 @@ import {
 } from "../theme";
 import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
 
-/** The theme's colours on the wheel, in the order they're picked. */
-// The tertiary (buttons, calls to action, pills) comes right after the text: it's the one picked next; the
-// quaternary (fields) and the surface are optional (Alex, 2026-10-29).
+/** The theme's colours on the wheel, in the order they're picked, named for what they colour (Alex, 2026-10-29). */
 const WHEEL: { kind: DsColourKind; label: string }[] = [
-  { kind: "theme", label: "Primary" },
-  { kind: "text", label: "Secondary" },
-  { kind: "accent", label: "Tertiary" },
-  { kind: "field", label: "Quaternary" },
+  { kind: "theme", label: "Base" },
+  { kind: "text", label: "Type: primary" },
+  { kind: "muted", label: "Type: secondary" },
+  { kind: "accent", label: "Button" },
+  { kind: "field", label: "Field" },
   { kind: "surface", label: "Surface" },
 ];
 
 /**
- * The theme's five colours on one wheel, for the light or the dark theme
+ * The theme's six colours on one wheel, for the light or the dark theme
  * (whichever the preview is in): each a point of one size, solid when it
  * has a colour of its own, an outline while it's based on another (the
- * secondary, the quaternary (fields) and the surface on the primary, the
- * tertiary (buttons, pills) on the secondary; in dark, each on the light
- * one). Pick one in
- * the list under the wheel, then click or drag anywhere on the wheel to
- * put it there. The list: the five as nav items, each with a ⋮ to copy or
- * paste its hex (to give two the same colour) and delete it (back to what
- * it's based on) or, for the primary, restore Parabola's. Delete or
+ * primary type, the field and the surface on the base; the secondary type
+ * and the button on the primary type; in dark, each on the light one).
+ * Pick one in the list under the wheel, then click or drag anywhere on the
+ * wheel to put it there. The list: the six as nav items, each with a ⋮ to
+ * copy or paste its hex (to give two the same colour) and delete it (back
+ * to what it's based on) or, for the base, restore Parabola's. Delete or
  * Backspace on the chosen point does the same.
  */
 function ColourWheelChoice({
@@ -91,8 +89,8 @@ function ColourWheelChoice({
           label: w.label,
           colour: shown(w.kind),
           based: based(w.kind),
-          // Pages, cards and fields keep their brightness; text and the tertiary come out as a colour, not black.
-          floor: w.kind === "text" ? 0.45 : w.kind === "accent" ? 0.7 : 0,
+          // The base, fields and cards keep their brightness; type and the button come out as a colour, not black.
+          floor: w.kind === "text" || w.kind === "muted" ? 0.45 : w.kind === "accent" ? 0.7 : 0,
         }))}
         selected={selected}
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
@@ -130,7 +128,7 @@ function ColourWheelChoice({
                 }}
               />
             }
-            meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)?.replace(" colour", "")}`}
+            meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)}`}
             actions={
               <DsDropdown>
                 <DsDropdownTrigger asChild>
@@ -283,11 +281,12 @@ function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: stri
 /** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   theme: null,
-  surface: "primary colour",
-  // Black or white, whichever reads on the primary colour, until it's given its own.
-  text: "primary colour",
-  accent: "secondary colour",
-  field: "primary colour",
+  // Black or white, whichever reads on the base, until it's given its own.
+  text: "base",
+  muted: "type: primary",
+  accent: "type: primary",
+  field: "base",
+  surface: "base",
 };
 
 /**

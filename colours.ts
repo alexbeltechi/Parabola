@@ -1,32 +1,32 @@
 /**
- * The five colours a theme picks (theme.ts; decisions, 2026-10-28), each
- * based on the one before it until it's given its own:
+ * The six colours a theme picks (theme.ts; decisions, 2026-10-28, renamed
+ * 2026-10-29), each based on another until it's given its own:
  *
- * - the **theme colour**: the website's background, Parabola's white (and
+ * - **base** (`theme`): the website's background, Parabola's white (and
  *   charcoal in dark) by default; any colour, a bright yellow included.
- * - the **surface**: cards and side panels. By default a shade of
- *   the theme colour, made lighter or darker for more or less contrast.
- * - **typography**: the text, and the quiet text and borders drawn from it.
- *   Parabola's own is black or white, whichever reads on the theme colour,
- *   with Stone's warm greys on the default page (tokens.css;
+ * - **type: primary** (`text`): the text, and the borders drawn from it.
+ *   Parabola's own is black or white, whichever reads on the base, with
+ *   Stone's warm greys on the default page (tokens.css;
  *   `npm run check:parabola` checks).
- * - the **tertiary colour** (`accent`, was "accent colour"): the calls to
- *   action and what needs attention: the solid buttons (Publish) and
- *   selected states (the current nav item, a pressed button, a checked box,
- *   the dark pill), with black or white on them, whichever reads, and the
- *   highlight pill and its tint. By default the typography's. Buttons were
- *   a colour of their own until 2026-10-29 (Alex: "buttons ARE tertiary").
- * - the **quaternary colour** (`field`): the fields' background, optional.
- *   By default the page itself.
+ * - **type: secondary** (`muted`): the quieter text (`fg-muted`, and
+ *   `fg-subtle` a step fainter). By default the primary type mixed toward
+ *   the page.
+ * - **button** (`accent`): the calls to action and what needs attention:
+ *   the solid buttons (Publish) and selected states (the current nav item,
+ *   a pressed button, a checked box, the dark pill), with black or white on
+ *   them, whichever reads, and the highlight pill and its tint. By default
+ *   the primary type's.
+ * - **field** (`field`): the fields' background. By default the base.
+ * - **surface** (`surface`): cards and side panels. By default a shade of
+ *   the base.
  *
  * Each is picked for the light theme (or left as Parabola's, or as what
  * it's based on, a little lighter or darker). In the dark theme each is, by
- * default, based on the light one: a page or card the same hue, dark
- * (`dsCounterpart`), text, buttons and the accent moved just far enough to
- * read on it (`dsInkCounterpart`); or a
- * colour picked for dark on its own. Older themes' presets (a base colour,
- * an accent) still work. Pure data and functions, so the server and the
- * browser share them.
+ * default, based on the light one: a page, card or field the same hue,
+ * dark (`dsCounterpart`), text and buttons moved just far enough to read on
+ * it (`dsInkCounterpart`); or a colour picked for dark on its own. Older
+ * themes' presets (a base colour, an accent) still work. Pure data and
+ * functions, so the server and the browser share them.
  */
 
 /** The base colour's tokens, by theme. Black and white text and the page stay as they are. */
@@ -214,13 +214,14 @@ export type DsThemeColour = {
 
 /** How far a shift goes either way. */
 export const DS_SHIFT_MAX = 0.5;
-export type DsColourKind = "theme" | "surface" | "text" | "accent" | "field";
+export type DsColourKind = "theme" | "text" | "muted" | "accent" | "field" | "surface";
 export type DsThemeColours = Record<DsColourKind, DsThemeColour>;
 
 export const DS_DEFAULT_COLOURS: DsThemeColours = {
   theme: { light: null, dark: null },
   surface: { light: null, dark: null },
   text: { light: null, dark: null },
+  muted: { light: null, dark: null },
   accent: { light: null, dark: null },
   field: { light: null, dark: null },
 };
@@ -496,6 +497,13 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
       "surface-inverse": fg,
     });
   }
+  // Type: secondary, the quieter text: its own colour (in dark, moved to read on the page), a fainter step drawn
+  // from it; or the primary type mixed toward the page.
+  const muted = hexIn(colours.muted, mode, () => tokens["fg-muted"], (hex) => dsInkCounterpart(hex, tokens.bg));
+  if (muted) {
+    tokens["fg-muted"] = muted;
+    tokens["fg-subtle"] = dsMix(muted, tokens.bg, 0.75);
+  }
   // Cards and side panels: their own colour; or, based on the primary colour (in dark, on the light one's
   // counterpart), that colour made lighter or darker by the bar, Parabola's own step (a shade toward the text)
   // until it's moved.
@@ -530,9 +538,16 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   return tokens;
 }
 
-const SHOWN: Record<DsColourKind, string> = { theme: "bg", surface: "surface-subtle", text: "fg", accent: "highlight", field: "field" };
+const SHOWN: Record<DsColourKind, string> = {
+  theme: "bg",
+  text: "fg",
+  muted: "fg-muted",
+  accent: "highlight",
+  field: "field",
+  surface: "surface-subtle",
+};
 
-/** What one of a theme's colours is in light or dark, as a hex: the page, the cards, the text, the tertiary or the fields. */
+/** What one of a theme's colours is in light or dark, as a hex: the page, the text, the quieter text, the buttons, the fields or the cards. */
 export function dsColourShown(colours: DsThemeColours, kind: DsColourKind, mode: "light" | "dark"): string {
   return dsColourTokens(colours, mode)[SHOWN[kind]];
 }
