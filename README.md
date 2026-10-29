@@ -133,7 +133,7 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   colour based on another can be shifted lighter or darker (`lightShift`,
   `darkShift`, `dsShift`). `dsColourTokens` turns the six into every
   colour token; `DsColourWheel` shows them all as points on one wheel (hue
-  round it, saturation out from the centre, saturation and brightness on
+  round it, a tick on the ring for the chosen one, dragged round to turn it, saturation out from the centre, saturation and brightness on
   the arcs; one size, the chosen one filled, the others a thin ring; choose one
   and drag its point, Delete to restore it), and `DsColourPicker` picks a single colour inline, with
   `DsColourBar` its hue and brightness bars.

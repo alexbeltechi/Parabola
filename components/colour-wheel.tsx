@@ -102,7 +102,8 @@ function drag(onMove: (p: { deg: number; dist: number }) => void, slop = 0) {
 /**
  * Parabola colour wheel: a theme's colours as points on one wheel, a hue
  * ring around a disc, red at the right and round through yellow, green and
- * blue. A point's angle is its hue and its distance from the centre its
+ * blue. A tick on the ring shows the chosen colour's hue, and dragging
+ * round the ring turns it. A point's angle is its hue and its distance from the centre its
  * saturation (white, black and greys at the middle, full colour at the
  * ring). Every point is the same size: the chosen one filled with its
  * colour, the others only a thin black ring. Where they share a spot they
@@ -205,8 +206,6 @@ export function DsColourWheel({
         </defs>
         {/* A wide invisible stroke to grab, then the arc and its tick. */}
         <path d={path} fill="none" stroke="transparent" strokeWidth={24} />
-        {/* A faint track under the gradient, so a white or pale end still shows on a white panel. */}
-        <path d={path} fill="none" className="stroke-ds-border" strokeWidth={6} strokeLinecap="round" />
         <path d={path} fill="none" stroke={`url(#${id})`} strokeWidth={4} strokeLinecap="round" />
         <path
           d={`M ${inner.x} ${inner.y} L ${outer.x} ${outer.y}`}
@@ -264,6 +263,47 @@ export function DsColourWheel({
             background: `radial-gradient(closest-side, var(--ds-bg), transparent), conic-gradient(from 90deg, ${HUES})`,
           }}
         />
+        {/* The hue: a tick across the ring at the chosen colour's hue, pointing the way it's headed even when it's
+            white or grey at the centre. Drag round the ring to turn the hue, as on any colour wheel; its
+            saturation and brightness stay (Alex, 2026-10-29). */}
+        <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 size-full overflow-visible">
+          <circle
+            role="slider"
+            tabIndex={0}
+            aria-label={`${current.label} hue`}
+            aria-valuemin={0}
+            aria-valuemax={360}
+            aria-valuenow={Math.round(hsv.h)}
+            aria-valuetext={`${Math.round(hsv.h)}°`}
+            cx={CX}
+            cy={CY}
+            r={RING - 3}
+            fill="none"
+            stroke="transparent"
+            strokeWidth={16}
+            pointerEvents="stroke"
+            className="cursor-pointer outline-none"
+            onPointerDown={drag(({ deg }) => set(current, { ...hsv, h: deg }))}
+            onKeyDown={(event) => {
+              const size = event.shiftKey ? 10 : 2;
+              const turn =
+                event.key === "ArrowLeft" || event.key === "ArrowUp"
+                  ? size
+                  : event.key === "ArrowRight" || event.key === "ArrowDown"
+                    ? -size
+                    : 0;
+              if (!turn) return;
+              event.preventDefault();
+              set(current, { ...hsv, h: hsv.h + turn });
+            }}
+          />
+          <path
+            d={`M ${at(hsv.h, RING - 12).x} ${at(hsv.h, RING - 12).y} L ${at(hsv.h, RING + 6).x} ${at(hsv.h, RING + 6).y}`}
+            className="stroke-ds-fg"
+            strokeWidth={4}
+            strokeLinecap="round"
+          />
+        </svg>
         {/* The points: all one size, solid or an outline; stacked first on top, the chosen one above all, so the
             one picked in the list can always be grabbed. Press one to choose it, drag it to move it. */}
         {points.map((p, i) => {
