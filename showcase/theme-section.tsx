@@ -42,8 +42,9 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
 
 /**
  * The theme's six colours on one wheel, for the light or the dark theme
- * (whichever the preview is in): each a point of one size, solid when it
- * has a colour of its own, an outline while it's based on another (the
+ * (whichever the preview is in): each a point of one size, the chosen one
+ * filled with its colour, the others a ring. In the list, a colour of its
+ * own has a solid dot, one based on another an outline (the
  * primary type, the field and the surface on the base; the secondary type
  * and the button on the primary type; in dark, each on the light one).
  * Pick one in the list under the wheel (or press its point), then drag its
