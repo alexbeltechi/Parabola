@@ -377,6 +377,7 @@ const COLOUR_ROLES: [token: string, role: string][] = [
   ["border", "borders and field outlines"],
   ["surface-subtle", "surface: cards and panels"],
   ["field", "field: input backgrounds"],
+  ["field-border", "field outlines"],
   ["surface", "secondary buttons and image placeholders"],
   ["surface-inverse", "toasts and tooltips"],
   ["button", "button: primary buttons and selected states"],

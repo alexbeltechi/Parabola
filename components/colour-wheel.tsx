@@ -64,7 +64,10 @@ function polar(el: Element, e: { clientX: number; clientY: number }) {
 }
 
 /** A drag that reports where the pointer is on the wheel, from the press until it's let go. */
-function drag(onMove: (p: { deg: number; dist: number }) => void) {
+// How far a press on a point moves before it's a drag: a click only picks the point.
+const SLOP = 3;
+
+function drag(onMove: (p: { deg: number; dist: number }) => void, slop = 0) {
   return (event: React.PointerEvent<Element>) => {
     const el = event.currentTarget;
     const box = el.closest(FRAME);
@@ -73,8 +76,16 @@ function drag(onMove: (p: { deg: number; dist: number }) => void) {
     try {
       el.setPointerCapture(event.pointerId);
     } catch {}
-    onMove(polar(box, event));
-    const move = (e: Event) => onMove(polar(box, e as PointerEvent));
+    // With `slop`, only once the pointer has moved that far (screen pixels), so a click doesn't move what it picks.
+    const start = { x: event.clientX, y: event.clientY };
+    let moving = slop === 0;
+    if (moving) onMove(polar(box, event));
+    const move = (e: Event) => {
+      const p = e as PointerEvent;
+      if (!moving && Math.hypot(p.clientX - start.x, p.clientY - start.y) < slop) return;
+      moving = true;
+      onMove(polar(box, p));
+    };
     const up = () => {
       el.removeEventListener("pointermove", move);
       el.removeEventListener("pointerup", up);
@@ -93,8 +104,8 @@ function drag(onMove: (p: { deg: number; dist: number }) => void) {
  * an outline while it's based on another. Where they share a spot they
  * stack in the order given, the first on top (the primary, at the centre
  * by default), the chosen one above them all. Choose a colour (`selected`,
- * from a list beside the wheel), then click or drag anywhere on the disc
- * to move it there. The arc on the left is its saturation, the arc on the
+ * from a list beside the wheel, or press its point), then drag its point
+ * to move it; a click on the disc itself changes nothing. The arc on the left is its saturation, the arc on the
  * right its brightness. The chosen point takes the keyboard: the arrow
  * keys turn its hue (left, right) and saturation (up, down; Shift for
  * bigger steps), and Delete or Backspace hands it to `onRemove`. Controlled:
@@ -104,6 +115,7 @@ function drag(onMove: (p: { deg: number; dist: number }) => void) {
 export function DsColourWheel({
   points,
   selected,
+  onSelect,
   onChange,
   onRemove,
   className,
@@ -111,6 +123,8 @@ export function DsColourWheel({
   points: DsWheelPoint[];
   /** The colour that clicks, drags and keys move: chosen in a list beside the wheel. */
   selected: string;
+  /** A point pressed on the wheel. */
+  onSelect: (id: string) => void;
   onChange: (id: string, hex: string) => void;
   /** Delete or Backspace on a chosen point. */
   onRemove?: (id: string) => void;
@@ -236,28 +250,18 @@ export function DsColourWheel({
             mask: "radial-gradient(closest-side, transparent calc(100% - 6px), black calc(100% - 5px))",
           }}
         />
-        {/* The disc: a faint wheel, so where a point sits reads as a colour. A press anywhere on it moves the
-            chosen colour there, and it follows the pointer until let go. */}
+        {/* The disc: a faint wheel, so where a point sits reads as a colour. Clicking it does nothing: colours
+            move only by dragging their point, so a stray click never changes one (Alex, 2026-10-29). */}
         <div
           aria-hidden
-          className="absolute cursor-crosshair rounded-full"
-          style={box(RING)}
-          onPointerDown={(event) => {
-            // The chosen point takes the keyboard after a click, for Delete and the arrow keys.
-            event.currentTarget.parentElement?.querySelector<HTMLElement>("[data-chosen]")?.focus();
-            drag(({ deg, dist }) => set(current, { h: deg, s: toSaturation(dist), v: Math.max(hsv.v, current.floor ?? 0) }))(event);
+          className="pointer-events-none absolute rounded-full opacity-[0.22]"
+          style={{
+            ...box(DISC),
+            background: `radial-gradient(closest-side, var(--ds-bg), transparent), conic-gradient(from 90deg, ${HUES})`,
           }}
-        >
-          <div
-            className="pointer-events-none absolute rounded-full opacity-[0.22]"
-            style={{
-              inset: `${((RING - DISC) / (2 * RING)) * 100}%`,
-              background: `radial-gradient(closest-side, var(--ds-bg), transparent), conic-gradient(from 90deg, ${HUES})`,
-            }}
-          />
-        </div>
-        {/* The points: all one size, solid or an outline; stacked first on top, the chosen one above all. They
-            let clicks through to the disc, so the chosen colour can be put down anywhere, even under another. */}
+        />
+        {/* The points: all one size, solid or an outline; stacked first on top, the chosen one above all, so the
+            one picked in the list can always be grabbed. Press one to choose it, drag it to move it. */}
         {points.map((p, i) => {
           const h = hsvOf(p);
           const chosen = p.id === current.id;
@@ -270,7 +274,7 @@ export function DsColourWheel({
               aria-label={`${p.label}: ${p.colour}${p.based ? ", based on another" : ""}`}
               aria-pressed={chosen}
               title={p.label}
-              className="pointer-events-none absolute size-[18px] -translate-x-1/2 -translate-y-1/2 rounded-full outline-none"
+              className="absolute size-[18px] -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full outline-none active:cursor-grabbing"
               style={{
                 ...pct(at(h.h, toRadius(h.s))),
                 zIndex: chosen ? points.length + 1 : points.length - i,
@@ -284,6 +288,12 @@ export function DsColourWheel({
                 ]
                   .filter(Boolean)
                   .join(", "),
+              }}
+              onPointerDown={(event) => {
+                // Focused, so Delete and the arrow keys reach it after a click.
+                event.currentTarget.focus();
+                onSelect(p.id);
+                drag(({ deg, dist }) => set(p, { h: deg, s: toSaturation(dist), v: Math.max(h.v, p.floor ?? 0) }), SLOP)(event);
               }}
               onKeyDown={(event) => {
                 if ((event.key === "Delete" || event.key === "Backspace") && onRemove) {

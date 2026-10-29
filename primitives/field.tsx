@@ -6,7 +6,8 @@ import { cn } from "../cn";
 
 /**
  * Parabola fields (Figma: Folio Dharmify 693:4336), the style used by the
- * admin post editor: 2px `ds-border` outline, 16px radius, `text-p` with a
+ * admin post editor: 2px `ds-field-border` outline (the border, or drawn
+ * from a field colour of its own), 16px radius, `text-p` with a
  * `ds-fg-subtle` placeholder; while you're in it the outline turns the
  * Parabola focus colour. `invalid` turns it `ds-error` instead (DsField sets
  * it for you). The box is filled with solid `ds-field`, a step darker than
@@ -24,7 +25,7 @@ import { cn } from "../cn";
 export const DS_FIELD_WIDTH_CLASS = "w-(--ds-field-width) max-w-full";
 
 export const DS_FIELD_BOX_CLASS = [
-  `group flex h-9 ${DS_FIELD_WIDTH_CLASS} items-center gap-2 rounded-ds-lg border-2 border-ds-border bg-ds-field px-4`,
+  `group flex h-9 ${DS_FIELD_WIDTH_CLASS} items-center gap-2 rounded-ds-lg border-2 border-ds-field-border bg-ds-field px-4`,
   "transition-colors ds-focus-within",
   "text-p text-ds-fg",
   "disabled:cursor-not-allowed disabled:text-ds-fg-subtle has-[:disabled]:cursor-not-allowed has-[:disabled]:text-ds-fg-subtle",

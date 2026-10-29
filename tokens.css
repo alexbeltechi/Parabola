@@ -27,6 +27,7 @@
   --color-ds-border: var(--ds-border);
   --color-ds-surface-subtle: var(--ds-surface-subtle);
   --color-ds-field: var(--ds-field);
+  --color-ds-field-border: var(--ds-field-border);
   --color-ds-surface: var(--ds-surface);
   --color-ds-surface-inverse: var(--ds-surface-inverse);
   --color-ds-button: var(--ds-button);
@@ -255,7 +256,10 @@
        bg / fg          page and primary text
        fg-muted         labels, secondary copy, meta (counts beside a label)
        fg-subtle        placeholders, unchecked marks, disabled text
-       border           field outlines
+       border           dividers and outlines
+       field-border     field outlines: the border, or with a field colour
+                        of its own, that colour a step toward black (white
+                        on a dark field)
        surface-subtle   groupings (cards, containers): between bg and surface
        field            the fill inside fields: the page colour, solid, so a
                         field reads as a place to type on a card
@@ -271,6 +275,7 @@
   --ds-border: #D6D3D1;
   --ds-surface-subtle: #F7F5F2; /* warm off-white cards, 4 darker than the page */
   --ds-field: #FFFFFF;
+  --ds-field-border: #D6D3D1;
   --ds-surface: #E2DFD9;
   --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
   /* Solid buttons and selected states, and what's on them: the text and the
@@ -384,6 +389,7 @@
   --ds-border: #44403C;
   --ds-surface-subtle: #1A1918;
   --ds-field: #121110;
+  --ds-field-border: #44403C;
   --ds-surface: #302E2C;
   /* Selected buttons invert against the page, as the nav pills always have. */
   --ds-surface-inverse: rgb(255 255 255 / 0.8);

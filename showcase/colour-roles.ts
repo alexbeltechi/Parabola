@@ -45,7 +45,10 @@ export const ROLES: Role[] = [
   {
     role: "Border",
     note: "Field outlines and dividers",
-    colours: [{ name: "Border", token: "--ds-border", light: hex("#D6D3D1"), dark: hex("#44403C") }],
+    colours: [
+      { name: "Border", token: "--ds-border", light: hex("#D6D3D1"), dark: hex("#44403C") },
+      { name: "Field border", token: "--ds-field-border", light: hex("#D6D3D1"), dark: hex("#44403C") },
+    ],
   },
   {
     role: "Feedback",

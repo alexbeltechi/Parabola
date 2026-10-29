@@ -519,6 +519,9 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   // Fields: their own colour (in dark, the light one's dark version), or the page.
   const field = hexIn(colours.field, mode, () => tokens.bg);
   if (field) tokens.field = field;
+  // The fields' outline: the borders' colour while fields are the page's; a field of its own colour gets its own,
+  // that colour a step toward black (or toward white on a dark field), so it frames whatever colour it is.
+  tokens["field-border"] = field ? dsMix(dsLuminance(field) > 0.18 ? BLACK : WHITE, field, 0.16) : tokens.border;
   // The tertiary colour, the highlight: an older theme's preset; else its own colour or the text's, its tint a
   // wash of it on the page.
   const preset = colours.accent.light && !dsIsHex(colours.accent.light) && !(mode === "dark" && colours.accent.dark);

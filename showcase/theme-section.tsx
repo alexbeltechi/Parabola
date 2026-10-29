@@ -46,8 +46,8 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
  * has a colour of its own, an outline while it's based on another (the
  * primary type, the field and the surface on the base; the secondary type
  * and the button on the primary type; in dark, each on the light one).
- * Pick one in the list under the wheel, then click or drag anywhere on the
- * wheel to put it there. The list: the six as nav items, each with a ⋮ to
+ * Pick one in the list under the wheel (or press its point), then drag its
+ * point to move it; clicking the wheel itself changes nothing. The list: the six as nav items, each with a ⋮ to
  * copy or paste its hex (to give two the same colour) and delete it (back
  * to what it's based on) or, for the base, restore Parabola's. Delete or
  * Backspace on the chosen point does the same.
@@ -93,6 +93,7 @@ function ColourWheelChoice({
           floor: w.kind === "text" || w.kind === "muted" ? 0.45 : w.kind === "accent" ? 0.7 : 0,
         }))}
         selected={selected}
+        onSelect={(id) => setSelected(id as DsColourKind)}
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
         onRemove={(id) => remove(id as DsColourKind)}
       />
