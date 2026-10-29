@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight, Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
+import { ChevronRight, ClipboardPaste, Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
-import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
+import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownSeparator, DsDropdownTrigger } from "../primitives/dropdown";
+import { DsNavItem } from "../primitives/nav-item";
 import { DsField, DsInput, DsTextarea } from "../primitives/field";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
@@ -14,9 +15,8 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsv, dsHsvToHex, dsNormalizeHex, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsNormalizeHex, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsColourWheel } from "../components/colour-wheel";
-import { cn } from "../cn";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import {
   DS_BODY_FAMILY,
@@ -34,23 +34,23 @@ import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from ".
 // The tertiary colour (calls to action, pills) comes right after the text: it's the one picked next, before
 // the surface or buttons of their own (Alex, 2026-10-29).
 const WHEEL: { kind: DsColourKind; label: string }[] = [
-  { kind: "theme", label: "Primary colour" },
-  { kind: "text", label: "Secondary colour" },
-  { kind: "accent", label: "Tertiary colour" },
+  { kind: "theme", label: "Primary" },
+  { kind: "text", label: "Secondary" },
+  { kind: "accent", label: "Tertiary" },
   { kind: "surface", label: "Surface" },
   { kind: "button", label: "Buttons" },
 ];
 
 /**
  * The theme's five colours on one wheel, for the light or the dark theme
- * (whichever the preview is in). Every colour is a point: its own as a
- * solid dot, one still based on another (the tertiary on the secondary,
- * the surface on the primary, buttons on the tertiary; in dark, each on
- * the light one) faint. Drag a point to give it a colour of its
- * own; hover the disc for a plus, and a click there gives the next
- * based colour its own, where you clicked. Under the wheel, the five in a
- * list: pick one to move it with the arcs or type its hex, or put it back
- * to what it's based on.
+ * (whichever the preview is in): each a point, all alike, whether it has a
+ * colour of its own or is still based on another (the tertiary on the
+ * secondary, the surface on the primary, buttons on the tertiary; in dark,
+ * each on the light one). Drag a point to give it a colour of its own.
+ * Under the wheel, the chosen colour's hex, then the five as nav items,
+ * each with a ⋮: copy or paste its hex (to give two the same colour), and
+ * delete it (back to what it's based on) or, for the primary and secondary,
+ * restore Parabola's. Delete or Backspace on a chosen point does the same.
  */
 function ColourWheelChoice({
   colours,
@@ -66,31 +66,34 @@ function ColourWheelChoice({
   const [selected, setSelected] = React.useState<DsColourKind>("theme");
   const set = (kind: DsColourKind, next: Partial<DsThemeColour>) => onChange({ ...colours, [kind]: { ...colours[kind], ...next } });
   const basis = (kind: DsColourKind) => (mode === "dark" ? "light theme" : LIGHT_BASIS[kind]);
-  const based = (kind: DsColourKind) => colours[kind][pick] === null && basis(kind) !== null;
+  const own = (kind: DsColourKind) => colours[kind][pick] !== null;
   const shown = (kind: DsColourKind) => dsColourShown(colours, kind, mode);
-  // A click on the disc gives the next based colour its own: the primary first in dark, then on down the list.
-  const next = WHEEL.find((w) => based(w.kind));
+  const label = (kind: DsColourKind) => WHEEL.find((w) => w.kind === kind)?.label ?? kind;
+  const remove = (kind: DsColourKind) => {
+    if (!own(kind)) return;
+    const before = colours;
+    set(kind, { [pick]: null, [shiftKey]: undefined });
+    dsToast(basis(kind) ? `${label(kind)} deleted` : `${label(kind)} restored`, {
+      action: { label: "Undo", onClick: () => onChange(before) },
+    });
+  };
   const chosen = WHEEL.find((w) => w.kind === selected) ?? WHEEL[0];
   const [text, setText] = React.useState("");
   const [editing, setEditing] = React.useState(false);
   return (
     <div className="flex flex-col gap-ds-16">
       <DsColourWheel
-        points={WHEEL.map((w) => ({ id: w.kind, label: w.label, colour: shown(w.kind), based: based(w.kind) }))}
+        points={WHEEL.map((w) => ({
+          id: w.kind,
+          label: w.label,
+          colour: shown(w.kind),
+          // Pages and cards keep their brightness; text, buttons and the tertiary come out as a colour, not black.
+          floor: w.kind === "theme" || w.kind === "surface" ? 0 : w.kind === "text" ? 0.45 : 0.7,
+        }))}
         selected={selected}
         onSelect={(id) => setSelected(id as DsColourKind)}
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
-        addLabel={next && `Add ${next.label}`}
-        onAdd={
-          next &&
-          ((hue, saturation) => {
-            // Pages and cards keep their brightness; text, buttons and the accent come out as colour, not black.
-            const { v } = dsHexToHsv(shown(next.kind));
-            const page = next.kind === "theme" || next.kind === "surface";
-            set(next.kind, { [pick]: dsHsvToHex(hue, saturation, page ? v : Math.max(v, 0.85)) });
-            setSelected(next.kind);
-          })
-        }
+        onRemove={(id) => remove(id as DsColourKind)}
       />
       <DsInput
         aria-label={`${chosen.label} hex`}
@@ -107,45 +110,62 @@ function ColourWheelChoice({
           if (hex) set(chosen.kind, { [pick]: hex });
         }}
       />
-      <ul className="flex flex-col">
-        {WHEEL.map((w) => {
-          const own = colours[w.kind][pick] !== null;
-          const reset = basis(w.kind) ?? "Parabola's";
-          return (
-            <li key={w.kind} className="flex items-center gap-ds-4">
-              <button
-                type="button"
-                aria-pressed={selected === w.kind}
-                onClick={() => setSelected(w.kind)}
-                className={cn(
-                  "-mx-ds-8 flex h-9 min-w-0 flex-1 items-center gap-ds-8 rounded-ds-control px-ds-8 text-left text-p ds-focus ds-hover",
-                  selected === w.kind && "bg-ds-surface-subtle"
-                )}
-              >
-                <span
-                  aria-hidden
-                  className={cn("size-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_var(--ds-border)]", based(w.kind) && "opacity-50")}
-                  style={{ backgroundColor: shown(w.kind) }}
-                />
-                <span className="truncate text-ds-fg">{w.label}</span>
-                <span className="ml-auto truncate text-small text-ds-fg-muted">
-                  {based(w.kind) ? `Based on ${basis(w.kind)}` : shown(w.kind)}
-                </span>
-              </button>
-              {own && (
-                <DsButton
-                  size="small"
-                  variant="text"
-                  iconLeft={RotateCcw}
-                  aria-label={basis(w.kind) ? `${w.label}: based on ${reset} again` : `${w.label}: Parabola's own again`}
-                  title={basis(w.kind) ? `Based on ${reset} again` : "Parabola's own again"}
-                  onClick={() => set(w.kind, { [pick]: null, [shiftKey]: undefined })}
-                />
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="flex flex-col gap-ds-4">
+        {WHEEL.map((w) => (
+          <DsNavItem
+            key={w.kind}
+            selected={selected === w.kind}
+            onClick={() => setSelected(w.kind)}
+            leading={
+              <span
+                aria-hidden
+                className="size-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_var(--ds-border)]"
+                style={{ backgroundColor: shown(w.kind) }}
+              />
+            }
+            meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)?.replace(" colour", "")}`}
+            actions={
+              <DsDropdown>
+                <DsDropdownTrigger asChild>
+                  <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${w.label}`} />
+                </DsDropdownTrigger>
+                <DsDropdownContent align="end">
+                  <DsDropdownItem
+                    iconLeft={Copy}
+                    onSelect={() => navigator.clipboard.writeText(shown(w.kind)).then(() => dsToast.success(`${shown(w.kind)} copied`))}
+                  >
+                    Copy hex
+                  </DsDropdownItem>
+                  <DsDropdownItem
+                    iconLeft={ClipboardPaste}
+                    onSelect={() =>
+                      navigator.clipboard.readText().then((value) => {
+                        const hex = dsNormalizeHex(value);
+                        if (hex) set(w.kind, { [pick]: hex });
+                        else dsToast.error("No hex to paste");
+                      })
+                    }
+                  >
+                    Paste hex
+                  </DsDropdownItem>
+                  <DsDropdownSeparator />
+                  {basis(w.kind) ? (
+                    <DsDropdownItem tone="danger" iconLeft={Trash2} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
+                      Delete
+                    </DsDropdownItem>
+                  ) : (
+                    <DsDropdownItem iconLeft={RotateCcw} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
+                      Restore
+                    </DsDropdownItem>
+                  )}
+                </DsDropdownContent>
+              </DsDropdown>
+            }
+          >
+            {w.label}
+          </DsNavItem>
+        ))}
+      </div>
     </div>
   );
 }
