@@ -552,6 +552,11 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   );
   if (secondary) tokens.surface = secondary;
   else if (accent) tokens.surface = dsMix(accent, tokens.bg, 0.16);
+  // The label on it (the quiet buttons and light pills): light on a dark one, dark on a light one, as the primary
+  // button's is. The text when it's already on that side (Parabola's own), else white or black.
+  const darkSurface = dsLuminance(tokens.surface) <= 0.18;
+  const lightText = dsLuminance(tokens.fg) > 0.18;
+  tokens["on-surface"] = darkSurface === lightText ? tokens.fg : darkSurface ? WHITE : BLACK;
   return tokens;
 }
 

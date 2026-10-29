@@ -29,6 +29,7 @@
   --color-ds-field: var(--ds-field);
   --color-ds-field-border: var(--ds-field-border);
   --color-ds-surface: var(--ds-surface);
+  --color-ds-on-surface: var(--ds-on-surface);
   --color-ds-surface-inverse: var(--ds-surface-inverse);
   --color-ds-button: var(--ds-button);
   --color-ds-on-button: var(--ds-on-button);
@@ -278,6 +279,9 @@
   --ds-field: #FFFFFF;
   --ds-field-border: #D6D3D1;
   --ds-surface: #E2DFD9;
+  /* The label on it (quiet buttons, light pills): the text, or black or
+     white where the text wouldn't read on a theme's own surface. */
+  --ds-on-surface: #000000;
   --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
   /* Solid buttons and selected states, and what's on them: the text and the
      page by default; a theme's button colour sets its own (colours.ts). */
@@ -401,6 +405,7 @@
   --ds-field: #121110;
   --ds-field-border: #44403C;
   --ds-surface: #302E2C;
+  --ds-on-surface: #FFFFFF;
   /* Selected buttons invert against the page, as the nav pills always have. */
   --ds-surface-inverse: rgb(255 255 255 / 0.8);
   --ds-error: oklch(0.704 0.191 22.216);

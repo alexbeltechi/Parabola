@@ -24,7 +24,7 @@ export const dsPillVariants = cva(
     variants: {
       variant: {
         dark: "bg-ds-button text-ds-on-button",
-        light: "bg-ds-surface/70 text-ds-fg",
+        light: "bg-ds-surface/70 text-ds-on-surface",
         highlight: "bg-(--ds-highlight-tint) text-ds-highlight",
       },
     },

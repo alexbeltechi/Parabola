@@ -25,6 +25,7 @@ export const ROLES: Role[] = [
       { name: "Surface subtle", token: "--ds-surface-subtle", light: hex("#F7F5F2"), dark: hex("#1A1918") },
       { name: "Field", token: "--ds-field", light: hex("#FFFFFF"), dark: hex("#121110") },
       { name: "Surface", token: "--ds-surface", light: hex("#E2DFD9"), dark: hex("#302E2C") },
+      { name: "On surface", token: "--ds-on-surface", light: hex("#000000"), dark: hex("#FFFFFF") },
       {
         name: "Surface inverse",
         token: "--ds-surface-inverse",

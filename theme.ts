@@ -416,6 +416,7 @@ const COLOUR_ROLES: [token: string, role: string][] = [
   ["field", "field: input backgrounds"],
   ["field-border", "field outlines"],
   ["surface", "button: secondary, the quiet buttons and pills, and image placeholders"],
+  ["on-surface", "text on secondary buttons and pills"],
   ["surface-inverse", "toasts and tooltips"],
   ["button", "button: primary, the solid buttons and selected states"],
   ["on-button", "text on primary buttons"],
