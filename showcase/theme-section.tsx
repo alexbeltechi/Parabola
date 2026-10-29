@@ -137,37 +137,55 @@ function ColourWheelChoice({
             }
             // Auto while it's worked out from another (or Parabola's own); Custom once it has a colour of its own.
             meta={own(w.kind) ? "Custom" : "Auto"}
+            // Room for two actions: Restore and the ⋮.
+            className="pr-[4.5rem]"
             actions={
-              <DsDropdown>
-                <DsDropdownTrigger asChild>
-                  <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${w.label}`} />
-                </DsDropdownTrigger>
-                <DsDropdownContent align="end">
-                  <DsDropdownItem
-                    iconLeft={Copy}
-                    onSelect={() => navigator.clipboard.writeText(shown(w.kind)).then(() => dsToast.success(`${shown(w.kind)} copied`))}
-                  >
-                    Copy hex
-                  </DsDropdownItem>
-                  <DsDropdownItem
-                    iconLeft={ClipboardPaste}
-                    onSelect={() =>
-                      navigator.clipboard.readText().then((value) => {
-                        const hex = dsNormalizeHex(value);
-                        if (hex) set(w.kind, { [pick]: hex });
-                        else dsToast.error("No hex to paste");
-                      })
-                    }
-                  >
-                    Paste hex
-                  </DsDropdownItem>
-                  <DsDropdownSeparator />
-                  {/* Back to what it's based on (the base back to Parabola's); there's nothing to restore while it is. */}
-                  <DsDropdownItem iconLeft={RotateCcw} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
-                    Restore
-                  </DsDropdownItem>
-                </DsDropdownContent>
-              </DsDropdown>
+              <>
+                {/* Restore, beside the ⋮ only once it has a colour of its own; a space the same size till then, so
+                    the Auto and Custom line up. */}
+                {own(w.kind) ? (
+                  <DsButton
+                    size="small"
+                    variant="text"
+                    iconLeft={RotateCcw}
+                    aria-label={`Restore ${w.label}`}
+                    title="Restore"
+                    onClick={() => remove(w.kind)}
+                  />
+                ) : (
+                  <span aria-hidden className="size-6" />
+                )}
+                <DsDropdown>
+                  <DsDropdownTrigger asChild>
+                    <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${w.label}`} />
+                  </DsDropdownTrigger>
+                  <DsDropdownContent align="end">
+                    <DsDropdownItem
+                      iconLeft={Copy}
+                      onSelect={() => navigator.clipboard.writeText(shown(w.kind)).then(() => dsToast.success(`${shown(w.kind)} copied`))}
+                    >
+                      Copy hex
+                    </DsDropdownItem>
+                    <DsDropdownItem
+                      iconLeft={ClipboardPaste}
+                      onSelect={() =>
+                        navigator.clipboard.readText().then((value) => {
+                          const hex = dsNormalizeHex(value);
+                          if (hex) set(w.kind, { [pick]: hex });
+                          else dsToast.error("No hex to paste");
+                        })
+                      }
+                    >
+                      Paste hex
+                    </DsDropdownItem>
+                    <DsDropdownSeparator />
+                    {/* Back to what it's based on (the base back to Parabola's); there's nothing to restore while it is. */}
+                    <DsDropdownItem iconLeft={RotateCcw} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
+                      Restore
+                    </DsDropdownItem>
+                  </DsDropdownContent>
+                </DsDropdown>
+              </>
             }
           >
             {w.label}
