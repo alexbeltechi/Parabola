@@ -57,6 +57,7 @@ import {
 } from "../primitives/dropdown";
 import { DsNavItem } from "../primitives/nav-item";
 import { DsField, DsInput, DsTextarea } from "../primitives/field";
+import { DsDivider } from "../primitives/divider";
 import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
 import { dsToast } from "../primitives/toast";
@@ -480,152 +481,161 @@ type PreviewCopy = {
 /**
  * The same news in each voice a taste can have (taste.ts, DsTone; Alex,
  * 2026-10-29: "the text doesn't change in the tweet; it obviously ought
- * to"): three summers at the lake and three photographs kept, told calm,
- * exact, warm, sold, shouted, confessed, argued, joked, screamed, logged,
- * styled or felt.
+ * to"). Ilo is a maker, Y3K's kind (craft, art, sound, writing): she has
+ * finished Dragonfly, the silver glasses she wears, made over three summers
+ * at the lake, with recordings of the water. Told calm, exact, warm, sold,
+ * shouted, confessed, argued, joked, screamed, logged, styled or felt.
  */
 const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   calm: {
     x: "Make the small version first. Everything I've finished started bigger and got smaller.",
     story: [
-      "Keep fewer moments",
-      "The lake, 4am. Three summers in.",
+      "Dragonfly, finished",
+      "Three summers at the lake, one pair of glasses.",
       "New letter →",
     ],
-    carousel: "5 things I stopped photographing",
+    carousel: "5 things I learned making Dragonfly",
     email: {
       subject: "A letter from the lake",
-      title: "Keep fewer moments",
-      body: "This season I kept three. A dragonfly that waited, the lake at four in the morning, and a stone that holds one drop of it.",
+      title: "Dragonfly, finished",
+      body: "Three summers, one pair of glasses, and a few songs I recorded at the water while the silver set. Here's how it came together.",
       action: "Read the letter",
     },
   },
   precise: {
-    x: "New: the lake series is up. 24 photographs, 3 summers, one camera. The full set and my notes are on the site.",
-    story: ["The lake series", "24 frames. 35mm. 2024–2026.", "See the set →"],
-    carousel: "5 settings I use in low light",
+    x: "Dragonfly is finished: hand-formed silver, 38 g, three summers of work. Process notes and the recordings are on the site.",
+    story: ["Dragonfly", "Silver, 38 g. 2024–2026.", "See the process →"],
+    carousel: "5 steps from sketch to silver",
     email: {
-      subject: "The lake series is out",
-      title: "24 photographs from the lake",
-      body: "Shot over three summers on one camera and one lens. The set, the settings and the prints are on the site.",
-      action: "See the series",
+      subject: "Dragonfly is finished",
+      title: "How Dragonfly was made",
+      body: "Sketches, moulds, eleven failed casts and the one that worked. The whole process, with notes and recordings, is on the site.",
+      action: "See the process",
     },
   },
   warm: {
-    x: "Up at 4am for the lake again. Honestly the best part of my week. Want to come along next time?",
-    story: ["Morning, you", "Out at the lake again. So quiet.", "Say hi →"],
-    carousel: "5 reasons I keep going back",
+    x: "Finally finished the dragonfly glasses! Three summers of mornings at the lake went into these. I can't wait for you to see them.",
+    story: [
+      "They're done!",
+      "Three summers of mornings at the lake.",
+      "Say hi →",
+    ],
+    carousel: "5 reasons I nearly gave up (and didn't)",
     email: {
       subject: "Hi, it's Ilo",
-      title: "Come to the lake with me",
-      body: "I've gone every week this summer, and I wanted to share a few of those mornings with you. Pour a coffee first.",
+      title: "Come see what I made",
+      body: "I've worked on these by the lake for three summers, and I wanted you to see them first. Pour a coffee.",
       action: "Read my letter",
     },
   },
   elegant: {
-    x: "Three summers. One lake. Twelve prints.",
-    story: ["The lake", "An edition of twelve.", "Discover"],
-    carousel: "5 prints, one season",
+    x: "Dragonfly. Silver, glass, three summers.",
+    story: ["Dragonfly", "One of one.", "Discover"],
+    carousel: "5 details, one piece",
     email: {
-      subject: "The lake, an edition",
-      title: "Twelve prints",
-      body: "Three summers at the water, printed by hand on cotton paper. An edition of twelve, each one signed.",
-      action: "View the edition",
+      subject: "Dragonfly",
+      title: "One of one",
+      body: "Silver formed by hand over three summers at the lake. A single piece, signed.",
+      action: "View the piece",
     },
   },
   loud: {
-    x: "Stop taking a thousand photos. Take three. Keep them.",
-    story: ["Fewer. Better.", "Three photos a season. That's it.", "Read it →"],
-    carousel: "5 rules for keeping less",
+    x: "Stop starting. Finish one thing. I did: Dragonfly.",
+    story: [
+      "Finish the thing.",
+      "Three summers. One piece. Done.",
+      "Read it →",
+    ],
+    carousel: "5 rules for finishing",
     email: {
-      subject: "Keep three. Delete the rest.",
-      title: "Fewer moments. Better ones.",
-      body: "This season I kept three photographs. Here's why the rest went, and why yours should too.",
+      subject: "Finish one thing.",
+      title: "Done beats perfect.",
+      body: "Three summers, one piece, finished. Here's what it took, and why your next one should be finished too.",
       action: "Read the letter",
     },
   },
   candid: {
-    x: "Deleted 900 photos from this summer and kept three. Felt awful for a day. Then great.",
+    x: "Three summers and eleven failed casts to finish these glasses. Cried twice. Worth it.",
     story: [
-      "ok, I deleted 900 photos",
-      "kept three. still not sure.",
+      "ok, they're finally done",
+      "eleven failed casts. not joking.",
       "the letter →",
     ],
-    carousel: "5 photos I almost deleted",
+    carousel: "5 mistakes I made on Dragonfly",
     email: {
-      subject: "I deleted most of my summer",
-      title: "What I kept, and why",
-      body: "Nine hundred photos went this week. It wasn't tidy and it wasn't easy. These are the three that stayed.",
+      subject: "Eleven failed casts",
+      title: "What finishing actually looked like",
+      body: "It wasn't tidy and it wasn't quick. Here's the whole mess, and the one cast that worked.",
       action: "Read the letter",
     },
   },
   considered: {
     x: "Taste is mostly subtraction. The work people remember me by is what was left once I stopped adding.",
     story: [
-      "Keep fewer moments",
-      "On choosing, after three summers at the lake.",
+      "Keep fewer things",
+      "On finishing, after three summers at the lake.",
       "Read the essay →",
     ],
-    carousel: "5 ideas on keeping less",
+    carousel: "5 ideas on making less",
     email: {
-      subject: "On keeping fewer moments",
-      title: "Keep fewer moments",
-      body: "After three summers at the lake I kept three photographs. This letter is about why choosing is the work, and what it costs.",
+      subject: "On finishing",
+      title: "Keep fewer things",
+      body: "Three summers on one piece taught me that choosing is the work. This letter is about what it costs, and what it gives back.",
       action: "Read the essay",
     },
   },
   playful: {
-    x: "Woke up at 4am for the lake 🌅 The dragonfly was early too. We're basically colleagues now.",
-    story: ["the lake says hi 👋", "4am club, again", "new letter ✨"],
-    carousel: "5 reasons the lake is my best friend",
+    x: "Made myself dragonfly glasses 🕶️ The real dragonflies at the lake seem to approve.",
+    story: ["new face, who dis 🕶️", "the dragonflies approve", "new letter ✨"],
+    carousel: "5 reasons dragonflies are my muse",
     email: {
-      subject: "The lake says hi 🌅",
+      subject: "I made dragonfly glasses 🕶️",
       title: "Notes from the 4am club",
-      body: "The dragonfly showed up, the coffee went cold, and I got three photos I actually like. Here they are.",
+      body: "Three summers, a lot of cold coffee and some very patient dragonflies. Here's what came out of it.",
       action: "Come see",
     },
   },
   wild: {
-    x: "THE LAKE AT 4AM IS ANOTHER PLANET!!! I have proof. Three pieces of it.",
-    story: ["4AM!!!", "the lake is NOT normal", "LOOK →"],
-    carousel: "5 things the lake did to me",
+    x: "I MADE DRAGONFLY GLASSES!!! Three summers. Zero regrets. LOOK AT THEM!!!",
+    story: ["DRAGONFLY!!!", "three summers. ZERO regrets.", "LOOK →"],
+    carousel: "5 things the lake made me do",
     email: {
-      subject: "THE LAKE. AT 4AM.",
+      subject: "I MADE DRAGONFLY GLASSES",
       title: "It's another planet",
-      body: "I have three photographs and no explanations. Open at your own risk.",
+      body: "Silver, glass, three summers and no explanations. Open at your own risk.",
       action: "OPEN IT",
     },
   },
   futurist: {
-    x: "Log, 04:00. Lake surface still. One dragonfly. Archive: three frames kept, 900 released.",
-    story: ["04:00 / lake", "Signal: still. Frames kept: 3.", "Open log →"],
-    carousel: "5 frames from the edge",
+    x: "Log, 04:00. Lake surface still. Dragonfly unit complete: silver, glass, 38 g. Field recordings attached.",
+    story: ["Dragonfly / 03", "Status: complete. Signal: still.", "Open log →"],
+    carousel: "5 frames from the build",
     email: {
-      subject: "Transmission 03: the lake",
-      title: "Three frames, kept",
-      body: "Recorded at 04:00 over three summers. Everything else was released. These are what remain.",
+      subject: "Transmission 03: Dragonfly",
+      title: "Unit complete",
+      body: "Built at the lake over three summers, in 04:00 sessions. Schematics, field recordings and the finished piece.",
       action: "Open transmission",
     },
   },
   chic: {
-    x: "The lake, in black and blue. Out now.",
-    story: ["Lake, in blue", "SS26. Shot at dawn.", "Shop the series"],
-    carousel: "5 looks from the lake",
+    x: "Dragonfly. Silver eyewear, one of one. Out now.",
+    story: ["Dragonfly", "SS27. Silver, by hand.", "Shop the piece"],
+    carousel: "5 ways to wear Dragonfly",
     email: {
-      subject: "Lake, in blue",
-      title: "The dawn series",
-      body: "Shot at the water's edge at first light. Three looks, one lake. Now online.",
-      action: "Shop the series",
+      subject: "Dragonfly",
+      title: "The silver series",
+      body: "Hand-formed eyewear, made at the water's edge. One of one, now online.",
+      action: "Shop the piece",
     },
   },
   grounded: {
-    x: "Mud on the boots, mist on the water, one dragonfly on a reed. That was the whole morning, and it was enough.",
-    story: ["Slow mornings", "Mist, reeds, cold hands.", "Read the letter →"],
-    carousel: "5 sounds of the lake at dawn",
+    x: "Mist on the water, silver on the bench, a dragonfly on a reed. Three summers of mornings like that, and now the piece is done.",
+    story: ["Slow mornings", "Mist, reeds, cold silver.", "Read the letter →"],
+    carousel: "5 sounds from the lake at dawn",
     email: {
       subject: "From the water's edge",
-      title: "Slow mornings at the lake",
-      body: "The mist lifts around five. The reeds tick in the wind. I sat with it for three summers and kept three photographs.",
+      title: "Slow mornings, a finished piece",
+      body: "The mist lifts around five. I worked at a bench by the reeds for three summers, and recorded the water while the silver set.",
       action: "Read the letter",
     },
   },
@@ -732,7 +742,7 @@ function PreviewStory({
 }) {
   const [title, note, sticker] = copy.story;
   return (
-    <div className="relative aspect-[9/16] w-[220px] shrink-0 overflow-hidden rounded-ds-lg bg-ds-surface">
+    <div className="relative min-h-[320px] overflow-hidden rounded-ds-lg bg-ds-surface">
       <img
         src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`}
         alt="Ilo, by the water"
@@ -809,7 +819,7 @@ function PreviewCarouselPost({
   copy: PreviewCopy;
 }) {
   return (
-    <div className="flex min-w-[220px] flex-1 flex-col gap-ds-8">
+    <div className="flex min-w-0 flex-col gap-ds-8 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
       <div className="flex items-center gap-ds-8">
         <PreviewAvatar people={people} className="size-6" />
         <span className="text-small text-ds-fg">iloodena</span>
@@ -818,7 +828,7 @@ function PreviewCarouselPost({
           className="ml-auto size-4 text-ds-fg-muted"
         />
       </div>
-      <div className="relative aspect-square w-full overflow-hidden rounded-ds-lg bg-ds-surface">
+      <div className="relative aspect-square w-full overflow-hidden rounded-ds-md bg-ds-surface">
         <img
           src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
           alt="A still lake at dawn"
@@ -864,7 +874,7 @@ function PreviewCarouselPost({
 /**
  * A post on X, laid out as X lays one out: her avatar beside the post, her
  * name, a check and her handle and time on one line, the ⋯, the text, the
- * photo with a hairline edge, then the counts with their icons (replies,
+ * photo (cropped square, her head in), then the counts with their icons (replies,
  * reposts, likes, views) and bookmark and share at the end.
  */
 function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
@@ -897,7 +907,7 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
         <img
           src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`}
           alt="Black sand and a line of foam"
-          className="aspect-[16/10] w-full rounded-ds-lg border border-ds-border object-cover"
+          className="aspect-square w-full rounded-ds-lg object-cover object-[50%_30%]"
         />
         <div className="flex items-center justify-between gap-ds-8 pr-1">
           {count(MessageCircle, "12", "replies")}
@@ -939,7 +949,7 @@ function PreviewEmail({ copy }: { copy: PreviewCopy }) {
   );
 }
 
-/** A part of the preview: its name, small and muted, over what it shows. */
+/** A part of the preview: a divider, its name as the panel's sections show theirs, then what it shows (Alex, 2026-10-29). */
 function PreviewPart({
   title,
   className,
@@ -950,12 +960,12 @@ function PreviewPart({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={cn("flex flex-col gap-ds-20", className)}
-      aria-label={title}
-    >
-      <p className="text-small text-ds-fg-muted">{title}</p>
-      {children}
+    <section className="flex flex-col gap-ds-20" aria-label={title}>
+      <div className="flex flex-col gap-ds-16">
+        <DsDivider />
+        <p className="text-p text-ds-fg-muted">{title}</p>
+      </div>
+      <div className={cn("flex flex-col gap-ds-20", className)}>{children}</div>
     </section>
   );
 }
@@ -985,7 +995,9 @@ function PreviewBrand({
     dsTemperatureLabel(c.warmth),
   ].map((w) => w.toLowerCase());
   const names = new Map(dsFontOptions(theme).map((o) => [o.value, o.label]));
-  const fonts = [...new Set(theme.families.map((f) => names.get(f.font) ?? f.font))];
+  const fonts = [
+    ...new Set(theme.families.map((f) => names.get(f.font) ?? f.font)),
+  ];
   return (
     <PreviewPart title="Brand">
       <p className="text-h3 text-ds-fg">
@@ -1086,6 +1098,14 @@ function useTakes(
   onTheme: (theme: DsThemeConfig) => void,
 ) {
   const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
+  // The last look had with each pick of pills, tweaks and all (Alex, 2026-10-29: back to Approachable should be
+  // the Approachable he saw). Forward and the dice are for new ones; picking another theme forgets them (reset).
+  const seen = React.useRef(new Map<string, DsThemeConfig>());
+  const keyOf = (ids: string[]) => [...ids].sort().join();
+  const current = keyOf(theme.character.tastes);
+  React.useEffect(() => {
+    seen.current.set(current, theme);
+  }, [current, theme]);
   const [takes, setTakes] = React.useState<{
     list: DsThemeConfig[];
     at: number;
@@ -1123,7 +1143,7 @@ function useTakes(
   return {
     canBack: takes.at > 0,
     dice: () => show(drawn(dsRandomTastes(picked), true)),
-    draw: (ids: string[]) => show(drawn(ids)),
+    draw: (ids: string[]) => show(seen.current.get(keyOf(ids)) ?? drawn(ids)),
     clear: () => {
       onTheme(
         before
@@ -1133,6 +1153,7 @@ function useTakes(
       setBefore(null);
     },
     reset: () => {
+      seen.current.clear();
       setBefore(null);
       setTakes({ list: [], at: -1 });
     },
@@ -1344,17 +1365,16 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
  * buttons, and depth under Expression.
  * Each bar is drawn in what it does. Taste pills at the top draw a
  * background; "Show advanced options" opens the dials and the colours
- * themselves (Light and Dark, the wheel), for a colour of its own.
+ * themselves (the wheel, for the mode picked under the theme), for a
+ * colour of its own.
  */
 function AppearanceChoice({
   theme,
   mode,
-  setPreviewMode,
   onTheme,
 }: {
   theme: DsThemeConfig;
   mode: "light" | "dark";
-  setPreviewMode: (mode: "light" | "dark") => void;
   onTheme: (theme: DsThemeConfig) => void;
 }) {
   const character = theme.character;
@@ -1452,29 +1472,6 @@ function AppearanceChoice({
           `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
           tokensAt(character.contrast)["fg-muted"],
         )}
-        <div
-          className="flex items-center gap-ds-8"
-          role="group"
-          aria-label="Mode"
-        >
-          {/* The preview's mode only; the UI's is the sidebar's toggle. */}
-          <DsButton
-            size="small"
-            iconLeft={Sun}
-            pressed={mode === "light"}
-            onClick={() => setPreviewMode("light")}
-          >
-            Light
-          </DsButton>
-          <DsButton
-            size="small"
-            iconLeft={Moon}
-            pressed={mode === "dark"}
-            onClick={() => setPreviewMode("dark")}
-          >
-            Dark
-          </DsButton>
-        </div>
         <ColourWheelChoice
           colours={theme.colours}
           mode={mode}
@@ -1891,16 +1888,15 @@ export function ThemeSection() {
     theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // The brand, not just the UI (Alex, 2026-10-29): what it says and how (Brand), then the look in each place,
-    // at the CMS's reading width (600px): the site (Web), a story, a feed post and a post on X (Social), a letter
-    // (Email), and the admin's own card (App), with Ilo's own photos and words in the taste's voice.
+    // The brand, not just the UI (Alex, 2026-10-29): the look in each place, at the CMS's reading width (600px),
+    // the site (Web), a story, a feed post and a post on X (Social), a letter (Email) and the admin's own card
+    // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
-      <PreviewBrand theme={theme} rules={voice.rules} />
-
       <PreviewPart title="Web" className="gap-ds-40">
         <div className="flex items-center justify-between gap-ds-16">
           <span className="text-p text-ds-fg">Ilo Odena</span>
           <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
+            <DsButton variant="text">Work</DsButton>
             <DsButton variant="text" current>
               Writing
             </DsButton>
@@ -1967,7 +1963,9 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="Social">
-        <div className="flex flex-wrap items-start gap-ds-20">
+        {/* Two columns sized so the story comes out about 9:16 beside the card at the preview's width; the story
+            stretches to the card's height, so the two line up top and bottom. */}
+        <div className="grid grid-cols-[23fr_35fr] gap-ds-20">
           <PreviewStory people={people} story={story} tilt={tilt} copy={copy} />
           <PreviewCarouselPost people={people} story={story} copy={copy} />
         </div>
@@ -1979,19 +1977,22 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="App">
-        {/* A product card, as the admin shows a draft: its name and state, a note, its actions. */}
+        {/* Her project, as the admin shows a draft: its name and state, a note, its actions. */}
         <section className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
           <div className="flex items-start justify-between gap-ds-16">
             <div className="flex flex-col gap-ds-4">
-              <h3 className="text-h3 text-ds-fg">How to listen to a lake</h3>
+              <h3 className="text-h3 text-ds-fg">Dragonfly</h3>
               <p className="text-small text-ds-fg-muted">
-                Edited today · 3 images
+                Project · Craft, sound, writing · 14 images, 3 recordings
               </p>
             </div>
             <DsPill>Draft</DsPill>
           </div>
           <DsInfoCard title="Not live yet">
-            <p>Changes to a published post wait until you publish them.</p>
+            <p>
+              The process notes and the recordings go out with it when you
+              publish.
+            </p>
           </DsInfoCard>
           <div className="flex flex-wrap items-center gap-ds-8">
             <DsButton variant="primary">Publish</DsButton>
@@ -2000,6 +2001,8 @@ export function ThemeSection() {
           </div>
         </section>
       </PreviewPart>
+
+      <PreviewBrand theme={theme} rules={voice.rules} />
 
       <InPanel>
         <PanelSection
@@ -2070,9 +2073,34 @@ export function ThemeSection() {
             ]}
             value={entry.id}
             onValueChange={(value) =>
-              value === ADD_THEME ? setNaming("add") : select(value)
+              value === ADD_THEME
+                ? setNaming("add")
+                : (takes.reset(), select(value))
             }
           />
+          {/* The preview's mode, right under the theme (Alex, 2026-10-29); the UI's is the sidebar's toggle. */}
+          <div
+            className="flex items-center gap-ds-8"
+            role="group"
+            aria-label="Mode"
+          >
+            <DsButton
+              size="small"
+              iconLeft={Sun}
+              pressed={mode === "light"}
+              onClick={() => setPreviewMode("light")}
+            >
+              Light
+            </DsButton>
+            <DsButton
+              size="small"
+              iconLeft={Moon}
+              pressed={mode === "dark"}
+              onClick={() => setPreviewMode("dark")}
+            >
+              Dark
+            </DsButton>
+          </div>
         </PanelSection>
 
         {/* The taste feeder first: push the whole look somewhere, then tune it below (Alex, 2026-10-29). */}
@@ -2131,12 +2159,7 @@ export function ThemeSection() {
             />
           }
         >
-          <AppearanceChoice
-            theme={theme}
-            mode={mode}
-            setPreviewMode={setPreviewMode}
-            onTheme={setTheme}
-          />
+          <AppearanceChoice theme={theme} mode={mode} onTheme={setTheme} />
         </PanelSection>
 
         <PanelSection
