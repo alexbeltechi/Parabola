@@ -32,6 +32,19 @@ const SPAN = 42;
 
 const HUES = "#FF0000, #FF00FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000";
 
+/**
+ * The hue a white, black or grey is headed: none of them has one, so they point to paper's warm yellow-orange
+ * (Parabola's own paper and charcoal sit there), and moving one out from the centre warms it, not reddens it
+ * (Alex, 2026-10-29).
+ */
+const NEUTRAL_HUE = 40;
+
+/** A colour's hue, saturation and brightness, a neutral's hue paper's. */
+function toHsv(hex: string): Hsv {
+  const hsv = dsHexToHsv(hex);
+  return hsv.s === 0 ? { ...hsv, h: NEUTRAL_HUE } : hsv;
+}
+
 const clamp = (n: number) => Math.min(1, Math.max(0, n));
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const at = (deg: number, r: number) => ({
@@ -138,7 +151,7 @@ export function DsColourWheel({
 }) {
   // Each point keeps its own hue and saturation, so they survive black, white and greys while it's dragged.
   const [kept, setKept] = React.useState<Record<string, { hex: string; hsv: Hsv }>>({});
-  const hsvOf = (p: DsWheelPoint): Hsv => (kept[p.id]?.hex === p.colour ? kept[p.id].hsv : dsHexToHsv(p.colour));
+  const hsvOf = (p: DsWheelPoint): Hsv => (kept[p.id]?.hex === p.colour ? kept[p.id].hsv : toHsv(p.colour));
   const set = (p: DsWheelPoint, hsv: Hsv) => {
     const next = { h: (hsv.h + 360) % 360, s: clamp(hsv.s), v: clamp(hsv.v) };
     const hex = dsHsvToHex(next.h, next.s, next.v);
