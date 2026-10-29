@@ -467,10 +467,20 @@ function hexIn(
  * surfaces (cards, fields, side panels) are the text mixed into the page, so
  * everything on a card reads as it does on the page.
  */
-export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"): Record<string, string> {
+/**
+ * What a theme's character hands the derivations (character.ts): the base the
+ * light theme starts from while none is picked (null: Parabola's white), and
+ * a contrast, -1 (soft) to 1 (hard), that moves the quieter text, borders and
+ * cards nearer to or further from the base.
+ */
+export type DsColourOptions = { base?: string | null; contrast?: number };
+
+export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", options: DsColourOptions = {}): Record<string, string> {
   const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
   const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
-  const page = hexIn(colours.theme, mode, () => tokens.bg);
+  const contrast = options.contrast ?? 0;
+  // The page: picked for this theme, or the character's base (its dark version in dark), or Parabola's own.
+  const page = hexIn(colours.theme, mode, () => tokens.bg) ?? (options.base ? (mode === "light" ? options.base : dsCounterpart(options.base)) : null);
   const text = hexIn(
     colours.text,
     mode,
@@ -478,21 +488,24 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     // Text in dark reads well clear of the page (7:1), so its quieter steps, mixed toward the page, still read.
     (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7)
   );
-  if (page || text) {
+  if (page || text || contrast !== 0) {
     const bg = page ?? tokens.bg;
     const readable = dsLuminance(bg) > 0.18 ? BLACK : WHITE;
     // Text that's only based on another colour (its light one's counterpart, a shift) falls back to black or
     // white if it wouldn't read on this page; a colour picked for it is kept as picked.
     const picked = mode === "light" ? dsIsHex(colours.text.light) : Boolean(colours.text.dark);
     const fg = text && (picked || dsContrast(text, bg) >= 3) ? text : readable;
-    const card = dsMix(fg, bg, 0.045);
+    // The character's contrast: harder, the cards and borders sit further from the page and the quieter text
+    // nearer the strong text; softer, the other way.
+    const k = 1 + 0.5 * contrast;
+    const card = dsMix(fg, bg, 0.045 * k);
     Object.assign(tokens, {
       bg,
       fg,
       // The quieter text: in dark a little closer to the strong text, where it reads fainter (Alex, 2026-10-29).
-      "fg-muted": dsMix(fg, bg, mode === "dark" ? 0.8 : 0.7),
-      "fg-subtle": dsMix(fg, bg, mode === "dark" ? 0.64 : 0.52),
-      border: dsMix(fg, bg, 0.12),
+      "fg-muted": dsMix(fg, bg, Math.min(0.92, (mode === "dark" ? 0.8 : 0.7) + 0.12 * contrast)),
+      "fg-subtle": dsMix(fg, bg, Math.min(0.8, (mode === "dark" ? 0.64 : 0.52) + 0.12 * contrast)),
+      border: dsMix(fg, bg, 0.12 * k),
       "surface-subtle": card,
       // Fields are the page itself, solid: a place to type that shows on a card.
       field: bg,
@@ -571,8 +584,8 @@ const SHOWN: Record<DsColourKind, string> = {
 };
 
 /** What one of a theme's colours is in light or dark, as a hex: the page, the text, the quieter text, the buttons, the fields or the cards. */
-export function dsColourShown(colours: DsThemeColours, kind: DsColourKind, mode: "light" | "dark"): string {
-  return dsColourTokens(colours, mode)[SHOWN[kind]];
+export function dsColourShown(colours: DsThemeColours, kind: DsColourKind, mode: "light" | "dark", options?: DsColourOptions): string {
+  return dsColourTokens(colours, mode, options)[SHOWN[kind]];
 }
 
 /**

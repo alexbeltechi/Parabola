@@ -15,20 +15,24 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsColourTokens, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourOptions, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
-import { DS_DEFAULT_BUTTON_STYLE, DS_DEFAULT_FIELD_STYLE, DS_OUTLINE_MAX, DS_OUTLINE_WIDTHS, type DsButtonStyle } from "../button-style";
+import { DS_DEFAULT_FIELD_STYLE, DS_OUTLINE_MAX, DS_OUTLINE_WIDTHS, type DsButtonStyle } from "../button-style";
 import { DsAngleDial } from "../components/angle-dial";
 import { DsCheckbox } from "../primitives/checkbox";
-import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
+import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
+import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER, dsCharacterBase, dsCharacterColourOptions, type DsCharacter } from "../character";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
   DS_DEFAULT_THEME_ID,
   DS_HEADING_FAMILY,
+  dsThemeButtons,
+  dsThemeColourTokens,
   dsThemeExport,
+  dsThemeRadius,
   parseDsThemeConfig,
   parseDsThemeExport,
   type DsThemeConfig,
@@ -64,10 +68,13 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
 function ColourWheelChoice({
   colours,
   mode,
+  options,
   onChange,
 }: {
   colours: DsThemeColours;
   mode: "light" | "dark";
+  /** The character's base and contrast, under the Auto colours. */
+  options: DsColourOptions;
   onChange: (colours: DsThemeColours) => void;
 }) {
   const pick = mode === "light" ? "light" : "dark";
@@ -77,7 +84,7 @@ function ColourWheelChoice({
   const basis = (kind: DsColourKind) => (mode === "dark" ? "light theme" : LIGHT_BASIS[kind]);
   const own = (kind: DsColourKind) => colours[kind][pick] !== null;
   const based = (kind: DsColourKind) => !own(kind) && basis(kind) !== null;
-  const shown = (kind: DsColourKind) => dsColourShown(colours, kind, mode);
+  const shown = (kind: DsColourKind) => dsColourShown(colours, kind, mode, options);
   const label = (kind: DsColourKind) => WHEEL.find((w) => w.kind === kind)?.label ?? kind;
   const remove = (kind: DsColourKind) => {
     if (!own(kind)) return;
@@ -315,6 +322,81 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   field: "base",
   surface: "base",
 };
+
+/**
+ * The theme's character (character.ts; Alex, 2026-10-29): the dials that set
+ * the look as a whole, as a photograph is edited, with everything under them
+ * worked out from them until given its own. A base colour to start from
+ * (Auto: white), then Brightness, Warmth, Contrast, Roundness and Depth, each
+ * a bar drawn in what it does to the theme. The ends are named in
+ * DS_CHARACTER_DIALS.
+ */
+function CharacterChoice({
+  character,
+  theme,
+  mode,
+  onChange,
+}: {
+  character: DsCharacter;
+  theme: DsThemeConfig;
+  mode: "light" | "dark";
+  onChange: (character: DsCharacter) => void;
+}) {
+  const set = (next: Partial<DsCharacter>) => onChange({ ...character, ...next });
+  const [text, setText] = React.useState<string | null>(null);
+  const at = (next: Partial<DsCharacter>) => dsCharacterBase({ ...character, ...next }) ?? "#FFFFFF";
+  const tokensAt = (contrast: number) => dsThemeColourTokens({ ...theme, character: { ...character, contrast } }, mode);
+  const base = dsThemeColourTokens(theme, mode).bg;
+  // -50 to +50 from 0 in the middle, as the colours' numbers read.
+  const signed = (n: number) => (n === 0 ? "0" : `${n > 0 ? "+" : "−"}${Math.abs(n)}`);
+  const dial = (id: (typeof DS_CHARACTER_DIALS)[number]["id"], track: string, thumb: string) => {
+    const { label, min, max, low, high } = DS_CHARACTER_DIALS.find((d) => d.id === id)!;
+    const value = character[id];
+    const centred = min < 0;
+    const shown = centred ? Math.round(value * 50) : Math.round(value * 100);
+    return (
+      <DsColourBar
+        key={id}
+        label={label}
+        readout={centred ? signed(shown) : String(shown)}
+        value={(value - min) / (max - min)}
+        onChange={(x) => set({ [id]: Math.round((min + x * (max - min)) * 100) / 100 })}
+        valueText={`${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`}
+        track={track}
+        thumb={thumb}
+      />
+    );
+  };
+  return (
+    <div className="flex flex-col gap-ds-16">
+      <DsField size="small" label="Base colour">
+        <DsInput
+          size="small"
+          className="font-mono"
+          value={text ?? character.seed ?? ""}
+          placeholder="Auto (white)"
+          onFocus={() => setText(character.seed ?? "")}
+          onBlur={() => setText(null)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (e.target.value.trim() === "") set({ seed: null });
+            const hex = dsNormalizeHex(e.target.value);
+            if (hex) set({ seed: hex });
+          }}
+        />
+      </DsField>
+      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
+      {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
+      {dial(
+        "contrast",
+        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
+        tokensAt(character.contrast)["fg-muted"]
+      )}
+      {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+      {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+    </div>
+  );
+}
 
 /**
  * An outline's settings, for buttons and fields alike: a switch, then its
@@ -740,7 +822,18 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
+          title="Character"
+          actions={
+            <SectionRestore section="Character" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, character: DS_DEFAULT_CHARACTER })} />
+          }
+        >
+          <CharacterChoice character={theme.character} theme={theme} mode={mode} onChange={(character) => setTheme({ ...theme, character })} />
+        </PanelSection>
+
+        {/* The wheel, for a colour of its own over the character: folded, so the dials come first (Alex, 2026-10-29). */}
+        <PanelSection
           title="Colours"
+          defaultOpen={false}
           actions={<SectionRestore section="Colours" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, colours: DS_DEFAULT_COLOURS })} />}
         >
           <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
@@ -752,7 +845,12 @@ export function ThemeSection() {
               Dark
             </DsButton>
           </div>
-          <ColourWheelChoice colours={theme.colours} mode={mode} onChange={(colours) => setTheme({ ...theme, colours })} />
+          <ColourWheelChoice
+            colours={theme.colours}
+            mode={mode}
+            options={dsCharacterColourOptions(theme.character)}
+            onChange={(colours) => setTheme({ ...theme, colours })}
+          />
         </PanelSection>
 
         <PanelSection
@@ -787,14 +885,15 @@ export function ThemeSection() {
               section="Buttons"
               theme={theme}
               setTheme={setTheme}
-              restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS, pillRadius: null, buttons: DS_DEFAULT_BUTTON_STYLE })}
+              // Back to the character's: its roundness and depth.
+              restore={(t) => ({ ...t, radius: null, pillRadius: null, buttons: null })}
             />
           }
         >
           <ButtonChoice
-            style={theme.buttons}
-            button={dsColourTokens(theme.colours, mode).button}
-            radius={theme.radius}
+            style={dsThemeButtons(theme)}
+            button={dsThemeColourTokens(theme, mode).button}
+            radius={dsThemeRadius(theme)}
             pillRadius={theme.pillRadius}
             onStyle={(buttons) => setTheme({ ...theme, buttons })}
             onRadius={(radius) => setTheme({ ...theme, radius })}
@@ -813,7 +912,7 @@ export function ThemeSection() {
             on={theme.fields.outline}
             width={theme.fields.outlineWidth}
             opacity={theme.fields.outlineOpacity}
-            colour={dsColourTokens(theme.colours, mode)["field-border"]}
+            colour={dsThemeColourTokens(theme, mode)["field-border"]}
             onChange={(next) => setTheme({ ...theme, fields: { ...theme.fields, ...next } })}
           />
         </PanelSection>

@@ -117,6 +117,14 @@ namespace, short and brand-free, so a rename never touches code:
 
 A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
+- **Character** (`character.ts`, `DsCharacter`): the look as a whole, dials
+  every Auto value is worked out from: a base colour to start from (null:
+  white), brightness, warmth, contrast, roundness and depth. A value given
+  its own (a colour, `radius`, `buttons`) stays when a dial moves; `null`
+  means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
+  resolve a theme; `dsCharacterColourOptions` is what the colour
+  derivations take from it. An agent sets a look by moving dials.
+
 - **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
   colour: base (`theme`, the website's background; Parabola's is white,
   its cards a warm off-white #F7F5F2), type: primary (`text`, the text and

@@ -53,6 +53,9 @@ export {
   dsThemeFont,
   dsThemeFonts,
   dsThemeVars,
+  dsThemeRadius,
+  dsThemeButtons,
+  dsThemeColourTokens,
   parseDsThemeConfig,
   parseDsThemeExport,
   dsThemeExport,
@@ -84,6 +87,7 @@ export {
   dsHslToHex,
   DS_SHIFT_MAX,
   dsCounterpart,
+  type DsColourOptions,
   dsInkCounterpart,
   dsLuminance,
   dsHexToHsv,
@@ -178,6 +182,18 @@ export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
 export { DsColourPicker } from "./components/colour-picker";
+export {
+  DS_CHARACTER_DIALS,
+  DS_DEFAULT_CHARACTER,
+  dsCharacterBase,
+  dsCharacterButtons,
+  dsCharacterColourOptions,
+  dsCharacterIsDefault,
+  dsCharacterRadius,
+  parseDsCharacter,
+  type DsCharacter,
+  type DsCharacterDial,
+} from "./character";
 export {
   DS_DEFAULT_BUTTON_STYLE,
   DS_DEFAULT_FIELD_STYLE,
