@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cn } from "../cn";
 import { dsHexToHsv, dsHsvToHex } from "../colours";
+import { DsField, DsInput } from "../primitives/field";
 
 type Hsv = { h: number; s: number; v: number };
 
@@ -340,7 +341,9 @@ export function DsColourWheel({
                 // the others are only a thin black ring with a faint white line outside it, so they show on a dark wheel
                 // too, and the chosen one stands out (Alex, 2026-10-29).
                 backgroundColor: chosen ? p.colour : "transparent",
-                boxShadow: chosen ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)" : "inset 0 0 0 1px black, 0 0 0 1px rgb(255 255 255 / 0.3)",
+                boxShadow: chosen
+                  ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)"
+                  : "inset 0 0 0 1px black, 0 0 0 1px rgb(255 255 255 / 0.3)",
               }}
               onPointerDown={(event) => {
                 // Pressing it focuses it (in drag), so Delete and the arrow keys reach it after a click.
@@ -366,14 +369,76 @@ export function DsColourWheel({
           );
         })}
       </div>
-      <div className="flex items-baseline justify-between text-small tabular-nums">
-        <span className="text-ds-fg-muted">
-          Saturation <span className="text-ds-fg">{Math.round(hsv.s * 100)}</span>
-        </span>
-        <span className="text-ds-fg-muted">
-          Brightness <span className="text-ds-fg">{Math.round(hsv.v * 100)}</span>
-        </span>
+      {/* The chosen colour in numbers, laid out as the wheel is: saturation under its arc on the left, hue in the
+          middle under the ring, brightness under its arc on the right; each typed in as well as read. */}
+      <div className="grid grid-cols-3 gap-ds-8">
+        <NumberField
+          label="Saturation"
+          value={Math.round(hsv.s * 100)}
+          max={100}
+          align="left"
+          onCommit={(n) => set(current, { ...hsv, s: n / 100 })}
+        />
+        <NumberField
+          label="Hue"
+          value={Math.round(hsv.h) % 360}
+          max={359}
+          unit="°"
+          align="center"
+          onCommit={(n) => set(current, { ...hsv, h: n })}
+        />
+        <NumberField
+          label="Brightness"
+          value={Math.round(hsv.v * 100)}
+          max={100}
+          align="right"
+          onCommit={(n) => set(current, { ...hsv, v: n / 100 })}
+        />
       </div>
     </div>
+  );
+}
+
+/**
+ * One of the chosen colour's numbers, a small labelled field: what it is while left alone; while typed in, what's
+ * typed, applied as soon as it's a whole number in range.
+ */
+function NumberField({
+  label,
+  value,
+  max,
+  unit,
+  align,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  unit?: string;
+  align: "left" | "center" | "right";
+  onCommit: (n: number) => void;
+}) {
+  const [text, setText] = React.useState<string | null>(null);
+  const alignClass = align === "left" ? "text-left" : align === "center" ? "text-center" : "text-right";
+  return (
+    <DsField size="small" label={label} className={cn("w-full", alignClass)}>
+      <DsInput
+        size="small"
+        inputMode="numeric"
+        className={cn("tabular-nums", align === "center" && "[&_input]:text-center", align === "right" && "[&_input]:text-right")}
+        value={text ?? String(value)}
+        meta={unit}
+        onFocus={(e) => {
+          setText(String(value));
+          e.currentTarget.select();
+        }}
+        onBlur={() => setText(null)}
+        onChange={(e) => {
+          setText(e.target.value);
+          const n = Number.parseInt(e.target.value, 10);
+          if (Number.isFinite(n) && n >= 0 && n <= max) onCommit(n);
+        }}
+      />
+    </DsField>
   );
 }

@@ -106,21 +106,24 @@ function ColourWheelChoice({
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
         onRemove={(id) => remove(id as DsColourKind)}
       />
-      <DsInput
-        aria-label={`${chosen.label} hex`}
-        className="w-full font-mono"
-        value={editing ? text : shown(chosen.kind)}
-        onFocus={() => {
-          setText(shown(chosen.kind));
-          setEditing(true);
-        }}
-        onBlur={() => setEditing(false)}
-        onChange={(e) => {
-          setText(e.target.value);
-          const hex = dsNormalizeHex(e.target.value);
-          if (hex) set(chosen.kind, { [pick]: hex });
-        }}
-      />
+      <DsField size="small" label="Hex" className="w-full">
+        <DsInput
+          size="small"
+          aria-label={`${chosen.label} hex`}
+          className="font-mono"
+          value={editing ? text : shown(chosen.kind)}
+          onFocus={() => {
+            setText(shown(chosen.kind));
+            setEditing(true);
+          }}
+          onBlur={() => setEditing(false)}
+          onChange={(e) => {
+            setText(e.target.value);
+            const hex = dsNormalizeHex(e.target.value);
+            if (hex) set(chosen.kind, { [pick]: hex });
+          }}
+        />
+      </DsField>
       <div className="flex flex-col gap-ds-4">
         {WHEEL.map((w) => (
           <DsNavItem
@@ -363,9 +366,10 @@ function OutlineChoice({
               </DsButton>
             ))}
             <DsInput
+              size="small"
               aria-label={`${label} thickness in pixels`}
               inputMode="numeric"
-              className="h-6 min-w-0 flex-1 rounded-ds-control border-1 px-2 text-small"
+              className="min-w-0 flex-1"
               value={text}
               placeholder="Custom"
               meta="px"

@@ -19,6 +19,11 @@ import { cn } from "../cn";
  * (DS_FIELD_WIDTH_CLASS) on its own; inside a DsField it fills the field,
  * which carries the width instead.
  *
+ * Small (`size="small"`): the mini field, the small button's size: 24px
+ * tall, its corners (`rounded-ds-control`), `text-small`, 8px sides, for
+ * dense rows of numbers and codes (a colour's hue, its hex). A DsField of
+ * that size has a small label to match.
+ *
  * DS_FIELD_BOX_CLASS is exported so every field-shaped control (select and
  * date triggers, multi-select) draws the same box, and DS_FIELD_INVALID_CLASS
  * its error outline, always 2px, so it shows even in a theme whose fields
@@ -36,6 +41,9 @@ export const DS_FIELD_BOX_CLASS = [
   "disabled:cursor-not-allowed disabled:text-ds-fg-subtle has-[:disabled]:cursor-not-allowed has-[:disabled]:text-ds-fg-subtle",
   "[&_svg]:size-4 [&_svg]:shrink-0",
 ].join(" ");
+
+/** The small field's box, laid over DS_FIELD_BOX_CLASS: the small button's height, corners, type and sides. */
+export const DS_FIELD_SMALL_CLASS = "h-6 gap-1 rounded-ds-control px-2 text-small";
 
 /**
  * A form's fields: left-aligned at the standard width, side by side, wrapping
@@ -126,6 +134,8 @@ type DsInputOwnProps = {
   invalid?: boolean;
   /** No box: the text sits directly on the page. See DS_FIELD_BARE_CLASS. */
   bare?: boolean;
+  /** Small: the mini field, the small button's size (DS_FIELD_SMALL_CLASS). */
+  size?: "default" | "small";
 };
 
 export type DsInputProps = DsInputOwnProps &
@@ -141,6 +151,7 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
     showFocus,
     invalid,
     bare,
+    size = "default",
     className,
     onChange,
     ...props
@@ -173,7 +184,10 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
       data-slot="ds-input"
       data-focus={showFocus || undefined}
       data-invalid={invalid || undefined}
-      className={cn(bare ? DS_FIELD_BARE_CLASS : [DS_FIELD_BOX_CLASS, invalid && DS_FIELD_INVALID_CLASS], className)}
+      className={cn(
+        bare ? DS_FIELD_BARE_CLASS : [DS_FIELD_BOX_CLASS, size === "small" && DS_FIELD_SMALL_CLASS, invalid && DS_FIELD_INVALID_CLASS],
+        className
+      )}
     >
       {IconLeft && <IconLeft aria-hidden />}
       <input
@@ -284,9 +298,12 @@ export function DsField({
   description,
   error,
   required,
+  size = "default",
   children,
   className,
 }: {
+  /** Small: a small label and gap, for small fields (DsInput `size="small"`). */
+  size?: "default" | "small";
   /** The control's id; generated when left out. */
   id?: string;
   label?: React.ReactNode;
@@ -307,9 +324,9 @@ export function DsField({
   );
 
   return (
-    <div data-slot="ds-field" className={cn("flex flex-col gap-2 text-left", DS_FIELD_WIDTH_CLASS, className)}>
+    <div data-slot="ds-field" className={cn("flex flex-col text-left", size === "small" ? "gap-1" : "gap-2", DS_FIELD_WIDTH_CLASS, className)}>
       {label && (
-        <label htmlFor={id} className="text-p text-ds-fg-muted">
+        <label htmlFor={id} className={cn(size === "small" ? "text-small" : "text-p", "text-ds-fg-muted")}>
           {label}
           {required && <span aria-hidden>*</span>}
         </label>
