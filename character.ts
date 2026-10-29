@@ -13,8 +13,8 @@
  * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: the
  *   tone, moving roundness and the fonts' character.
  * - expression: 0 (quiet) to 1 (loud), 0.25 Parabola's own: how much it
- *   shouts, moving contrast, the headlines' weight and the buttons' depth
- *   (theme.ts, `dsThemeWithExpression`).
+ *   shouts, moving the headlines' weight and the buttons' depth (theme.ts,
+ *   `dsThemeWithExpression`); the type scale's sizes never move.
  * - warmth, the Temperature bar: -1 (cool) to 1 (warm): the human-or-
  *   technical feel, a white balance over the background and the greys drawn
  *   from it.
@@ -39,7 +39,7 @@
  * Pure data and functions, so the server and the browser share them.
  */
 import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
-import { dsHexToHsv, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
+import { dsHexToHsl, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
 /** The panel sections taste pills can be picked in, each deciding only its own values. */
@@ -155,10 +155,9 @@ export function dsTemperatureLabel(warmth: number): string {
 /** The headlines' weight at an expression: regular when quiet, bold when loud (Display, H1, H2). */
 export const dsExpressionWeight = (expression: number) => (expression < 0.35 ? 400 : expression < 0.6 ? 500 : expression < 0.85 ? 600 : 700);
 
-/** The dials at an expression: contrast from soft to hard, depth from flat to deep; Parabola's at 0.25. */
-export function dsExpressionDials(expression: number): Pick<DsCharacter, "contrast" | "depth"> {
-  const round = (n: number) => Math.round(n * 100) / 100;
-  return { contrast: round(Math.min(1, Math.max(-1, -0.2 + 0.8 * expression))), depth: round(Math.max(0, (expression - 0.3) / 0.7)) };
+/** The dials at an expression: the buttons' depth, flat to deep; Parabola's at 0.25 (contrast is Appearance's own). */
+export function dsExpressionDials(expression: number): Pick<DsCharacter, "depth"> {
+  return { depth: Math.round(Math.max(0, (expression - 0.3) / 0.7) * 100) / 100 };
 }
 
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
@@ -198,7 +197,8 @@ export function parseDsCharacter(value: unknown): DsCharacter {
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
   const tastes = Array.isArray(raw.tastes) ? [...new Set((raw.tastes as unknown[]).filter((t): t is string => typeof t === "string"))] : [];
   // A background picked as a hex for a day (`seed`) becomes its hue, colour and brightness.
-  const seed = dsIsHex(raw.seed) ? dsHexToHsv(raw.seed) : null;
+  const hsl = dsIsHex(raw.seed) ? dsHexToHsl(raw.seed) : null;
+  const seed = hsl ? { h: hsl[0], s: hsl[1], v: hsl[2] } : null;
   return {
     tastes: Array.isArray(raw.tastes) ? tastes : DS_DEFAULT_TASTES,
     scoped: parseScoped(raw.scoped),
@@ -237,11 +237,12 @@ export function dsCharacterBase(c: DsCharacter): string | null {
   }
   // On a colour, temperature leans its hue toward orange (warm, 30°) or blue (cool, 220°), up to 25° at the
   // ends, so a warm yellow stays a yellow; a white balance would pull it to green.
-  if (c.warmth === 0) return dsHsvToHex(c.hue, c.colour, c.brightness);
+  // A true brightness on a colour (Alex, 2026-10-29): 0 black, 0.5 the colour at its strongest, 1 white.
+  if (c.warmth === 0) return dsHslToHex(c.hue, c.colour, c.brightness);
   const toward = c.warmth > 0 ? 30 : 220;
   const gap = ((toward - c.hue + 540) % 360) - 180;
   const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(c.warmth));
-  return dsHsvToHex((c.hue + lean + 360) % 360, c.colour, c.brightness);
+  return dsHslToHex((c.hue + lean + 360) % 360, c.colour, c.brightness);
 }
 
 /** What the colour derivations take from the character (colours.ts). */

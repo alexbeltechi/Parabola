@@ -395,19 +395,15 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
 }
 
 /**
- * The theme at an expression (character.ts), quiet to loud: its contrast and
- * depth slid to it, and the headlines (Display, H1, H2) heavier and larger
- * as it rises, so the bar shows on any page, not only on solid buttons.
+ * The theme at an expression (character.ts), quiet to loud: the buttons'
+ * depth slid to it, and the headlines (Display, H1, H2) heavier as it rises.
+ * Sizes stay the type scale's; contrast is Appearance's own.
  */
 export function dsThemeWithExpression(theme: DsThemeConfig, expression: number): DsThemeConfig {
+  // The headlines' weight only: their sizes are the type scale's, which a look never changes (Alex, 2026-10-29).
   const weight = dsExpressionWeight(expression);
-  // The headlines grow with it: 90% of Parabola's size when quiet, 100% at its own 0.25, 130% when loud.
-  const scale = 1 + (expression - 0.25) * 0.4;
   const type = { ...theme.type };
-  for (const s of ["display", "h1", "h2"] as const) {
-    const d = DS_TEXT_STYLE_DEFAULTS[s];
-    type[s] = { ...type[s], weight, size: Math.round(d.size * scale), lineHeight: Math.round(d.lineHeight * scale) };
-  }
+  for (const s of ["display", "h1", "h2"] as const) type[s] = { ...type[s], weight };
   return { ...theme, type, character: { ...theme.character, expression, ...dsExpressionDials(expression) } };
 }
 

@@ -20,7 +20,7 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { AccentColoursSection, MainColoursSection } from "./colours-section";
+import { MainColoursSection } from "./colours-section";
 import { FontsSection } from "./fonts-section";
 import { FontFamiliesSection } from "./font-families-section";
 import { SpacingSection } from "./spacing-section";
@@ -73,10 +73,9 @@ export const DS_TIERS: DsTier[] = [
         slug: "colours",
         label: "Colours",
         icon: Palette,
-        pages: [
-          { slug: "main", label: "Main", component: MainColoursSection },
-          { slug: "accent", label: "Accent", component: AccentColoursSection },
-        ],
+        // One page, the open theme's colours; the content accents (category colours) aren't a theme's (Alex, 2026-10-29).
+        single: true,
+        pages: [{ slug: "main", label: "Colours", component: MainColoursSection }],
       },
       {
         slug: "typography",

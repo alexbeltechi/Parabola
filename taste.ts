@@ -25,7 +25,7 @@
  */
 import type { DsFieldStyle } from "./button-style";
 import { dsCharacterBase, dsExpressionDials, dsMoodDials, type DsCharacter, type DsFontPair } from "./character";
-import { dsContrast, dsHexToHsv } from "./colours";
+import { dsContrast, dsHexToHsl } from "./colours";
 
 type Range = readonly [number, number];
 
@@ -290,7 +290,7 @@ export function dsRandomTastes(not: string[] = []): string[] {
  * background (its hue, colour and brightness), a button colour that stands
  * out from it, and a font pair, from any of them.
  */
-export function dsShuffleTaste(ids: string[], current: DsCharacter): DsTasteDraw {
+export function dsShuffleTaste(ids: string[], current: DsCharacter, wide = false): DsTasteDraw {
   const known = DS_TASTES.filter((t) => ids.includes(t.id));
   const tastes = known.length ? known : [pick(DS_TASTES)];
   const meet = meetOf;
@@ -301,23 +301,32 @@ export function dsShuffleTaste(ids: string[], current: DsCharacter): DsTasteDraw
     const ranges = tastes.flatMap((t) => (t.dials?.[key] ? [t.dials[key]!] : []));
     if (ranges.length) dials[key] = between(meet(ranges));
   }
-  const background = pick(tastes.flatMap((t) => t.backgrounds));
-  const hsv = background ? dsHexToHsv(background) : null;
+  // `wide` (the dice): reach past the tastes' own choices half the time, a coloured background and any font pair,
+  // so a random look is plainly different.
+  const colourful = DS_TASTES.flatMap((t) => t.backgrounds).filter((b): b is string => b !== null);
+  let background = pick(tastes.flatMap((t) => t.backgrounds));
+  if (wide && !background && Math.random() < 0.5) background = pick(colourful);
+  const hsl = background ? dsHexToHsl(background) : null;
   const character: DsCharacter = {
     ...current,
     ...dials,
     tastes: tastes.map((t) => t.id),
     mood,
     expression,
-    hue: hsv && hsv.s > 0 ? Math.round(hsv.h) : current.hue,
-    colour: hsv ? Math.round(hsv.s * 100) / 100 : 0,
-    brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
+    hue: hsl && hsl[1] > 0 ? Math.round(hsl[0]) : current.hue,
+    colour: hsl ? Math.round(hsl[1] * 100) / 100 : 0,
+    brightness: hsl ? Math.round(hsl[2] * 100) / 100 : 1,
   };
   // A button colour that stands out from the page it lands on (a pink button on a pink page doesn't); else the text's.
   const page = dsCharacterBase(character) ?? "#FFFFFF";
   const buttons = tastes.flatMap((t) => t.buttons).filter((b) => b === null || dsContrast(b, page) >= 2);
   const fonts = tastes.flatMap((t) => t.fonts);
-  return { character, fonts: fonts.length ? pick(fonts) : null, button: buttons.length ? pick(buttons) : null };
+  const anyFonts = DS_TASTES.flatMap((t) => t.fonts);
+  return {
+    character,
+    fonts: fonts.length ? pick(fonts) : wide ? pick(anyFonts) : null,
+    button: buttons.length ? pick(buttons) : null,
+  };
 }
 
 /*
@@ -354,12 +363,12 @@ export function dsTasteField(ids: string[]): DsFieldStyle {
 export function dsTasteBackground(ids: string[], current: DsCharacter): Pick<DsCharacter, "hue" | "colour" | "brightness" | "warmth"> {
   const tastes = tastesOf(ids);
   const background = pick(tastes.flatMap((t) => t.backgrounds));
-  const hsv = background ? dsHexToHsv(background) : null;
+  const hsl = background ? dsHexToHsl(background) : null;
   const warmths = tastes.flatMap((t) => (t.dials?.warmth ? [t.dials.warmth] : []));
   return {
-    hue: hsv && hsv.s > 0 ? Math.round(hsv.h) : current.hue,
-    colour: hsv ? Math.round(hsv.s * 100) / 100 : 0,
-    brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
+    hue: hsl && hsl[1] > 0 ? Math.round(hsl[0]) : current.hue,
+    colour: hsl ? Math.round(hsl[1] * 100) / 100 : 0,
+    brightness: hsl ? Math.round(hsl[2] * 100) / 100 : 1,
     warmth: warmths.length ? between(meetOf(warmths)) : current.warmth,
   };
 }

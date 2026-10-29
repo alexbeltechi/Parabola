@@ -1,5 +1,9 @@
+"use client";
+
 import { DS_ACCENTS } from "../accents";
+import { dsThemeColourTokens } from "../theme";
 import { PAGE, ROLES, type Value } from "./colour-roles";
+import { useThemeEditor } from "./theme-editor";
 
 function Swatch({ value, page }: { value: Value; page: string }) {
   return (
@@ -16,11 +20,20 @@ function Swatch({ value, page }: { value: Value; page: string }) {
 }
 
 /**
- * Colours › Main: the UI palette by role, each token in light and dark side by
- * side (the same tokens in both themes; the theme toggle swaps which value is
- * live), then the one elevation.
+ * Foundations › Colours: the open theme's palette by role, each token in
+ * light and dark side by side, worked out from what the theme section set
+ * (its taste, its dials, any colour of its own), so the foundations follow
+ * the theme (Alex, 2026-10-29); then the one elevation. Parabola's own
+ * values, which tokens.css holds, are what shows with nothing changed.
  */
 export function MainColoursSection() {
+  const { theme } = useThemeEditor();
+  const live = { light: dsThemeColourTokens(theme, "light"), dark: dsThemeColourTokens(theme, "dark") };
+  const value = (mode: "light" | "dark", token: string, fallback: Value): Value => {
+    const css = live[mode][token.replace(/^--ds-/, "")];
+    return css ? { css, label: css } : fallback;
+  };
+  const page = { light: live.light.bg ?? PAGE.light, dark: live.dark.bg ?? PAGE.dark };
   return (
     <div className="flex w-full max-w-2xl flex-col gap-10">
       <div className="grid grid-cols-[1fr_9rem_9rem] items-center gap-x-4 -mb-6 text-small text-ds-fg-subtle max-sm:grid-cols-[1fr_8rem_8rem]">
@@ -41,8 +54,8 @@ export function MainColoursSection() {
                 <span className="truncate text-p text-ds-fg">{name}</span>
                 <span className="truncate text-small text-ds-fg-subtle">{token}</span>
               </div>
-              <Swatch value={light} page={PAGE.light} />
-              <Swatch value={dark} page={PAGE.dark} />
+              <Swatch value={value("light", token, light)} page={page.light} />
+              <Swatch value={value("dark", token, dark)} page={page.dark} />
             </div>
           ))}
         </section>

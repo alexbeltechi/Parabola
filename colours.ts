@@ -497,7 +497,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     const fg = text && (picked || dsContrast(text, bg) >= 3) ? text : readable;
     // The character's contrast: harder, the cards and borders sit further from the page and the quieter text
     // nearer the strong text; softer, the other way.
-    const k = 1 + 0.5 * contrast;
+    const k = 1 + 0.8 * contrast;
     const card = dsMix(fg, bg, 0.045 * k);
     Object.assign(tokens, {
       bg,
@@ -509,7 +509,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
       "surface-subtle": card,
       // Fields are the page itself, solid: a place to type that shows on a card.
       field: bg,
-      surface: dsMix(fg, card, 0.11),
+      // The secondary buttons and pills: further from the cards as contrast rises, so primary and secondary differ.
+      surface: dsMix(fg, card, 0.11 * k),
       // Toasts and tooltips in the text colour, solid.
       "surface-inverse": fg,
     });
@@ -564,7 +565,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     (hex) => dsCounterpart(hex, DARK_CARD + 0.06)
   );
   if (secondary) tokens.surface = secondary;
-  else if (accent) tokens.surface = dsMix(accent, tokens.bg, 0.16);
+  else if (accent) tokens.surface = dsMix(accent, tokens.bg, 0.16 * (1 + 0.8 * contrast));
   // The label on it (the quiet buttons and light pills): light on a dark one, dark on a light one, as the primary
   // button's is. The text when it's already on that side (Parabola's own), else white or black.
   const darkSurface = dsLuminance(tokens.surface) <= 0.18;

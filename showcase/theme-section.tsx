@@ -651,8 +651,8 @@ function TastePills({
 function useTakes(theme: DsThemeConfig, onTheme: (theme: DsThemeConfig) => void) {
   const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
   const [takes, setTakes] = React.useState<{ list: DsThemeConfig[]; at: number }>({ list: [], at: -1 });
-  const drawn = (ids: string[]) => {
-    const next = dsShuffleTaste(ids, theme.character);
+  const drawn = (ids: string[], wide = false) => {
+    const next = dsShuffleTaste(ids, theme.character, wide);
     const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
     const drawnTheme = dsThemeWithFonts(
       { ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null },
@@ -679,7 +679,7 @@ function useTakes(theme: DsThemeConfig, onTheme: (theme: DsThemeConfig) => void)
   return {
     canBack: takes.at > 0,
     nudge: () => show(nudged()),
-    dice: () => show(drawn(dsRandomTastes(picked))),
+    dice: () => show(drawn(dsRandomTastes(picked), true)),
     draw: (ids: string[]) => show(drawn(ids)),
     clear: () => {
       onTheme(
@@ -1462,6 +1462,7 @@ export function ThemeSection() {
                       ...t,
                       character: DS_DEFAULT_CHARACTER,
                       colours: DS_DEFAULT_COLOURS,
+                      type: DS_DEFAULT_THEME.type,
                       radius: null,
                       pillRadius: null,
                       buttons: null,
@@ -1493,7 +1494,7 @@ export function ThemeSection() {
                   hue: 40,
                   colour: 0,
                   brightness: 1,
-                  ...dsExpressionDials(t.character.expression),
+                  contrast: 0,
                 },
                 colours: DS_DEFAULT_COLOURS,
               })}
