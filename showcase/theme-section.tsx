@@ -106,7 +106,8 @@ function ColourWheelChoice({
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
         onRemove={(id) => remove(id as DsColourKind)}
       />
-      <DsField size="small" label="Hex" className="w-full">
+      {/* Named for the colour it is, its hex inside. */}
+      <DsField size="small" label={`Colour: ${chosen.label}`} className="w-full">
         <DsInput
           size="small"
           aria-label={`${chosen.label} hex`}

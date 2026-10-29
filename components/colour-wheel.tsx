@@ -369,14 +369,13 @@ export function DsColourWheel({
           );
         })}
       </div>
-      {/* The chosen colour in numbers, laid out as the wheel is: saturation under its arc on the left, hue in the
-          middle under the ring, brightness under its arc on the right; each typed in as well as read. */}
+      {/* The chosen colour in numbers, in the wheel's order: saturation (its left arc), hue (the ring), brightness
+          (its right arc); each typed in as well as read, laid out as any field is. */}
       <div className="grid grid-cols-3 gap-ds-8">
         <NumberField
           label="Saturation"
           value={Math.round(hsv.s * 100)}
           max={100}
-          align="left"
           onCommit={(n) => set(current, { ...hsv, s: n / 100 })}
         />
         <NumberField
@@ -384,14 +383,12 @@ export function DsColourWheel({
           value={Math.round(hsv.h) % 360}
           max={359}
           unit="°"
-          align="center"
           onCommit={(n) => set(current, { ...hsv, h: n })}
         />
         <NumberField
           label="Brightness"
           value={Math.round(hsv.v * 100)}
           max={100}
-          align="right"
           onCommit={(n) => set(current, { ...hsv, v: n / 100 })}
         />
       </div>
@@ -408,24 +405,21 @@ function NumberField({
   value,
   max,
   unit,
-  align,
   onCommit,
 }: {
   label: string;
   value: number;
   max: number;
   unit?: string;
-  align: "left" | "center" | "right";
   onCommit: (n: number) => void;
 }) {
   const [text, setText] = React.useState<string | null>(null);
-  const alignClass = align === "left" ? "text-left" : align === "center" ? "text-center" : "text-right";
   return (
-    <DsField size="small" label={label} className={cn("w-full", alignClass)}>
+    <DsField size="small" label={label} className="w-full">
       <DsInput
         size="small"
         inputMode="numeric"
-        className={cn("tabular-nums", align === "center" && "[&_input]:text-center", align === "right" && "[&_input]:text-right")}
+        className="tabular-nums"
         value={text ?? String(value)}
         meta={unit}
         onFocus={(e) => {
