@@ -471,17 +471,14 @@ function hexIn(
  * What a theme's character hands the derivations (character.ts): the base the
  * light theme starts from while none is picked (null: Parabola's white); a
  * contrast, -1 (soft) to 1 (hard), that moves the quieter text, borders and
- * cards nearer to or further from the base; and how vivid it is, 0 (quiet)
- * to 1 (loud), 0.25 Parabola's: how far the button colour spreads into the
- * cards, the secondary buttons, the tints and the quieter text.
+ * cards nearer to or further from the base.
  */
-export type DsColourOptions = { base?: string | null; contrast?: number; vivid?: number };
+export type DsColourOptions = { base?: string | null; contrast?: number };
 
 export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", options: DsColourOptions = {}): Record<string, string> {
   const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
   const tokens: Record<string, string> = { ...dsBaseTokens(base, mode), fg: mode === "light" ? BLACK : WHITE };
   const contrast = options.contrast ?? 0;
-  const vivid = options.vivid ?? 0.25;
   // The page: picked for this theme, or the character's base (its dark version in dark), or Parabola's own.
   const page = hexIn(colours.theme, mode, () => tokens.bg) ?? (options.base ? (mode === "light" ? options.base : dsCounterpart(options.base)) : null);
   const text = hexIn(
@@ -553,8 +550,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     tokens["highlight-tint"] = old.tint;
   } else {
     tokens.highlight = accent ?? tokens.fg;
-    // A wash of it, stronger as the look gets louder (0.14 at Parabola's).
-    tokens["highlight-tint"] = dsMix(tokens.highlight, tokens.bg, 0.06 + 0.32 * vivid);
+    tokens["highlight-tint"] = dsMix(tokens.highlight, tokens.bg, 0.14);
   }
   // Buttons and selected states: the tertiary colour with black or white on it; or, while it's the text's, the
   // text on the page.
@@ -569,15 +565,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     (hex) => dsCounterpart(hex, DARK_CARD + 0.06)
   );
   if (secondary) tokens.surface = secondary;
-  else if (accent) tokens.surface = dsMix(accent, tokens.bg, (0.06 + 0.4 * vivid) * (1 + 0.8 * contrast));
-  // Louder than Parabola's, the button colour spreads: into the cards and the quieter text, unless they're picked
-  // (Alex, 2026-10-29: Expression is the use of colour).
-  const spread = accent ? Math.max(0, vivid - 0.25) / 0.75 : 0;
-  if (spread) {
-    if (!card) tokens["surface-subtle"] = dsMix(accent!, tokens["surface-subtle"], 0.3 * spread);
-    if (!muted) tokens["fg-muted"] = dsMix(accent!, tokens["fg-muted"], 0.35 * spread);
-    tokens.border = dsMix(accent!, tokens.border, 0.4 * spread);
-  }
+  else if (accent) tokens.surface = dsMix(accent, tokens.bg, 0.16 * (1 + 0.8 * contrast));
   // The label on it (the quiet buttons and light pills): light on a dark one, dark on a light one, as the primary
   // button's is. The text when it's already on that side (Parabola's own), else white or black.
   const darkSurface = dsLuminance(tokens.surface) <= 0.18;

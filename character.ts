@@ -7,29 +7,19 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * Three levers define a taste before any pill (Alex, 2026-10-29: the
- * foundation of the taste engine; the way people describe a brand, how
- * formal, how loud, how warm):
  * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: the
- *   tone, moving roundness and the fonts' character.
- * - expression: 0 (quiet) to 1 (loud), 0.25 Parabola's own: how boldly it
- *   uses colour, not shape or weight (Alex, 2026-10-29): how far the button
- *   colour spreads into the cards, the secondary buttons, the tints and the
- *   quieter text (colours.ts, `vivid`). Quiet keeps them grey; loud washes
- *   them in the brand's colour.
- * - warmth, the Temperature bar: -1 (cool) to 1 (warm): the human-or-
- *   technical feel, a white balance over the background and the greys drawn
- *   from it.
- * Each is a lever, not a value of its own: moving one moves what's under it.
- * - scoped: taste pills picked inside one section (Typography, Buttons,
- *   Fields, Appearance), which decide only that section's values. Not a value of
- *   its own: moving it moves the dials below and the fonts together
- *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
- *   described, and they can be fine-tuned after.
+ *   lever a taste starts from, the way people first describe a brand. Not a
+ *   value of its own: moving it moves roundness and the fonts together
+ *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), and they can be fine-tuned
+ *   after. (An Expression bar, how boldly colour spread, sat beside it for a
+ *   day; Alex, 2026-10-29: the mood does it better.)
+ * - scoped: the pick on the one rail inside Typography (a kind of type) and
+ *   inside Buttons (a kind of button), each deciding only that section's
+ *   values (taste.ts, `DS_TYPE_STYLES`, `DS_BUTTON_LOOKS`).
  * - tastes: the taste pills the look was drawn from (taste.ts), by id.
  * - The background, as dials rather than a hex (a hex is Colours' job;
- *   Alex, 2026-10-29): warmth, -1 (cold) to 1 (warm), a white balance over
- *   it; hue, 0 to 360; colour, 0 (none: white, greys, black) to 1 (the hue
+ *   Alex, 2026-10-29), in Appearance: warmth, the Temperature bar, -1 (cool)
+ *   to 1 (warm), a white balance over it and the greys drawn from it; hue, 0 to 360; colour, 0 (none: white, greys, black) to 1 (the hue
  *   at full strength), so a strong teal or a mid green is as reachable as
  *   paper; brightness, 0 (black) to 1 (as light as it goes).
  * - contrast: -1 (soft) to 1 (hard), 0 Parabola's: how far the quieter
@@ -44,14 +34,13 @@ import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
 import { dsHexToHsl, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
-/** The panel sections taste pills can be picked in, each deciding only its own values. */
-export type DsTasteScope = "type" | "buttons" | "fields" | "appearance";
+/** The panel sections with a rail of their own, each deciding only its own values. */
+export type DsTasteScope = "type" | "buttons";
 
 export type DsCharacter = {
   tastes: string[];
-  scoped: Partial<Record<DsTasteScope, string[]>>;
+  scoped: Partial<Record<DsTasteScope, string>>;
   mood: number;
-  expression: number;
   warmth: number;
   hue: number;
   colour: number;
@@ -71,7 +60,6 @@ export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
   scoped: {},
   mood: 0.5,
-  expression: 0.25,
   warmth: 0,
   hue: 40,
   colour: 0,
@@ -136,15 +124,6 @@ export function dsMoodDials(mood: number): Pick<DsCharacter, "roundness"> {
   return { roundness: mix("roundness") };
 }
 
-/** An expression's word, for its bar. */
-export function dsExpressionLabel(expression: number): string {
-  if (expression < 0.15) return "Quiet";
-  if (expression < 0.4) return "Calm";
-  if (expression < 0.65) return "Lively";
-  if (expression < 0.85) return "Expressive";
-  return "Loud";
-}
-
 /** A temperature's word, for its bar. */
 export function dsTemperatureLabel(warmth: number): string {
   if (warmth < -0.6) return "Cool";
@@ -170,13 +149,13 @@ export type DsCharacterDial = (typeof DS_CHARACTER_DIALS)[number]["id"];
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-/** The pills picked inside each section, from stored data. */
-function parseScoped(value: unknown): Partial<Record<DsTasteScope, string[]>> {
+/** The pick on each section's rail, from stored data (a list of pills for a day: its first). */
+function parseScoped(value: unknown): Partial<Record<DsTasteScope, string>> {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
-  const out: Partial<Record<DsTasteScope, string[]>> = {};
-  for (const scope of ["type", "buttons", "fields", "appearance"] as const) {
-    const ids = raw[scope];
-    if (Array.isArray(ids) && ids.length) out[scope] = [...new Set(ids.filter((t): t is string => typeof t === "string"))];
+  const out: Partial<Record<DsTasteScope, string>> = {};
+  for (const scope of ["type", "buttons"] as const) {
+    const id = Array.isArray(raw[scope]) ? (raw[scope] as unknown[])[0] : raw[scope];
+    if (typeof id === "string") out[scope] = id;
   }
   return out;
 }
@@ -198,7 +177,6 @@ export function parseDsCharacter(value: unknown): DsCharacter {
     tastes: Array.isArray(raw.tastes) ? tastes : DS_DEFAULT_TASTES,
     scoped: parseScoped(raw.scoped),
     mood,
-    expression: typeof raw.expression === "number" && Number.isFinite(raw.expression) ? clamp(raw.expression, 0, 1) : DS_DEFAULT_CHARACTER.expression,
     warmth: dial("warmth"),
     hue: seed && seed.s > 0 ? Math.round(seed.h) : dial("hue"),
     colour: seed ? Math.round(seed.s * 100) / 100 : dial("colour"),
@@ -213,7 +191,6 @@ export const dsCharacterIsDefault = (c: DsCharacter) =>
   [...c.tastes].sort().join() === [...DS_DEFAULT_TASTES].sort().join() &&
   Object.keys(c.scoped).length === 0 &&
   c.mood === 0.5 &&
-  c.expression === 0.25 &&
   c.colour === 0 && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /**
@@ -242,7 +219,7 @@ export function dsCharacterBase(c: DsCharacter): string | null {
 
 /** What the colour derivations take from the character (colours.ts). */
 export function dsCharacterColourOptions(c: DsCharacter): DsColourOptions {
-  return { base: dsCharacterBase(c), contrast: c.contrast, vivid: c.expression };
+  return { base: dsCharacterBase(c), contrast: c.contrast };
 }
 
 /** The corners from the roundness: None, then 2 to 20px, then Large (fully round pills). */

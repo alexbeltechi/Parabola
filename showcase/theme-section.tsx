@@ -10,8 +10,21 @@ import {
   ChevronUp,
   ClipboardPaste,
   Copy,
+  Aperture,
+  Armchair,
   ArrowRight,
   BadgeCheck,
+  Box,
+  CassetteTape,
+  Disc3,
+  Feather,
+  Laptop,
+  Layers,
+  MousePointerClick,
+  Orbit,
+  Pill,
+  Shapes,
+  Square,
   BarChart3,
   Bookmark,
   Gem,
@@ -95,7 +108,6 @@ import {
   DS_DEFAULT_CHARACTER,
   dsCharacterBase,
   dsCharacterColourOptions,
-  dsExpressionLabel,
   dsMoodDials,
   dsMoodLabel,
   dsTemperatureLabel,
@@ -103,18 +115,19 @@ import {
   type DsTasteScope,
 } from "../character";
 import {
+  DS_BUTTON_LOOKS,
+  DS_TASTE_TRACKS,
   DS_TASTES,
+  DS_TYPE_STYLES,
   dsPickTaste,
   dsRandomTastes,
   dsShuffleTaste,
-  dsTasteBackground,
-  dsTasteButtons,
-  dsTasteField,
-  dsTasteFonts,
+  dsTasteNames,
   dsTastePeople,
   dsTasteStory,
   dsTasteTilt,
   dsTasteVoice,
+  dsTypeStyleFonts,
   type DsTone,
 } from "../taste";
 import {
@@ -126,7 +139,6 @@ import {
   dsThemeColourTokens,
   dsThemeExport,
   dsThemeRadius,
-  dsThemeWithExpression,
   dsThemeWithFonts,
   dsThemeWithMood,
   parseDsThemeConfig,
@@ -1021,8 +1033,8 @@ function PreviewPart({
 
 /**
  * The brand in words (Alex, 2026-10-29, "taste rules, brand rules"): a
- * style statement from the pills and the bars (the tastes, then the mood,
- * the expression and the temperature, and the fonts it's set in), then the
+ * style statement from the pills and the bars (the tastes, then the mood
+ * and the temperature, and the fonts it's set in), then the
  * voice, a rule from each taste picked. What the preview's words follow,
  * and what an agent writing for the brand would read.
  */
@@ -1034,15 +1046,13 @@ function PreviewBrand({
   rules: string[];
 }) {
   const c = theme.character;
-  const tastes = DS_TASTES.filter((t) => c.tastes.includes(t.id)).map(
-    (t) => t.label,
+  const tastes = dsTasteNames(c.tastes);
+  const named = tastes.length
+    ? `${tastes.slice(0, -1).join(", ")}${tastes.length > 1 ? " and " : ""}${tastes.at(-1)}. `
+    : "";
+  const feel = [dsMoodLabel(c.mood), dsTemperatureLabel(c.warmth)].map((w) =>
+    w.toLowerCase(),
   );
-  const named = tastes.length ? `${tastes.join(" and ")}. ` : "";
-  const feel = [
-    dsMoodLabel(c.mood),
-    dsExpressionLabel(c.expression),
-    dsTemperatureLabel(c.warmth),
-  ].map((w) => w.toLowerCase());
   const names = new Map(dsFontOptions(theme).map((o) => [o.value, o.label]));
   const fonts = [
     ...new Set(theme.families.map((f) => names.get(f.font) ?? f.font)),
@@ -1051,7 +1061,7 @@ function PreviewBrand({
     <PreviewPart title="Brand">
       <p className="text-h3 text-ds-fg">
         {named}
-        {`${feel[0][0].toUpperCase()}${feel[0].slice(1)}, ${feel[1]} and ${feel[2]}, set in ${fonts.join(" and ")}.`}
+        {`${feel[0][0].toUpperCase()}${feel[0].slice(1)} and ${feel[1]}, set in ${fonts.join(" and ")}.`}
       </p>
       <div className="flex flex-col gap-ds-8">
         <span className="text-p text-ds-fg">Voice</span>
@@ -1083,50 +1093,80 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   scifi: Rocket,
   fashion: Shirt,
   natural: Leaf,
+  retro: CassetteTape,
+  modern: Armchair,
+  contemporary: Aperture,
+  futuristic: Orbit,
+  // Typography's rail.
+  startup: Laptop,
+  elegant: Feather,
+  funky: Disc3,
+  quirky: Shapes,
+  // Buttons' rail.
+  product: MousePointerClick,
+  soft: Pill,
+  sharp: Square,
+  tactile: Layers,
+  chunky: Box,
 };
 
 /**
- * The taste pills in their tracks, Feel then World, each a row that slides
- * sideways (DsScrollRow) and takes one pick, as tabs do. The pills are the
- * light kind (text buttons): no fill at rest, a soft one when picked, with
- * an icon each. `compact` leaves the tracks' names off, inside a section.
+ * A row of pills that slides sideways (DsScrollRow), the light kind (text
+ * buttons): no fill at rest, a soft one when picked, with an icon each.
+ */
+function PillRow({
+  label,
+  options,
+  picked,
+  onToggle,
+}: {
+  label: string;
+  options: readonly { id: string; label: string }[];
+  picked: readonly string[];
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <DsScrollRow role="group" aria-label={label} className="-mx-2 px-2">
+      {options.map((o) => (
+        <DsButton
+          key={o.id}
+          size="small"
+          variant="text"
+          iconLeft={TASTE_ICONS[o.id]}
+          pressed={picked.includes(o.id)}
+          onClick={() => onToggle(o.id)}
+        >
+          {o.label}
+        </DsButton>
+      ))}
+    </DsScrollRow>
+  );
+}
+
+/**
+ * The taste pills in their tracks, Feel, World and Era, each a named row.
+ * Which picks can stand together is taste.ts's rule (`dsPickTaste`): one
+ * Feel, one World, and eras that can meet (Retro with Futuristic, not with
+ * Modern).
  */
 function TastePills({
   picked,
   onToggle,
-  compact = false,
 }: {
   picked: string[];
   onToggle: (id: string) => void;
-  compact?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-ds-8">
-      {(["feel", "world"] as const).map((id) => (
-        <div key={id} className="flex flex-col gap-ds-4">
-          {!compact && (
-            <span className="text-small text-ds-fg-muted">
-              {id === "feel" ? "Feel" : "World"}
-            </span>
-          )}
-          <DsScrollRow
-            role="group"
-            aria-label={id === "feel" ? "Feel" : "World"}
-            className="-mx-2 px-2"
-          >
-            {DS_TASTES.filter((t) => t.group === id).map((t) => (
-              <DsButton
-                key={t.id}
-                size="small"
-                variant="text"
-                iconLeft={TASTE_ICONS[t.id]}
-                pressed={picked.includes(t.id)}
-                onClick={() => onToggle(t.id)}
-              >
-                {t.label}
-              </DsButton>
-            ))}
-          </DsScrollRow>
+      {DS_TASTE_TRACKS.map((track) => (
+        <div key={track.id} className="flex flex-col gap-ds-4">
+          <span className="text-small text-ds-fg-muted">{track.label}</span>
+          <PillRow
+            label={track.label}
+            options={DS_TASTES.filter((t) => t.group === track.id)}
+            picked={picked}
+            onToggle={onToggle}
+          />
         </div>
       ))}
     </div>
@@ -1165,18 +1205,23 @@ function useTakes(
       ...DS_DEFAULT_COLOURS,
       accent: { light: next.button, dark: null },
     };
-    const drawnTheme = dsThemeWithFonts(
+    // A kind of type or button picked in its section stays: the draw sets everything else.
+    const { type, buttons } = next.character.scoped;
+    const look = DS_BUTTON_LOOKS.find((l) => l.id === buttons);
+    return dsThemeWithFonts(
       {
         ...theme,
-        character: next.character,
+        character: {
+          ...next.character,
+          ...(look && { roundness: look.roundness, depth: look.depth }),
+        },
         colours,
         radius: null,
         pillRadius: null,
         buttons: null,
       },
-      next.fonts,
+      type ? dsTypeStyleFonts(type) : next.fonts,
     );
-    return dsThemeWithExpression(drawnTheme, next.character.expression);
   };
   const show = (next: DsThemeConfig) => {
     if (!before) setBefore(theme);
@@ -1262,23 +1307,18 @@ function TakeControls({ takes }: { takes: Takes }) {
   );
 }
 
-/** The bars' tracks, in tastes' colours: a serious ink to a wacky pink; a quiet stone to a loud orange; ice to paper. */
+/** The bars' tracks: a serious ink to a wacky pink (Mood); ice to paper (Temperature). */
 const MOOD_TRACK =
   "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
-const EXPRESSION_TRACK =
-  "linear-gradient(to right, #DCDCD7, var(--ds-surface), #FF4F00)";
 const TEMPERATURE_TRACK =
   "linear-gradient(to right, #DCEBFF, var(--ds-surface), #FFE2B8)";
 
 /**
- * The taste feeder (taste.ts; Alex, 2026-10-29): three bars, the levers a
- * taste is defined by, Mood (Serious to Wacky: roundness and the fonts),
- * Expression (Quiet to Loud: how boldly it uses colour, the button colour
- * spreading into cards, secondary buttons and tints) and Temperature (Cool to Warm: the background's warmth and the
- * greys from it), then the style pills with icons in two
- * groups, Feel (how the brand comes across) and World (where it belongs);
- * the bars and the pills work together, a pill drawing inside its ranges on
- * both. Parabola's own is a mix of pills too (Restrained and Editorial), so
+ * The taste feeder (taste.ts; Alex, 2026-10-29): the style pills first, with
+ * icons, in three tracks, Feel (how the brand comes across), World (where it
+ * belongs) and Era (when it's from), then the Mood bar (Serious to Wacky:
+ * roundness and the fonts), which a pill draws inside its range on.
+ * Parabola's own is a mix of pills too (Restrained and Editorial), so
  * that's what shows picked at the start. Picking a pill changes the look at
  * once (a take, in the player at the top); unpicking the last brings back
  * the look from before the first. Restore, at the section's top right, is
@@ -1295,7 +1335,6 @@ function TasteChoice({
 }) {
   const character = theme.character;
   const picked = character.tastes;
-  // One pick per track: picking replaces the track's other pick, picking it again takes it off.
   const toggle = (id: string) => {
     const ids = dsPickTaste(picked, id);
     if (ids.length) takes.draw(ids);
@@ -1303,6 +1342,7 @@ function TasteChoice({
   };
   return (
     <div className="flex flex-col gap-ds-16">
+      <TastePills picked={picked} onToggle={toggle} />
       <DsColourBar
         label="Mood"
         readout={dsMoodLabel(character.mood)}
@@ -1314,70 +1354,45 @@ function TasteChoice({
         track={MOOD_TRACK}
         ends={["Serious", "Wacky"]}
       />
-      <DsColourBar
-        label="Expression"
-        readout={dsExpressionLabel(character.expression)}
-        value={character.expression}
-        onChange={(x) =>
-          onTheme(dsThemeWithExpression(theme, Math.round(x * 100) / 100))
-        }
-        valueText={dsExpressionLabel(character.expression)}
-        track={EXPRESSION_TRACK}
-        ends={["Quiet", "Loud"]}
-      />
-      <DsColourBar
-        label="Temperature"
-        readout={dsTemperatureLabel(character.warmth)}
-        value={(character.warmth + 1) / 2}
-        onChange={(x) =>
-          onTheme({
-            ...theme,
-            character: {
-              ...character,
-              warmth: Math.round((x * 2 - 1) * 100) / 100,
-            },
-          })
-        }
-        valueText={dsTemperatureLabel(character.warmth)}
-        track={TEMPERATURE_TRACK}
-        ends={["Cool", "Warm"]}
-      />
-      <TastePills picked={picked} onToggle={toggle} />
     </div>
   );
 }
 
 /**
- * Taste pills inside one section (Typography, Buttons, Fields, Appearance;
- * Alex, 2026-10-29): the same pills, compact, deciding only that section's
- * values when picked (a font pair; a roundness, depth and button colour; a
- * field outline; a background), and leaving them as Parabola's own when the
- * last is unpicked. Kept on the theme (`character.scoped`).
+ * A section's one rail (Alex, 2026-10-29): in Typography a kind of type, in
+ * Buttons a kind of button, nothing else; picking one decides only that
+ * section's values, picking it again leaves them as Parabola's own. Kept on
+ * the theme (`character.scoped`).
  */
-function ScopedTastes({
+function SectionRail({
   scope,
+  label,
+  options,
   theme,
   onTheme,
   apply,
 }: {
   scope: DsTasteScope;
+  label: string;
+  options: readonly { id: string; label: string }[];
   theme: DsThemeConfig;
   onTheme: (theme: DsThemeConfig) => void;
-  /** The theme with this section's values drawn from the pills (none: Parabola's own). */
-  apply: (ids: string[], theme: DsThemeConfig) => DsThemeConfig;
+  /** The theme with this section's values from the pick (null: Parabola's own). */
+  apply: (id: string | null, theme: DsThemeConfig) => DsThemeConfig;
 }) {
-  const picked = theme.character.scoped[scope] ?? [];
+  const picked = theme.character.scoped[scope];
   return (
-    <TastePills
-      compact
-      picked={picked}
+    <PillRow
+      label={label}
+      options={options}
+      picked={picked ? [picked] : []}
       onToggle={(id) => {
-        const ids = dsPickTaste(picked, id);
+        const next = id === picked ? null : id;
         const scoped = { ...theme.character.scoped };
-        if (ids.length) scoped[scope] = ids;
+        if (next) scoped[scope] = next;
         else delete scoped[scope];
         onTheme(
-          apply(ids, { ...theme, character: { ...theme.character, scoped } }),
+          apply(next, { ...theme, character: { ...theme.character, scoped } }),
         );
       }}
     />
@@ -1409,13 +1424,12 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
 /**
  * The theme's appearance (character.ts; Alex, 2026-10-29): the background
  * as dials, Brightness first (dark to light), then Hue (a hue dragged onto a
- * white gives it a tint; a pill or Colours sets more), then Contrast.
- * Warmth is the Temperature bar in Taste, roundness lives with the
- * buttons; depth comes with the tastes.
- * Each bar is drawn in what it does. Taste pills at the top draw a
- * background; "Show advanced options" opens the dials and the colours
- * themselves (the wheel, for the mode picked under the theme), for a
- * colour of its own.
+ * white gives it a tint; Colours sets more), Temperature (Cool to Warm: the
+ * background's warmth and the greys from it), then Contrast. No pills: the
+ * dials say it. Roundness lives with the buttons; depth comes with the
+ * tastes. Each bar is drawn in what it does. "Show advanced options" opens
+ * the colours themselves (the wheel, for the mode picked under the theme),
+ * for a colour of its own.
  */
 function AppearanceChoice({
   theme,
@@ -1491,36 +1505,31 @@ function AppearanceChoice({
   };
   return (
     <div className="flex flex-col gap-ds-16">
-      <ScopedTastes
-        scope="appearance"
-        theme={theme}
-        onTheme={onTheme}
-        apply={(ids, t) => ({
-          ...t,
-          character: {
-            ...t.character,
-            ...(ids.length
-              ? dsTasteBackground(ids, t.character)
-              : { hue: 40, colour: 0, brightness: 1 }),
-          },
-        })}
+      {dial(
+        "brightness",
+        `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
+        base,
+      )}
+      {dial(
+        "hue",
+        `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
+        at({ ...strong }),
+      )}
+      <DsColourBar
+        label="Temperature"
+        readout={dsTemperatureLabel(character.warmth)}
+        value={(character.warmth + 1) / 2}
+        onChange={(x) => set({ warmth: Math.round((x * 2 - 1) * 100) / 100 })}
+        valueText={dsTemperatureLabel(character.warmth)}
+        track={TEMPERATURE_TRACK}
+        ends={["Cool", "Warm"]}
       />
+      {dial(
+        "contrast",
+        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
+        tokensAt(character.contrast)["fg-muted"],
+      )}
       <AdvancedOptions>
-        {dial(
-          "brightness",
-          `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
-          base,
-        )}
-        {dial(
-          "hue",
-          `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
-          at({ ...strong }),
-        )}
-        {dial(
-          "contrast",
-          `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
-          tokensAt(character.contrast)["fg-muted"],
-        )}
         <ColourWheelChoice
           colours={theme.colours}
           mode={mode}
@@ -2163,20 +2172,17 @@ export function ThemeSection() {
               // Parabola's own again: its pills, the bars at rest, its fonts, every value Auto.
               restore={(t) => {
                 takes.reset();
-                return dsThemeWithExpression(
-                  dsThemeWithFonts(
-                    {
-                      ...t,
-                      character: DS_DEFAULT_CHARACTER,
-                      colours: DS_DEFAULT_COLOURS,
-                      type: DS_DEFAULT_THEME.type,
-                      radius: null,
-                      pillRadius: null,
-                      buttons: null,
-                    },
-                    null,
-                  ),
-                  DS_DEFAULT_CHARACTER.expression,
+                return dsThemeWithFonts(
+                  {
+                    ...t,
+                    character: DS_DEFAULT_CHARACTER,
+                    colours: DS_DEFAULT_COLOURS,
+                    type: DS_DEFAULT_THEME.type,
+                    radius: null,
+                    pillRadius: null,
+                    buttons: null,
+                  },
+                  null,
                 );
               }}
             />
@@ -2192,12 +2198,12 @@ export function ThemeSection() {
               section="Appearance"
               theme={theme}
               setTheme={setTheme}
-              // The dials back where the bars put them, the pills off, every colour Auto.
+              // The dials back to Parabola's, every colour Auto.
               restore={(t) => ({
                 ...t,
                 character: {
                   ...t.character,
-                  scoped: { ...t.character.scoped, appearance: undefined },
+                  warmth: 0,
                   hue: 40,
                   colour: 0,
                   brightness: 1,
@@ -2221,6 +2227,10 @@ export function ThemeSection() {
               restore={(t) =>
                 parseDsThemeConfig({
                   ...t,
+                  character: {
+                    ...t.character,
+                    scoped: { ...t.character.scoped, type: undefined },
+                  },
                   families: DS_DEFAULT_THEME.families,
                   hiddenFonts: [],
                 })
@@ -2228,11 +2238,15 @@ export function ThemeSection() {
             />
           }
         >
-          <ScopedTastes
+          <SectionRail
             scope="type"
+            label="Kind of type"
+            options={DS_TYPE_STYLES}
             theme={theme}
             onTheme={setTheme}
-            apply={(ids, t) => dsThemeWithFonts(t, dsTasteFonts(ids))}
+            apply={(id, t) =>
+              dsThemeWithFonts(t, id ? dsTypeStyleFonts(id) : null)
+            }
           />
           <AdvancedOptions>
             {heading && (
@@ -2274,6 +2288,10 @@ export function ThemeSection() {
               // Back to the character's: its roundness and depth.
               restore={(t) => ({
                 ...t,
+                character: {
+                  ...t.character,
+                  scoped: { ...t.character.scoped, buttons: undefined },
+                },
                 radius: null,
                 pillRadius: null,
                 buttons: null,
@@ -2281,38 +2299,21 @@ export function ThemeSection() {
             />
           }
         >
-          <ScopedTastes
+          <SectionRail
             scope="buttons"
+            label="Kind of button"
+            options={DS_BUTTON_LOOKS}
             theme={theme}
             onTheme={setTheme}
-            apply={(ids, t) => {
-              if (!ids.length) {
-                return {
-                  ...t,
-                  character: {
-                    ...t.character,
-                    roundness: dsMoodDials(t.character.mood).roundness,
-                    depth: DS_DEFAULT_CHARACTER.depth,
-                  },
-                  colours: {
-                    ...t.colours,
-                    accent: { light: null, dark: null },
-                  },
-                  radius: null,
-                  pillRadius: null,
-                  buttons: null,
-                };
-              }
-              const { roundness, depth, button } = dsTasteButtons(
-                ids,
-                dsThemeColourTokens(t, "light").bg,
-              );
+            apply={(id, t) => {
+              const look = DS_BUTTON_LOOKS.find((l) => l.id === id);
               return {
                 ...t,
-                character: { ...t.character, roundness, depth },
-                colours: {
-                  ...t.colours,
-                  accent: { light: button, dark: null },
+                character: {
+                  ...t.character,
+                  roundness:
+                    look?.roundness ?? dsMoodDials(t.character.mood).roundness,
+                  depth: look?.depth ?? DS_DEFAULT_CHARACTER.depth,
                 },
                 radius: null,
                 pillRadius: null,
@@ -2362,27 +2363,16 @@ export function ThemeSection() {
             />
           }
         >
-          <ScopedTastes
-            scope="fields"
-            theme={theme}
-            onTheme={setTheme}
-            apply={(ids, t) => ({
-              ...t,
-              fields: ids.length ? dsTasteField(ids) : DS_DEFAULT_FIELD_STYLE,
-            })}
+          <OutlineChoice
+            label="Field outline"
+            on={theme.fields.outline}
+            width={theme.fields.outlineWidth}
+            opacity={theme.fields.outlineOpacity}
+            colour={dsThemeColourTokens(theme, mode)["field-border"]}
+            onChange={(next) =>
+              setTheme({ ...theme, fields: { ...theme.fields, ...next } })
+            }
           />
-          <AdvancedOptions>
-            <OutlineChoice
-              label="Field outline"
-              on={theme.fields.outline}
-              width={theme.fields.outlineWidth}
-              opacity={theme.fields.outlineOpacity}
-              colour={dsThemeColourTokens(theme, mode)["field-border"]}
-              onChange={(next) =>
-                setTheme({ ...theme, fields: { ...theme.fields, ...next } })
-              }
-            />
-          </AdvancedOptions>
         </PanelSection>
 
         <PanelSection

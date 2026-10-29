@@ -393,16 +393,6 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
 }
 
 /**
- * The theme at an expression (character.ts), quiet to loud: how boldly it
- * uses colour, which the colour derivations read from the character
- * (`vivid`). Type and shape stay as they are (Alex, 2026-10-29: "it's more
- * around the use of colour than shape").
- */
-export function dsThemeWithExpression(theme: DsThemeConfig, expression: number): DsThemeConfig {
-  return { ...theme, character: { ...theme.character, expression } };
-}
-
-/**
  * The theme with its Heading and Font in a pair of Google fonts (added to its
  * fonts if they're not there), or Parabola's own for null.
  */
