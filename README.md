@@ -131,7 +131,9 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   warmth), all `DsSlider`; then style pills in two groups, Feel and World (`DS_TASTES`,
   `dsShuffleTaste`, `dsRandomTastes`, `dsTastePeople`), whose ranges a
   draw takes a whole look from; Parabola's own is Restrained + Editorial
-  (`DS_DEFAULT_TASTES`). The same pills sit inside Typography, Buttons,
+  (`DS_DEFAULT_TASTES`). Each taste also has a voice, a tone and a rule
+  (`dsTasteVoice`), so a brand's words follow its look; only Playful and
+  Wacky place words loose (`dsTasteTilt`). The same pills sit inside Typography, Buttons,
   Fields and Appearance (`character.scoped`; `dsTasteFonts`,
   `dsTasteButtons`, `dsTasteField`, `dsTasteBackground`), deciding only
   that section. **Appearance** is the background as dials (warmth, hue,

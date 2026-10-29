@@ -188,7 +188,7 @@ export { DsColourBar, DsColourPicker } from "./components/colour-picker";
 export { DsSlider } from "./primitives/slider";
 export { DsScrollRow } from "./primitives/scroll-row";
 export { DsColourField } from "./components/colour-field";
-export { DS_TASTES, dsNudgeTaste, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteBackground, dsTasteButtons, dsTasteField, dsTasteFonts, dsTastePeople, dsTasteStory, type DsTaste, type DsTasteDraw, type DsTasteGroup } from "./taste";
+export { DS_TASTES, dsNudgeTaste, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteBackground, dsTasteButtons, dsTasteField, dsTasteFonts, dsTastePeople, dsTasteStory, dsTasteTilt, dsTasteVoice, type DsTaste, type DsTasteDraw, type DsTasteGroup, type DsTone } from "./taste";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,

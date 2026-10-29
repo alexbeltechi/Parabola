@@ -2,10 +2,14 @@
  * Tastes (Alex, 2026-10-29): the styles a theme can be pushed toward, in
  * two groups, the way people describe a brand:
  *
- * - **Feel**, its look and feel: Approachable, Restrained, Luxurious, Bold,
- *   Candid.
- * - **World**, the world it belongs to: Editorial, Playful, Wacky, Tech,
+ * - **Feel**, its look and feel: Restrained, Technical, Approachable,
+ *   Luxurious, Bold, Candid.
+ * - **World**, the world it belongs to: Editorial, Tech, Playful, Wacky,
  *   Sci-fi, Fashion, Natural.
+ *
+ * Parabola's own is the first of each, Restrained yet Editorial, so each
+ * track starts there. Each taste also has a voice (a tone and a rule), so a
+ * look comes with how it speaks.
  *
  * Each group is a track and a track takes one pick, as tabs do (Alex,
  * 2026-10-29: Restrained and Bold can't both be true): one Feel, one World.
@@ -30,6 +34,21 @@ import { dsContrast, dsHexToHsl } from "./colours";
 type Range = readonly [number, number];
 
 export type DsTasteGroup = "feel" | "world";
+
+/** The tones a taste speaks in. */
+export type DsTone =
+  | "calm"
+  | "precise"
+  | "warm"
+  | "elegant"
+  | "loud"
+  | "candid"
+  | "considered"
+  | "playful"
+  | "wild"
+  | "futurist"
+  | "chic"
+  | "grounded";
 
 export type DsTaste = {
   id: string;
@@ -56,6 +75,11 @@ export type DsTaste = {
    * the button colour (playful).
    */
   story: "boxed" | "plain" | "loud";
+  /**
+   * How it speaks: a tone (which the preview's copy is written in) and one
+   * rule of voice, for the brand's statement and for an agent writing in it.
+   */
+  voice: { tone: DsTone; rule: string };
 };
 
 const pair = (heading: string, headingAxes: string, body: string, bodyAxes: string): DsFontPair => ({
@@ -67,20 +91,6 @@ const AXES = ":wght@400..700";
 
 export const DS_TASTES: DsTaste[] = [
   // Feel
-  {
-    id: "approachable",
-    label: "Approachable",
-    group: "feel",
-    mood: [0.55, 0.72],
-    expression: [0.35, 0.6],
-    dials: { warmth: [0.15, 0.5], contrast: [-0.25, 0], depth: [0, 0.3] },
-    backgrounds: [null, "#FFF6EC", "#EEF6F1", "#F3F0FF"],
-    buttons: ["#2F6FEB", "#E8553D", "#1E8A5A"],
-    fonts: [pair("DM Sans", AXES, "DM Sans", AXES), pair("Nunito", AXES, "Nunito", AXES), pair("Plus Jakarta Sans", AXES, "Plus Jakarta Sans", AXES)],
-    field: { outline: true, outlineWidth: 2, outlineOpacity: 0.6 },
-    people: "photo",
-    story: "plain",
-  },
   {
     id: "restrained",
     label: "Restrained",
@@ -94,24 +104,38 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "initials",
     story: "boxed",
+    voice: { tone: "calm", rule: "Plain words and short sentences; nothing shouted." },
   },
   {
-    id: "editorial",
-    label: "Editorial",
-    group: "world",
-    mood: [0.1, 0.5],
+    id: "technical",
+    label: "Technical",
+    group: "feel",
+    // Precise and quiet, as a well-made tool is (shadcn's look): neutral greys, crisp edges, one font, no flourish.
+    mood: [0.3, 0.5],
     expression: [0.15, 0.35],
-    dials: { warmth: [0, 0.3], contrast: [0.2, 0.5], depth: [0, 0.05] },
-    backgrounds: [null, "#FAF7EF", "#F6F1E7", "#1C1B19"],
-    buttons: [null, "#111111", "#B3261E"],
-    fonts: [
-      pair("Newsreader", AXES, "Inter", AXES),
-      pair("Fraunces", ":opsz,wght@9..144,400..700", "Source Sans 3", AXES),
-      pair("Instrument Serif", "", "Instrument Sans", AXES),
-    ],
-    field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
+    dials: { warmth: [-0.25, 0], contrast: [0.05, 0.3], roundness: [0.2, 0.45], depth: [0, 0.05] },
+    backgrounds: [null, "#FAFAFA", "#09090B"],
+    buttons: ["#18181B", "#2563EB", null],
+    fonts: [pair("Geist", AXES, "Geist", AXES), pair("Inter", AXES, "Inter", AXES)],
+    field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "initials",
     story: "boxed",
+    voice: { tone: "precise", rule: "Exact and useful: name the thing, say what it does." },
+  },
+  {
+    id: "approachable",
+    label: "Approachable",
+    group: "feel",
+    mood: [0.55, 0.72],
+    expression: [0.35, 0.6],
+    dials: { warmth: [0.15, 0.5], contrast: [-0.25, 0], depth: [0, 0.3] },
+    backgrounds: [null, "#FFF6EC", "#EEF6F1", "#F3F0FF"],
+    buttons: ["#2F6FEB", "#E8553D", "#1E8A5A"],
+    fonts: [pair("DM Sans", AXES, "DM Sans", AXES), pair("Nunito", AXES, "Nunito", AXES), pair("Plus Jakarta Sans", AXES, "Plus Jakarta Sans", AXES)],
+    field: { outline: true, outlineWidth: 2, outlineOpacity: 0.6 },
+    people: "photo",
+    story: "plain",
+    voice: { tone: "warm", rule: "Warm and direct, as if talking to a friend." },
   },
   {
     id: "luxurious",
@@ -130,6 +154,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.5 },
     people: "initials",
     story: "boxed",
+    voice: { tone: "elegant", rule: "Few words, chosen slowly; never a hard sell." },
   },
   {
     id: "bold",
@@ -144,6 +169,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
     people: "initials",
     story: "loud",
+    voice: { tone: "loud", rule: "Short, strong statements, verbs first." },
   },
   {
     id: "candid",
@@ -158,8 +184,45 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: false, outlineWidth: 2, outlineOpacity: 1 },
     people: "photo",
     story: "plain",
+    voice: { tone: "candid", rule: "First person and unpolished, honest about the mess." },
   },
   // World
+  {
+    id: "editorial",
+    label: "Editorial",
+    group: "world",
+    mood: [0.1, 0.5],
+    expression: [0.15, 0.35],
+    dials: { warmth: [0, 0.3], contrast: [0.2, 0.5], depth: [0, 0.05] },
+    backgrounds: [null, "#FAF7EF", "#F6F1E7", "#1C1B19"],
+    buttons: [null, "#111111", "#B3261E"],
+    fonts: [
+      pair("Newsreader", AXES, "Inter", AXES),
+      pair("Fraunces", ":opsz,wght@9..144,400..700", "Source Sans 3", AXES),
+      pair("Instrument Serif", "", "Instrument Sans", AXES),
+    ],
+    field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
+    people: "initials",
+    story: "boxed",
+    voice: { tone: "considered", rule: "A point of view, argued: essay-like, specific, unhurried." },
+  },
+  {
+    id: "tech",
+    label: "Tech",
+    group: "world",
+    mood: [0.3, 0.5],
+    expression: [0.2, 0.45],
+    // A product's look, as shadcn's is: quiet neutrals, one clear blue or black, a clean grotesque; not a terminal
+    // (that's Sci-fi; Alex, 2026-10-29).
+    dials: { warmth: [-0.3, 0], contrast: [0.1, 0.35], roundness: [0.15, 0.4], depth: [0, 0.15] },
+    backgrounds: [null, "#F8FAFC", "#FAFAFA", "#0B0D12"],
+    buttons: ["#111111", "#2563EB", "#4F46E5"],
+    fonts: [pair("Geist", AXES, "Geist", AXES), pair("Inter", AXES, "Inter", AXES), pair("Space Grotesk", AXES, "Inter", AXES)],
+    field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
+    people: "initials",
+    story: "boxed",
+    voice: { tone: "precise", rule: "Say what it does, how, and stop. No hype." },
+  },
   {
     id: "playful",
     label: "Playful",
@@ -172,6 +235,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
     people: "photo",
     story: "loud",
+    voice: { tone: "playful", rule: "Light and a little cheeky; an emoji where it helps." },
   },
   {
     id: "wacky",
@@ -185,24 +249,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 3, outlineOpacity: 1 },
     people: "photo",
     story: "loud",
-  },
-  {
-    id: "tech",
-    label: "Tech",
-    group: "world",
-    mood: [0.25, 0.5],
-    expression: [0.35, 0.65],
-    dials: { warmth: [-0.4, 0], contrast: [0.2, 0.6], roundness: [0, 0.35], depth: [0, 0.3] },
-    backgrounds: ["#0B0F0C", "#0D1117", null, "#F2F4F7", "#1F3A5F"],
-    buttons: ["#39FF88", "#4C8DFF", "#F2F4F7"],
-    fonts: [
-      pair("JetBrains Mono", AXES, "IBM Plex Sans", ":wght@400;500;600;700"),
-      pair("Space Grotesk", AXES, "Space Mono", ":wght@400;700"),
-      pair("Geist Mono", AXES, "Geist", AXES),
-    ],
-    field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
-    people: "initials",
-    story: "boxed",
+    voice: { tone: "wild", rule: "Odd, loud, unexpected; capitals and exclamation marks welcome." },
   },
   {
     id: "scifi",
@@ -217,6 +264,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.7 },
     people: "initials",
     story: "boxed",
+    voice: { tone: "futurist", rule: "Clipped and cinematic, written from a little ahead." },
   },
   {
     id: "fashion",
@@ -231,6 +279,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "photo",
     story: "plain",
+    voice: { tone: "chic", rule: "Sharp and sure of itself, a little aloof." },
   },
   {
     id: "natural",
@@ -245,6 +294,7 @@ export const DS_TASTES: DsTaste[] = [
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.6 },
     people: "photo",
     story: "plain",
+    voice: { tone: "grounded", rule: "Slow and sensory, close to the ground." },
   },
 ];
 
@@ -409,6 +459,20 @@ export function dsTasteStory(ids: string[], mood: number): "boxed" | "plain" | "
   if (stories.includes("plain")) return "plain";
   if (stories.length) return "boxed";
   return mood >= 0.7 ? "loud" : mood >= 0.55 ? "plain" : "boxed";
+}
+
+/** A look's voice: the tone its copy is written in (the World's, else the Feel's) and the rules of the tastes picked. */
+export function dsTasteVoice(ids: string[], mood: number): { tone: DsTone; rules: string[] } {
+  const tastes = tastesOf(ids);
+  const world = tastes.find((t) => t.group === "world");
+  const feel = tastes.find((t) => t.group === "feel");
+  const tone: DsTone = world?.voice.tone ?? feel?.voice.tone ?? (mood >= 0.88 ? "wild" : mood >= 0.65 ? "playful" : "calm");
+  return { tone, rules: tastes.map((t) => t.voice.rule) };
+}
+
+/** Whether a story's words sit tilted, as a person places them: only in a playful or wacky look. */
+export function dsTasteTilt(ids: string[], mood: number): boolean {
+  return ids.includes("playful") || ids.includes("wacky") || (!ids.length && mood >= 0.7);
 }
 
 /** How people show in a look: their photo when any taste picked is a friendly one, else their initials. */
