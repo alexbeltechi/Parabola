@@ -323,9 +323,10 @@ export function DsColourWheel({
                 ...pct(at(h.h, toRadius(h.s))),
                 zIndex: chosen ? points.length + 1 : points.length - i,
                 // The chosen point is filled with its colour, ringed white with a line in the text colour outside;
-                // the others are only a thin black ring, so the chosen one stands out (Alex, 2026-10-29).
+                // the others are only a thin black ring with a faint white line outside it, so they show on a dark wheel
+                // too, and the chosen one stands out (Alex, 2026-10-29).
                 backgroundColor: chosen ? p.colour : "transparent",
-                boxShadow: chosen ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)" : "inset 0 0 0 1px black",
+                boxShadow: chosen ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)" : "inset 0 0 0 1px black, 0 0 0 1px rgb(255 255 255 / 0.3)",
               }}
               onPointerDown={(event) => {
                 // Pressing it focuses it (in drag), so Delete and the arrow keys reach it after a click.
