@@ -125,12 +125,16 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   buttons (`ds-button` and `ds-on-button`: solid buttons and selected
   states; the typography's by default) and
   the accent colour (the highlight; the buttons' by default). Each is Parabola's own (null) or a
-  hex, picked for light; in dark it's based on the light one (its
-  counterpart, `dsCounterpart`) unless a dark colour is picked for it. A
+  hex, picked for light; in dark it's based on the light one unless a dark
+  colour is picked for it: the page and cards the same hue, about 90% dark
+  (`dsCounterpart`, not a flip), text, buttons and the accent moved just
+  far enough to read on it (`dsInkCounterpart`). A
   colour based on another can be shifted lighter or darker (`lightShift`,
   `darkShift`, `dsShift`). `dsColourTokens` turns the four into every
-  colour token; `DsColourPicker` picks one inline, and `DsColourBar` is its
-  hue and brightness bars, and the shift.
+  colour token; `DsColourWheel` shows them all as points on one wheel (hue
+  round it, saturation out from the centre, saturation and brightness on
+  the arcs), and `DsColourPicker` picks a single colour inline, with
+  `DsColourBar` its hue and brightness bars.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
 - **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,

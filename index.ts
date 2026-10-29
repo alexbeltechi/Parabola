@@ -175,3 +175,4 @@ export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
 export { DsColourPicker } from "./components/colour-picker";
+export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";

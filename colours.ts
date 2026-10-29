@@ -18,8 +18,9 @@
  *
  * Each is picked for the light theme (or left as Parabola's, or as what
  * it's based on, a little lighter or darker). In the dark theme each is, by
- * default, based on the light one: its counterpart (`dsCounterpart`), the
- * same hue at the other end of light, so the two always contrast; or a
+ * default, based on the light one: a page or card the same hue, dark
+ * (`dsCounterpart`), text, buttons and the accent moved just far enough to
+ * read on it (`dsInkCounterpart`); or a
  * colour picked for dark on its own. Older themes' presets (a base colour,
  * an accent) still work. Pure data and functions, so the server and the
  * browser share them.
@@ -381,26 +382,30 @@ function fromHsl(h: number, s: number, l: number): string {
   return toHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]);
 }
 
+/** How bright a page's dark version is at most: about 90% dark, as Parabola's own charcoal (#121110). */
+const DARK_PAGE = 0.08;
+/** A card's dark version is a step brighter than the page's, so cards still show. */
+const DARK_CARD = 0.115;
+
 /**
- * A colour's counterpart for the other theme: the same hue at the other end
- * of light, so whatever contrasted with it still does. A dark colour gets a
- * pale one (88–97%). A light colour gets a deep one, biased dark: its
- * lightness falls from 24% (a mid colour) to 6% (white) along a curve that
- * drops fastest near the middle, and it's then darkened further until it
- * looks dark (luminance under 4%), so a mid yellow or green, which look
- * brighter than their lightness, still sinks. Saturation is softened a
- * little so a bright pick doesn't glow in the dark.
+ * A page's or a card's version for the dark theme: the same hue and as
+ * colourful as it reads, dark. Not a flip: however light or dark the light theme's page
+ * is, the dark one is about 90% dark (brightness `most`, 8% for a page), and
+ * a light page that's already darker than that stays as it is. Paper stays
+ * nearly neutral, a strong colour stays a colour; a yellow or a green, which
+ * look brighter than they are, are taken down until they look as dark. Text,
+ * buttons and the accent go the other way, to read on it (`dsInkCounterpart`).
  */
-export function dsCounterpart(hex: string): string {
-  const [h, s, l] = toHsl(hex);
-  if (l < 0.5) return fromHsl(h, s * 0.75, Math.min(0.97, Math.max(0.88, 1 - l)));
-  // 0 at a mid colour, 1 at white; the square root makes the first steps from the middle count most.
-  const away = Math.sqrt(Math.min(1, (l - 0.5) / 0.5));
-  let lightness = 0.24 - 0.18 * away;
-  let out = fromHsl(h, s * 0.75, lightness);
-  while (dsLuminance(out) > 0.04 && lightness > 0.04) {
-    lightness -= 0.01;
-    out = fromHsl(h, s * 0.75, lightness);
+export function dsCounterpart(hex: string, most = DARK_PAGE): string {
+  const { h, s: own, v } = dsHexToHsv(hex);
+  // Dark, a hue needs more colour to show: paper's faint warmth becomes a warm charcoal rather than grey.
+  const s = Math.sqrt(own);
+  const look = dsLuminance(dsHsvToHex(h, 0, most));
+  let value = Math.min(v, most);
+  let out = dsHsvToHex(h, s, value);
+  while (dsLuminance(out) > look * 1.3 && value > 0.02) {
+    value -= 0.005;
+    out = dsHsvToHex(h, s, value);
   }
   return out;
 }
@@ -492,7 +497,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
   const surface = colours.surface;
   const lightCard = dsIsHex(surface.light) ? surface.light : null;
   const cardShift = mode === "light" ? surface.lightShift : surface.darkShift;
-  const cardBase = mode === "dark" && lightCard ? dsCounterpart(lightCard) : tokens.bg;
+  const cardBase = mode === "dark" && lightCard ? dsCounterpart(lightCard, DARK_CARD) : tokens.bg;
   const card =
     (mode === "light" ? lightCard : surface.dark) ??
     (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
