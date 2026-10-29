@@ -7,9 +7,14 @@
  *   -1 to 1 and starts at 0, flat: above 0 the top is lighter and the
  *   bottom darker, below 0 the other way round, further apart the further
  *   from 0 (the panel shows it as -50 to +50).
- * - outline: a line inside the edge, `outlineWidth` pixels (1 to 4), the
+ * - outline: a line inside the edge, `outlineWidth` pixels (1 to 8), the
  *   button colour a step darker (a step lighter on a very dark button), so
- *   it holds its shape.
+ *   it holds its shape, at `outlineOpacity` (1 solid, 0 gone). Off by
+ *   default.
+ *
+ * Fields have an outline of their own (`DsFieldStyle`): on by default, 2px,
+ * in `--ds-field-border` (colours.ts), which can be turned off, thinner or
+ * thicker, or see-through.
  * - shadow: a text shadow, 1px, on the label only (icons stay flat), cast
  *   away from a light at `shadowAngle` degrees as Photoshop has it (90 is
  *   light from above, the shadow falling below): the button colour a step
@@ -30,8 +35,10 @@ export type DsButtonStyle = {
   /** A gradient's contrast, -1 to 1: 0 flat, above it lighter at the top, below it darker at the top. */
   contrast: number;
   outline: boolean;
-  /** The outline's thickness in pixels, 1 to 4. */
+  /** The outline's thickness in pixels, 1 to 8. */
   outlineWidth: number;
+  /** How solid the outline is, 0 (gone) to 1 (solid). */
+  outlineOpacity: number;
   /** The label's text shadow. */
   shadow: boolean;
   /** Where the light comes from, in degrees: 0 the right, 90 above (the shadow falls below), as in Photoshop. */
@@ -43,11 +50,19 @@ export const DS_DEFAULT_BUTTON_STYLE: DsButtonStyle = {
   contrast: 0,
   outline: false,
   outlineWidth: 1,
+  outlineOpacity: 1,
   shadow: false,
   shadowAngle: 90,
 };
 
-export const DS_OUTLINE_WIDTHS = [1, 2, 3, 4] as const;
+/** The outline widths offered as buttons; any other, up to the most, is typed. */
+export const DS_OUTLINE_WIDTHS = [1, 2] as const;
+export const DS_OUTLINE_MAX = 8;
+
+/** A field's outline (DsInput, selects, dates): on, 2px, solid by default. */
+export type DsFieldStyle = { outline: boolean; outlineWidth: number; outlineOpacity: number };
+
+export const DS_DEFAULT_FIELD_STYLE: DsFieldStyle = { outline: true, outlineWidth: 2, outlineOpacity: 1 };
 
 const num = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : null);
 
@@ -55,16 +70,43 @@ const num = (value: unknown) => (typeof value === "number" && Number.isFinite(va
 export function parseDsButtonStyle(value: unknown): DsButtonStyle {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
   const contrast = num(raw.contrast);
-  const width = num(raw.outlineWidth);
   const angle = num(raw.shadowAngle);
   return {
     fill: raw.fill === "gradient" ? "gradient" : "solid",
     contrast: contrast === null ? DS_DEFAULT_BUTTON_STYLE.contrast : Math.min(1, Math.max(-1, contrast)),
     outline: raw.outline === true,
-    outlineWidth: width === null ? 1 : Math.min(4, Math.max(1, Math.round(width))),
+    ...parseOutline(raw, DS_DEFAULT_BUTTON_STYLE.outlineWidth),
     // The text shadow was `emboss` (a "3D label") for a day.
     shadow: raw.shadow === true || raw.emboss === true,
     shadowAngle: angle === null ? DS_DEFAULT_BUTTON_STYLE.shadowAngle : ((Math.round(angle) % 360) + 360) % 360,
+  };
+}
+
+/** An outline's width and opacity from stored data. */
+function parseOutline(raw: Record<string, unknown>, width: number) {
+  const w = num(raw.outlineWidth);
+  const o = num(raw.outlineOpacity);
+  return {
+    outlineWidth: w === null ? width : Math.min(DS_OUTLINE_MAX, Math.max(1, Math.round(w))),
+    outlineOpacity: o === null ? 1 : Math.min(1, Math.max(0, o)),
+  };
+}
+
+/** A theme's field style from stored data: anything missing or odd is Parabola's (an outline, on). */
+export function parseDsFieldStyle(value: unknown): DsFieldStyle {
+  const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  return { outline: raw.outline !== false, ...parseOutline(raw, DS_DEFAULT_FIELD_STYLE.outlineWidth) };
+}
+
+/** A colour at an opacity, as CSS: itself when solid. */
+const faded = (colour: string, opacity: number) =>
+  opacity >= 1 ? colour : `color-mix(in srgb, ${colour} ${Math.round(opacity * 100)}%, transparent)`;
+
+/** The field style's custom properties, over the field outline colour of the theme in that mode. */
+export function dsFieldStyleVars(style: DsFieldStyle, border: string): Record<string, string> {
+  return {
+    "--ds-field-border-width": style.outline ? `${style.outlineWidth}px` : "0px",
+    "--ds-field-border": faded(border, style.outlineOpacity),
   };
 }
 
@@ -89,7 +131,9 @@ export function dsButtonStyleVars(style: DsButtonStyle, button: string): Record<
       style.fill === "gradient" && style.contrast !== 0
         ? `linear-gradient(to bottom, ${dsHslToHex(h, s, top)}, ${dsHslToHex(h, s, bottom)})`
         : "none",
-    "--ds-button-ring": style.outline ? `inset 0 0 0 ${style.outlineWidth}px ${dsShift(button, dark ? 0.2 : -0.15)}` : "none",
+    "--ds-button-ring": style.outline
+      ? `inset 0 0 0 ${style.outlineWidth}px ${faded(dsShift(button, dark ? 0.2 : -0.15), style.outlineOpacity)}`
+      : "none",
     "--ds-button-text-shadow": style.shadow ? `${x}px ${y}px 0 ${dsShift(button, dark ? 0.28 : -0.22)}` : "none",
   };
 }

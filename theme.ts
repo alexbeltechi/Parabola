@@ -22,7 +22,16 @@ import {
   type DsFont,
 } from "./fonts";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
-import { DS_DEFAULT_BUTTON_STYLE, dsButtonStyleVars, parseDsButtonStyle, type DsButtonStyle } from "./button-style";
+import {
+  DS_DEFAULT_BUTTON_STYLE,
+  DS_DEFAULT_FIELD_STYLE,
+  dsButtonStyleVars,
+  dsFieldStyleVars,
+  parseDsButtonStyle,
+  parseDsFieldStyle,
+  type DsButtonStyle,
+  type DsFieldStyle,
+} from "./button-style";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -107,6 +116,8 @@ export type DsThemeConfig = {
   pillRadius: DsRadius | null;
   /** How the solid buttons look: fill, outline, 3D label (button-style.ts). */
   buttons: DsButtonStyle;
+  /** The fields' outline: on or off, its width and opacity (button-style.ts). */
+  fields: DsFieldStyle;
   /** The icon library, by id (colours.ts). */
   icons: string;
 };
@@ -128,6 +139,7 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   radius: DS_DEFAULT_RADIUS,
   pillRadius: null,
   buttons: DS_DEFAULT_BUTTON_STYLE,
+  fields: DS_DEFAULT_FIELD_STYLE,
   icons: "lucide",
 };
 
@@ -330,7 +342,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
 
   const buttonStyle = parseDsButtonStyle(raw.buttons);
 
-  return { colours, families, type, customFonts, hiddenFonts, radius, pillRadius, buttons: buttonStyle, icons };
+  return { colours, families, type, customFonts, hiddenFonts, radius, pillRadius, buttons: buttonStyle, fields: parseDsFieldStyle(raw.fields), icons };
 }
 
 /**
@@ -342,6 +354,7 @@ function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string
   return {
     ...Object.fromEntries(Object.entries(tokens).map(([name, value]) => [`--ds-${name}`, value])),
     ...dsButtonStyleVars(theme.buttons, tokens.button),
+    ...dsFieldStyleVars(theme.fields, tokens["field-border"]),
   };
 }
 
@@ -454,6 +467,9 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
           ? `a gradient of the button colour, ${theme.buttons.contrast > 0 ? "lighter at the top and darker at the bottom" : "darker at the top and lighter at the bottom"} (contrast ${Math.round(Math.abs(theme.buttons.contrast) * 50)} of 50)`
           : "solid, the button colour",
       outline: theme.buttons.outline ? `a ${theme.buttons.outlineWidth}px line inside the edge, the button colour a step darker` : "none",
+      fieldOutline: theme.fields.outline
+        ? `${theme.fields.outlineWidth}px${theme.fields.outlineOpacity < 1 ? `, ${Math.round(theme.fields.outlineOpacity * 100)}% opaque` : ""}`
+        : "none",
       label: theme.buttons.shadow
         ? `a 1px text shadow on the label only, falling away from a light at ${theme.buttons.shadowAngle}° (90 is from above)`
         : "flat",

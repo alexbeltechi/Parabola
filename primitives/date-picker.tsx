@@ -5,7 +5,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { Calendar, ChevronLeft, ChevronRight, CircleX } from "lucide-react";
 import { cn } from "../cn";
 import { DsButton } from "./button";
-import { DS_FIELD_BOX_CLASS, DS_FIELD_CLEAR_CLASS, useDsField, type DsControlProps } from "./field";
+import { DS_FIELD_BOX_CLASS, DS_FIELD_CLEAR_CLASS, DS_FIELD_INVALID_CLASS, useDsField, type DsControlProps } from "./field";
 import { DS_TRAY_CLASS } from "./tray";
 
 const WEEKDAYS = [
@@ -132,7 +132,7 @@ export function DsDatePicker(allProps: {
         data-focus={showFocus || undefined}
         data-invalid={invalid || undefined}
         data-state={open ? "open" : "closed"}
-        className={cn(DS_FIELD_BOX_CLASS, invalid && "border-ds-error", className)}
+        className={cn(DS_FIELD_BOX_CLASS, invalid && DS_FIELD_INVALID_CLASS, className)}
       >
         <Popover.Trigger
           id={id}

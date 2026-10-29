@@ -20,12 +20,17 @@ import { cn } from "../cn";
  * which carries the width instead.
  *
  * DS_FIELD_BOX_CLASS is exported so every field-shaped control (select and
- * date triggers, multi-select) draws the same box.
+ * date triggers, multi-select) draws the same box, and DS_FIELD_INVALID_CLASS
+ * its error outline, always 2px, so it shows even in a theme whose fields
+ * have no outline.
  */
 export const DS_FIELD_WIDTH_CLASS = "w-(--ds-field-width) max-w-full";
 
+export const DS_FIELD_INVALID_CLASS = "border-2 border-ds-error";
+
+// The outline's thickness is the theme's (`--ds-field-border-width`, 2px by default, 0 with the outline off).
 export const DS_FIELD_BOX_CLASS = [
-  `group flex h-9 ${DS_FIELD_WIDTH_CLASS} items-center gap-2 rounded-ds-lg border-2 border-ds-field-border bg-ds-field px-4`,
+  `group flex h-9 ${DS_FIELD_WIDTH_CLASS} items-center gap-2 rounded-ds-lg border-[length:var(--ds-field-border-width)] border-ds-field-border bg-ds-field px-4`,
   "transition-colors ds-focus-within",
   "text-p text-ds-fg",
   "disabled:cursor-not-allowed disabled:text-ds-fg-subtle has-[:disabled]:cursor-not-allowed has-[:disabled]:text-ds-fg-subtle",
@@ -168,7 +173,7 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
       data-slot="ds-input"
       data-focus={showFocus || undefined}
       data-invalid={invalid || undefined}
-      className={cn(bare ? DS_FIELD_BARE_CLASS : [DS_FIELD_BOX_CLASS, invalid && "border-ds-error"], className)}
+      className={cn(bare ? DS_FIELD_BARE_CLASS : [DS_FIELD_BOX_CLASS, invalid && DS_FIELD_INVALID_CLASS], className)}
     >
       {IconLeft && <IconLeft aria-hidden />}
       <input
@@ -249,7 +254,7 @@ export function DsTextarea(
       data-focus={showFocus || undefined}
       data-invalid={invalid || undefined}
       className={cn(
-        bare ? [DS_FIELD_BARE_CLASS, "items-start"] : [DS_FIELD_BOX_CLASS, "h-auto items-start py-2", invalid && "border-ds-error"],
+        bare ? [DS_FIELD_BARE_CLASS, "items-start"] : [DS_FIELD_BOX_CLASS, "h-auto items-start py-2", invalid && DS_FIELD_INVALID_CLASS],
         className
       )}
     >

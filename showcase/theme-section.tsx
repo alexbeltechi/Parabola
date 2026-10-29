@@ -15,11 +15,11 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsColourTokens, dsNormalizeHex, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsColourTokens, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
-import { DS_DEFAULT_BUTTON_STYLE, DS_OUTLINE_WIDTHS, type DsButtonStyle } from "../button-style";
+import { DS_DEFAULT_BUTTON_STYLE, DS_DEFAULT_FIELD_STYLE, DS_OUTLINE_MAX, DS_OUTLINE_WIDTHS, type DsButtonStyle } from "../button-style";
 import { DsAngleDial } from "../components/angle-dial";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
@@ -295,6 +295,86 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
 };
 
 /**
+ * An outline's settings, for buttons and fields alike: a switch, then its
+ * thickness, 1px or 2px or any other typed in the field to their right (up
+ * to 8), and its transparency, a bar from solid (0) to gone (100), drawn in
+ * the outline's colour.
+ */
+function OutlineChoice({
+  label,
+  on,
+  width,
+  opacity,
+  colour,
+  onChange,
+}: {
+  /** Names the controls for assistive tech ("Field outline"). */
+  label: string;
+  on: boolean;
+  width: number;
+  opacity: number;
+  /** The outline's colour, for the transparency bar. */
+  colour: string;
+  onChange: (next: { outline?: boolean; outlineWidth?: number; outlineOpacity?: number }) => void;
+}) {
+  const preset = (DS_OUTLINE_WIDTHS as readonly number[]).includes(width);
+  const [text, setText] = React.useState(preset ? "" : String(width));
+  const transparency = Math.round((1 - opacity) * 100);
+  return (
+    <div className="flex flex-col gap-ds-16">
+      {/* The switch right after its label (decisions, 2026-10-28). */}
+      <label className="inline-flex items-center gap-ds-8 self-start text-p text-ds-fg">
+        Outline
+        <DsSwitch aria-label={label} checked={on} onCheckedChange={(outline) => onChange({ outline })} />
+      </label>
+      {on && (
+        <>
+          <div className="flex items-center gap-ds-4" role="group" aria-label={`${label} thickness`}>
+            {DS_OUTLINE_WIDTHS.map((w) => (
+              <DsButton
+                key={w}
+                size="small"
+                className="min-w-0 flex-1 px-0"
+                pressed={width === w}
+                onClick={() => {
+                  setText("");
+                  onChange({ outlineWidth: w });
+                }}
+              >
+                {w}px
+              </DsButton>
+            ))}
+            <DsInput
+              aria-label={`${label} thickness in pixels`}
+              inputMode="numeric"
+              className="h-6 min-w-0 flex-1 rounded-ds-control border-1 px-2 text-small"
+              value={text}
+              placeholder="Custom"
+              meta="px"
+              onChange={(e) => {
+                setText(e.target.value);
+                const px = Number.parseInt(e.target.value, 10);
+                if (Number.isFinite(px)) onChange({ outlineWidth: Math.min(DS_OUTLINE_MAX, Math.max(1, px)) });
+              }}
+            />
+          </div>
+          <DsColourBar
+            label={`${label} transparency`}
+            title="Transparency"
+            readout={String(transparency)}
+            value={1 - opacity}
+            onChange={(x) => onChange({ outlineOpacity: Math.round((1 - x) * 100) / 100 })}
+            valueText={transparency === 0 ? "Solid" : `${transparency}% see-through`}
+            track={`linear-gradient(to right, ${colour}, transparent)`}
+            thumb={colour}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
  * The theme's buttons (button-style.ts; Alex, 2026-10-29): their fill,
  * Solid or Gradient, and a gradient's contrast, a bar from -50 to +50 that
  * starts at 0 (flat) in the middle, drawn in the button colour, darker at
@@ -353,16 +433,14 @@ function ButtonChoice({
           thumb={button}
         />
       )}
-      {toggle("Outline", style.outline, (outline) => set({ outline }))}
-      {style.outline && (
-        <div className="flex items-center gap-ds-4" role="group" aria-label="Outline thickness">
-          {DS_OUTLINE_WIDTHS.map((w) => (
-            <DsButton key={w} size="small" className="min-w-0 flex-1 px-0" pressed={style.outlineWidth === w} onClick={() => set({ outlineWidth: w })}>
-              {w}px
-            </DsButton>
-          ))}
-        </div>
-      )}
+      <OutlineChoice
+        label="Button outline"
+        on={style.outline}
+        width={style.outlineWidth}
+        opacity={style.outlineOpacity}
+        colour={dsShift(button, dsHexToHsl(button)[2] < 0.25 ? 0.2 : -0.15)}
+        onChange={(next) => set(next)}
+      />
       {toggle("Text shadow", style.shadow, (shadow) => set({ shadow }))}
       {style.shadow && (
         <DsField label="Direction">
@@ -702,12 +780,29 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
+          title="Fields"
+          actions={
+            <SectionRestore section="Fields" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, fields: DS_DEFAULT_FIELD_STYLE })} />
+          }
+        >
+          <OutlineChoice
+            label="Field outline"
+            on={theme.fields.outline}
+            width={theme.fields.outlineWidth}
+            opacity={theme.fields.outlineOpacity}
+            colour={dsColourTokens(theme.colours, mode)["field-border"]}
+            onChange={(next) => setTheme({ ...theme, fields: { ...theme.fields, ...next } })}
+          />
+        </PanelSection>
+
+        <PanelSection
           title="Icons"
           actions={<SectionRestore section="Icons" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, icons: DS_DEFAULT_THEME.icons })} />}
         >
           <DsField label="Icon library">
             <DsSelect
-              options={DS_ICON_LIBRARIES.map((l) => ({ value: l.id, label: l.ready ? l.label : `${l.label} (soon)`, disabled: !l.ready }))}
+              // Only the libraries that work: Lucide, for now.
+              options={DS_ICON_LIBRARIES.filter((l) => l.ready).map((l) => ({ value: l.id, label: l.label }))}
               value={theme.icons}
               onValueChange={(icons) => setTheme({ ...theme, icons })}
             />

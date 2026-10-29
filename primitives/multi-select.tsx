@@ -5,7 +5,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { ChevronDown, GripVertical, Plus } from "lucide-react";
 import { cn } from "../cn";
 import { DsCheckboxMark } from "./checkbox";
-import { DS_FIELD_BOX_CLASS, DS_FIELD_INPUT_CLASS, useDsField, type DsControlProps } from "./field";
+import { DS_FIELD_BOX_CLASS, DS_FIELD_INPUT_CLASS, DS_FIELD_INVALID_CLASS, useDsField, type DsControlProps } from "./field";
 import { DsPill } from "./pill";
 import { DsMenuItemContent, DS_TRAY_CLASS, dsMenuItemVariants } from "./tray";
 
@@ -154,7 +154,7 @@ export function DsMultiSelect(allProps: {
           className={cn(
             DS_FIELD_BOX_CLASS,
             "h-auto min-h-9 cursor-text items-center py-[5px] pr-3 pl-2",
-            invalid && "border-ds-error",
+            invalid && DS_FIELD_INVALID_CLASS,
             className
           )}
         >

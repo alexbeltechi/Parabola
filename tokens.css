@@ -288,6 +288,8 @@
   --ds-button-image: none;
   --ds-button-ring: none;
   --ds-button-text-shadow: none;
+  /* Fields' outline thickness: 2px, 0 in a theme that turns it off. */
+  --ds-field-border-width: 2px;
   /* Derived from the palette (not new colours): hover washes, a thin layer
      of the text colour over default buttons and of the page colour over
      inverted (selected) ones, so hover always moves a button away from its
