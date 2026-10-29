@@ -185,7 +185,7 @@ export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
 export { DsColourPicker } from "./components/colour-picker";
 export { DsColourField } from "./components/colour-field";
-export { DS_TASTES, dsShuffleTaste, type DsTaste, type DsTasteDraw } from "./taste";
+export { DS_TASTES, dsRandomTastes, dsShuffleTaste, dsTastePeople, type DsTaste, type DsTasteDraw, type DsTasteGroup } from "./taste";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,

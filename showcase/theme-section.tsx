@@ -1,7 +1,41 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight, ClipboardPaste, Copy, Moon, Shuffle, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
+import {
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardPaste,
+  Copy,
+  BadgeCheck,
+  BarChart3,
+  Bookmark,
+  Gem,
+  Heart,
+  Leaf,
+  MessageCircle,
+  MoreHorizontal,
+  Repeat2,
+  Upload,
+  Minus,
+  Moon,
+  MoreVertical,
+  Newspaper,
+  PartyPopper,
+  Pencil,
+  Plus,
+  Rocket,
+  RotateCcw,
+  Shirt,
+  Shuffle,
+  Smile,
+  Sparkles,
+  Sun,
+  Terminal,
+  Trash2,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
@@ -15,6 +49,7 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { dsFontOptions } from "../components/font-pairing";
 import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourOptions, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { cn } from "../cn";
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
@@ -30,8 +65,7 @@ import {
   dsMoodLabel,
   type DsCharacter,
 } from "../character";
-import { DsColourField } from "../components/colour-field";
-import { DS_TASTES, dsShuffleTaste } from "../taste";
+import { DS_TASTES, dsRandomTastes, dsShuffleTaste, dsTastePeople, type DsTasteGroup } from "../taste";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
@@ -336,54 +370,115 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
 /** Ilo's photos for the preview, small copies of the seed's (seed/ilo/media). */
 const PREVIEW_MEDIA = "/parabola/preview";
 
-/** The heading family, for type set by hand over a photo. */
-const HEADING_FONT = { fontFamily: "var(--ds-family-heading)" };
+/** How the preview shows Ilo: her photo (a friendly look) or her initials in the button colour (a branded one). */
+type People = "photo" | "initials";
+
+/** Ilo's avatar, a circle: her photo, or "ILO" small on the button colour. */
+function PreviewAvatar({ people, className }: { people: People; className: string }) {
+  if (people === "photo") {
+    return <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="" className={cn("shrink-0 rounded-full object-cover", className)} />;
+  }
+  return (
+    <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-ds-button text-[9px] tracking-wider text-ds-on-button", className)}>
+      ILO
+    </span>
+  );
+}
+
+/** Words laid over a photo read in white whatever the theme, held by a soft shadow. */
+const OVER_PHOTO = { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" };
 
 /**
  * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
- * bars and her name at the top, and two lines laid over it in the theme, one
- * in the page colour, one on the button colour, as a post's narrative is
- * placed over an image.
+ * bars and her name at the top, and three bits of text in the theme's main
+ * font, a line, a small note and a sticker, walking a little narrative. A
+ * branded look sets them squarely in boxes; a friendly one (her photo for
+ * an avatar) lets them sit loose and tilted, as a person would place them.
  */
-function PreviewStory() {
+function PreviewStory({ people }: { people: People }) {
+  const loose = people === "photo";
   return (
     <div className="relative aspect-[9/16] w-[220px] shrink-0 overflow-hidden rounded-ds-lg bg-ds-surface">
       <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="Ilo, by the water" className="absolute inset-0 size-full object-cover" />
       <div className="absolute inset-x-3 top-3 flex flex-col gap-ds-8">
         <div className="flex gap-1">
           {[1, 0.4, 0.4].map((o, i) => (
-            <span key={i} className="h-0.5 flex-1 rounded-full bg-ds-bg" style={{ opacity: o }} />
+            <span key={i} className="h-0.5 flex-1 rounded-full" style={{ backgroundColor: "white", opacity: o }} />
           ))}
         </div>
         <div className="flex items-center gap-ds-8">
-          <span className="flex size-6 items-center justify-center rounded-full bg-ds-button text-[10px] text-ds-on-button">IO</span>
-          <span className="text-small text-ds-bg">iloodena</span>
+          <PreviewAvatar people={people} className="size-6" />
+          <span className="text-small" style={OVER_PHOTO}>
+            iloodena
+          </span>
         </div>
       </div>
-      <p className="absolute top-[38%] left-3 max-w-[80%] rounded-ds-sm bg-ds-bg px-2 py-1 text-h3 leading-tight text-ds-fg" style={HEADING_FONT}>
-        Keep fewer moments
-      </p>
-      <span className="absolute bottom-4 left-3 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">New letter →</span>
+      {loose ? (
+        <>
+          <p className="absolute top-[30%] left-4 max-w-[75%] -rotate-3 text-h3 leading-tight" style={OVER_PHOTO}>
+            Keep fewer moments
+          </p>
+          <p className="absolute top-[52%] right-5 max-w-[48%] rotate-2 text-small" style={OVER_PHOTO}>
+            the lake, 4am. three summers in.
+          </p>
+          <span className="absolute bottom-5 left-6 -rotate-2 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">
+            new letter →
+          </span>
+        </>
+      ) : (
+        <>
+          <p className="absolute top-[34%] left-3 max-w-[80%] rounded-ds-sm bg-ds-bg px-2 py-1 text-h3 leading-tight text-ds-fg">
+            Keep fewer moments
+          </p>
+          <p className="absolute top-[48%] left-3 max-w-[70%] rounded-ds-sm bg-ds-bg px-2 py-1 text-small text-ds-fg-muted">
+            The lake, 4am. Three summers in.
+          </p>
+          <span className="absolute bottom-4 left-3 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">New letter →</span>
+        </>
+      )}
     </div>
   );
 }
 
-/** A post on X: her name and handle, a line, a photo, the counts and the link back to the site. */
-function PreviewXPost() {
+/**
+ * A post on X, laid out as X lays one out: her avatar beside the post, her
+ * name, a check and her handle and time on one line, the ⋯, the text, the
+ * photo with a hairline edge, then the counts with their icons (replies,
+ * reposts, likes, views) and bookmark and share at the end.
+ */
+function PreviewXPost({ people }: { people: People }) {
+  const count = (Icon: LucideIcon, n: string, label: string) => (
+    <span className="flex items-center gap-1 text-small text-ds-fg-muted" aria-label={`${n} ${label}`}>
+      <Icon aria-hidden className="size-4" />
+      {n}
+    </span>
+  );
   return (
-    <div className="flex min-w-[240px] flex-1 flex-col gap-ds-8 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
-      <div className="flex items-center gap-ds-8">
-        <span className="flex size-9 items-center justify-center rounded-full bg-ds-button text-small text-ds-on-button">IO</span>
-        <div className="flex flex-col">
-          <span className="text-p text-ds-fg">Ilo Odena</span>
-          <span className="text-small text-ds-fg-muted">@iloodena · 2h</span>
+    <div className="flex min-w-[260px] flex-1 gap-3 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
+      <PreviewAvatar people={people} className="size-10" />
+      <div className="flex min-w-0 flex-1 flex-col gap-ds-8">
+        <div className="flex items-center gap-1 text-p">
+          <span className="truncate font-semibold text-ds-fg">Ilo Odena</span>
+          <BadgeCheck aria-label="Verified" className="size-4 shrink-0 text-ds-highlight" />
+          <span className="truncate text-ds-fg-muted">@iloodena · 2h</span>
+          <MoreHorizontal aria-hidden className="ml-auto size-4 shrink-0 text-ds-fg-muted" />
         </div>
-      </div>
-      <p className="text-p text-ds-fg">Make the small version first. Everything I&apos;ve finished started bigger and got smaller.</p>
-      <img src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`} alt="Black sand and a line of foam" className="aspect-[16/10] w-full rounded-ds-md object-cover" />
-      <div className="flex items-center justify-between gap-ds-8">
-        <span className="text-small text-ds-fg-muted">12 replies · 48 reposts · 310 likes</span>
-        <DsPill>iloodena.com</DsPill>
+        <p className="text-p text-ds-fg">Make the small version first. Everything I&apos;ve finished started bigger and got smaller.</p>
+        <img
+          src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`}
+          alt="Black sand and a line of foam"
+          className="aspect-[16/10] w-full rounded-ds-lg border border-ds-border object-cover"
+        />
+        <div className="flex items-center justify-between gap-ds-8 pr-1">
+          {count(MessageCircle, "12", "replies")}
+          {count(Repeat2, "48", "reposts")}
+          {count(Heart, "310", "likes")}
+          {count(BarChart3, "4.1K", "views")}
+          <span className="flex items-center gap-ds-8 text-ds-fg-muted">
+            <Bookmark aria-label="Bookmark" className="size-4" />
+            <Upload aria-label="Share" className="size-4" />
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -398,9 +493,7 @@ function PreviewEmail() {
         <span className="text-p text-ds-fg">A letter from the lake</span>
       </div>
       <div className="flex flex-col gap-ds-16 rounded-ds-md bg-ds-bg p-ds-20">
-        <h3 className="text-h2 text-ds-fg" style={HEADING_FONT}>
-          Keep fewer moments
-        </h3>
+        <h3 className="text-h2 text-ds-fg">Keep fewer moments</h3>
         <p className="text-prose text-ds-fg-muted">
           This season I kept three. A dragonfly that waited, the lake at four in the morning, and a stone that holds one
           drop of it.
@@ -414,68 +507,104 @@ function PreviewEmail() {
   );
 }
 
+/** Each taste's icon, by id (taste.ts holds the data, the panel the pictures). */
+const TASTE_ICONS: Record<string, LucideIcon> = {
+  approachable: Smile,
+  restrained: Minus,
+  editorial: Newspaper,
+  luxurious: Gem,
+  bold: Zap,
+  candid: Camera,
+  playful: PartyPopper,
+  wacky: Sparkles,
+  tech: Terminal,
+  scifi: Rocket,
+  fashion: Shirt,
+  natural: Leaf,
+};
+
 /**
- * The taste feeder (taste.ts; Alex, 2026-10-29): common styles as pills,
- * Minimal, Editorial, Luxury, Tech, Warm, Bold, Playful, Wacky. Picking one
- * changes the look at once, drawn at random inside it (the mood, the dials,
- * a background, a button colour, a font pair); picking more draws inside
- * all of them. Shuffle, a plain action beside Default so it doesn't read as
- * a pill, picks one or two pills at random, shows them picked and draws
- * from them; again for another mix. Unpicking the last brings back the look
- * from before the first was picked. A draw starts the look over: colours,
- * corners and buttons given their own go back to Auto. Default puts
- * Parabola's own back. Undo, in the top bar, takes a take back.
+ * The taste feeder (taste.ts; Alex, 2026-10-29): styles as pills with
+ * icons, in two groups, Feel (how the brand comes across) and World (where
+ * it belongs). Picking one changes the look at once, drawn inside it;
+ * picking more draws inside all of them; unpicking the last brings back the
+ * look from before the first. Under them, like a player: Shuffle, on or
+ * off, and back and forward through the takes. Forward draws a new take (with
+ * Shuffle on, from one or two pills picked at random, shown picked; off,
+ * from the pills picked), back returns to the one before, and forward again
+ * replays what was undone before drawing anew. Default puts Parabola's own
+ * back. A draw starts the look over: colours, corners and buttons given
+ * their own go back to Auto.
  */
 function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void }) {
   const picked = theme.character.tastes;
   // The look before the first pill was picked, to come back to when the last is unpicked.
   const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
-  const draw = (ids: string[]) => {
-    if (!before) setBefore(theme);
+  const [shuffle, setShuffle] = React.useState(false);
+  // The takes so far, and which one is showing.
+  const [takes, setTakes] = React.useState<{ list: DsThemeConfig[]; at: number }>({ list: [], at: -1 });
+  const drawn = (ids: string[]) => {
     const next = dsShuffleTaste(ids, theme.character);
     const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
-    onTheme(dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts));
+    return dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts);
+  };
+  const show = (next: DsThemeConfig) => {
+    if (!before) setBefore(theme);
+    // A new take drops any undone after the one showing.
+    setTakes(({ list, at }) => ({ list: [...list.slice(0, at + 1), next], at: at + 1 }));
+    onTheme(next);
   };
   const toggle = (id: string) => {
     const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
-    if (ids.length) return draw(ids);
+    if (ids.length) return show(drawn(ids));
     onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...theme.character, tastes: [] } });
     setBefore(null);
   };
-  return (
-    <div className="flex flex-col gap-ds-16">
-      <div className="flex flex-wrap gap-ds-4" role="group" aria-label="Tastes">
-        {DS_TASTES.map((t) => (
-          <DsButton key={t.id} size="small" pressed={picked.includes(t.id)} onClick={() => toggle(t.id)}>
+  const forward = () => {
+    if (takes.at < takes.list.length - 1) {
+      setTakes({ ...takes, at: takes.at + 1 });
+      return onTheme(takes.list[takes.at + 1]);
+    }
+    show(drawn(shuffle || !picked.length ? dsRandomTastes(picked) : picked));
+  };
+  const back = () => {
+    if (takes.at <= 0) return;
+    setTakes({ ...takes, at: takes.at - 1 });
+    onTheme(takes.list[takes.at - 1]);
+  };
+  const group = (id: DsTasteGroup, title: string) => (
+    <div className="flex flex-col gap-ds-8">
+      <span className="text-small text-ds-fg-muted">{title}</span>
+      <div className="flex flex-wrap gap-ds-4" role="group" aria-label={title}>
+        {DS_TASTES.filter((t) => t.group === id).map((t) => (
+          <DsButton key={t.id} size="small" iconLeft={TASTE_ICONS[t.id]} pressed={picked.includes(t.id)} onClick={() => toggle(t.id)}>
             {t.label}
           </DsButton>
         ))}
       </div>
-      <div className="flex items-center gap-ds-8">
-        <DsButton
-          size="small"
-          variant="text"
-          iconLeft={Shuffle}
-          onClick={() => {
-            // One or two pills at random, a different mix from the one picked where there is one.
-            const ids = DS_TASTES.map((t) => t.id);
-            let next: string[] = [];
-            for (let tries = 0; tries < 8; tries++) {
-              const count = Math.random() < 0.6 ? 1 : 2;
-              next = [...ids].sort(() => Math.random() - 0.5).slice(0, count);
-              if (next.sort().join() !== [...picked].sort().join()) break;
-            }
-            draw(next);
-          }}
-        >
+    </div>
+  );
+  return (
+    <div className="flex flex-col gap-ds-16">
+      {group("feel", "Feel")}
+      {group("world", "World")}
+      <div className="flex items-center gap-ds-4">
+        <DsButton size="small" iconLeft={Shuffle} pressed={shuffle} onClick={() => setShuffle((on) => !on)}>
           Shuffle
         </DsButton>
+        <DsButton size="small" variant="text" iconLeft={ChevronLeft} aria-label="Previous take" disabled={takes.at <= 0} onClick={back} />
+        <span className="min-w-8 text-center text-small text-ds-fg-muted tabular-nums">
+          {takes.list.length ? `${takes.at + 1}/${takes.list.length}` : "–"}
+        </span>
+        <DsButton size="small" variant="text" iconLeft={ChevronRight} aria-label="Next take" onClick={forward} />
         <DsButton
           size="small"
           variant="text"
           iconLeft={RotateCcw}
+          className="ml-auto"
           onClick={() => {
             setBefore(null);
+            setTakes({ list: [], at: -1 });
             onTheme({
               ...dsThemeWithMood(theme, DS_DEFAULT_CHARACTER.mood),
               character: DS_DEFAULT_CHARACTER,
@@ -498,13 +627,12 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
  * set the way a photograph is edited, with everything under it worked out
  * from it until given its own. Two parts, folded in:
  *
- * - Mood: one bar from Serious to Playful. Moving it moves the Appearance
- *   dials and the fonts together (crisp corners and an editorial serif at
- *   one end, round corners, warmth, some depth and a rounded face at the
- *   other, Parabola's own in the middle), to fine-tune after.
- * - Appearance: the base colour (white to start), as Figma shows one, then
- *   Brightness, Warmth, Contrast, Roundness and Depth, each a bar drawn in
- *   what it does.
+ * - Mood: one bar from Serious to Wacky. Moving it moves the Appearance
+ *   dials and the fonts together, to fine-tune after.
+ * - Appearance: the background as dials, Warmth first, then Hue, Colour
+ *   (none to full) and Brightness (dark to light), so light, mid-tone and
+ *   dark backgrounds are a drag away (a hex is Colours' job); then
+ *   Contrast, Roundness and Depth. Each bar is drawn in what it does.
  */
 function StyleChoice({
   theme,
@@ -526,20 +654,22 @@ function StyleChoice({
     const { label, min, max, low, high } = DS_CHARACTER_DIALS.find((d) => d.id === id)!;
     const value = character[id];
     const centred = min < 0;
-    const shown = centred ? Math.round(value * 50) : Math.round(value * 100);
+    const shown = id === "hue" ? Math.round(value) : centred ? Math.round(value * 50) : Math.round(value * 100);
     return (
       <DsColourBar
         key={id}
         label={label}
-        readout={centred ? signed(shown) : String(shown)}
+        readout={id === "hue" ? `${shown}°` : centred ? signed(shown) : String(shown)}
         value={(value - min) / (max - min)}
-        onChange={(x) => set({ [id]: Math.round((min + x * (max - min)) * 100) / 100 })}
-        valueText={`${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`}
+        onChange={(x) => set({ [id]: id === "hue" ? Math.round(x * 360) % 360 : Math.round((min + x * (max - min)) * 100) / 100 })}
+        valueText={id === "hue" ? `${shown}°` : `${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`}
         track={track}
         thumb={thumb}
       />
     );
   };
+  // The hue bar shows each hue at a strength that reads, even while the background has little colour.
+  const strong = { colour: Math.max(character.colour, 0.6), brightness: Math.max(character.brightness, 0.7), warmth: 0 };
   return (
     <>
       <DsAccordion title="Mood" inset>
@@ -562,16 +692,14 @@ function StyleChoice({
         </div>
       </DsAccordion>
       <DsAccordion title="Appearance" inset>
-        <DsField size="small" label="Background colour">
-          <DsColourField
-            aria-label="Background colour"
-            value={character.seed ?? "#FFFFFF"}
-            // White is where it starts, so white is no seed at all.
-            onChange={(hex) => set({ seed: hex === "#FFFFFF" ? null : hex })}
-          />
-        </DsField>
-        {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
         {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
+        {dial(
+          "hue",
+          `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
+          at({ ...strong })
+        )}
+        {dial("colour", `linear-gradient(to right, ${at({ colour: 0, warmth: 0 })}, ${at({ colour: 1 })})`, base)}
+        {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
         {dial(
           "contrast",
           `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
@@ -884,6 +1012,8 @@ export function ThemeSection() {
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({ ...theme, families: theme.families.map((f) => (f.id === familyId ? { ...f, font } : f)) });
   const fontOptions = dsFontOptions(theme);
+  // Ilo shows as her photo in a friendly look, her initials in a branded one (taste.ts).
+  const people = dsTastePeople(theme.character.tastes, theme.character.mood);
   const heading = theme.families.find((f) => f.id === DS_HEADING_FAMILY);
   const body = theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
@@ -942,8 +1072,8 @@ export function ThemeSection() {
       <section className="flex flex-col gap-ds-20">
         <p className="text-small text-ds-fg-muted">Out in the world</p>
         <div className="flex flex-wrap items-start gap-ds-20">
-          <PreviewStory />
-          <PreviewXPost />
+          <PreviewStory people={people} />
+          <PreviewXPost people={people} />
         </div>
         <PreviewEmail />
       </section>

@@ -25,6 +25,7 @@ import {
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
+  dsCharacterBase,
   dsCharacterButtons,
   dsCharacterColourOptions,
   dsCharacterIsDefault,
@@ -536,7 +537,9 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
     name,
     character: {
       tastes: c.tastes,
-      background: c.seed ?? "white",
+      background: dsCharacterBase(c) ?? "white",
+      hue: Math.round(c.hue),
+      colour: pct(c.colour),
       brightness: pct(c.brightness),
       warmth: Math.round(c.warmth * 50),
       contrast: Math.round(c.contrast * 50),

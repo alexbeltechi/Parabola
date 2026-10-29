@@ -124,12 +124,15 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
-  panel calls it **Style**: Mood (Serious to Playful, `DS_MOODS`,
+  panel calls it **Style**: Mood (Serious to Wacky, `DS_MOODS`,
   `dsThemeWithMood`, which moves the dials and the fonts together), then
-  Appearance (the base colour in a `DsColourField`, and the dials). Above
-  it, **Taste** (`taste.ts`, `DS_TASTES`, `dsShuffleTaste`): style pills
-  whose ranges a Shuffle draws a whole look from; the list is meant to
-  grow.
+  Appearance (the background as dials, warmth, hue, colour and
+  brightness, then contrast, roundness, depth; a hex is Colours' job).
+  Above it, **Taste** (`taste.ts`, `DS_TASTES`, `dsShuffleTaste`,
+  `dsRandomTastes`, `dsTastePeople`): style pills in two groups, Feel and
+  World, whose ranges a draw takes a whole look from; the list is meant to
+  grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
+  there for any colour a form asks for.
 
 - **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
   colour: base (`theme`, the website's background; Parabola's is white,

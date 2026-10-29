@@ -12,10 +12,11 @@
  *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
  *   described, and they can be fine-tuned after.
  * - tastes: the taste pills the look was drawn from (taste.ts), by id.
- * - seed: the colour the light theme's background starts from, or null for white.
- * - brightness: how bright the base is, 0 (dark) to 1 (as bright as it
- *   comes: white, or the seed as picked).
- * - warmth: -1 (cold) to 1 (warm), 0 neither: a white balance over the base.
+ * - The background, as dials rather than a hex (a hex is Colours' job;
+ *   Alex, 2026-10-29): warmth, -1 (cold) to 1 (warm), a white balance over
+ *   it; hue, 0 to 360; colour, 0 (none: white, greys, black) to 1 (the hue
+ *   at full strength), so a strong teal or a mid green is as reachable as
+ *   paper; brightness, 0 (black) to 1 (as light as it goes).
  * - contrast: -1 (soft) to 1 (hard), 0 Parabola's: how far the quieter
  *   text, the borders and the cards sit from the base.
  * - roundness: 0 (sharp) to 1 (round): every corner, None to Large.
@@ -31,15 +32,26 @@ import type { DsRadius } from "./radius";
 export type DsCharacter = {
   tastes: string[];
   mood: number;
-  seed: string | null;
-  brightness: number;
   warmth: number;
+  hue: number;
+  colour: number;
+  brightness: number;
   contrast: number;
   roundness: number;
   depth: number;
 };
 
-export const DS_DEFAULT_CHARACTER: DsCharacter = { tastes: [], mood: 0.5, seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
+export const DS_DEFAULT_CHARACTER: DsCharacter = {
+  tastes: [],
+  mood: 0.5,
+  warmth: 0,
+  hue: 40,
+  colour: 0,
+  brightness: 1,
+  contrast: 0,
+  roundness: 1,
+  depth: 0,
+};
 
 /** A font pair: a Google font for headlines over one for text. */
 export type DsFontPair = { heading: { label: string; google: string }; body: { label: string; google: string } };
@@ -98,8 +110,10 @@ export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "contras
 
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
 export const DS_CHARACTER_DIALS = [
-  { id: "brightness", label: "Brightness", min: 0, max: 1, low: "Dark", high: "Bright" },
   { id: "warmth", label: "Warmth", min: -1, max: 1, low: "Cold", high: "Warm" },
+  { id: "hue", label: "Hue", min: 0, max: 360, low: "Red", high: "Red" },
+  { id: "colour", label: "Colour", min: 0, max: 1, low: "None", high: "Full" },
+  { id: "brightness", label: "Brightness", min: 0, max: 1, low: "Dark", high: "Light" },
   { id: "contrast", label: "Contrast", min: -1, max: 1, low: "Soft", high: "Hard" },
   { id: "roundness", label: "Roundness", min: 0, max: 1, low: "Sharp", high: "Round" },
   { id: "depth", label: "Depth", min: 0, max: 1, low: "Flat", high: "Deep" },
@@ -119,12 +133,15 @@ export function parseDsCharacter(value: unknown): DsCharacter {
   };
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
   const tastes = Array.isArray(raw.tastes) ? [...new Set((raw.tastes as unknown[]).filter((t): t is string => typeof t === "string"))] : [];
+  // A background picked as a hex for a day (`seed`) becomes its hue, colour and brightness.
+  const seed = dsIsHex(raw.seed) ? dsHexToHsv(raw.seed) : null;
   return {
     tastes,
     mood,
-    seed: dsIsHex(raw.seed) && raw.seed.toUpperCase() !== "#FFFFFF" ? raw.seed.toUpperCase() : null,
-    brightness: dial("brightness"),
     warmth: dial("warmth"),
+    hue: seed && seed.s > 0 ? Math.round(seed.h) : dial("hue"),
+    colour: seed ? Math.round(seed.s * 100) / 100 : dial("colour"),
+    brightness: seed ? Math.round(seed.v * 100) / 100 : dial("brightness"),
     contrast: dial("contrast"),
     roundness: dial("roundness"),
     depth: dial("depth"),
@@ -134,27 +151,24 @@ export function parseDsCharacter(value: unknown): DsCharacter {
 export const dsCharacterIsDefault = (c: DsCharacter) =>
   c.tastes.length === 0 &&
   c.mood === 0.5 &&
-  c.seed === null && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
-
-/** How dark the base goes at brightness 0: about the dark theme's page. */
-const DARKEST = 0.12;
+  c.colour === 0 && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /**
- * The light theme's base from the dials: the seed (or white), as bright as
- * `brightness` says, warmed or cooled; or null for Parabola's own white,
- * which keeps its hand-tuned greys.
+ * The light theme's background from the dials: the hue at its colour and
+ * brightness, warmed or cooled; or null for Parabola's own white, which keeps
+ * its hand-tuned greys.
  */
 export function dsCharacterBase(c: DsCharacter): string | null {
-  if (c.seed === null && c.brightness === 1 && c.warmth === 0) return null;
-  const { h, s, v } = dsHexToHsv(c.seed ?? "#FFFFFF");
-  // On a curve: the top half of the dial stays light (60 is a light grey, not a mid one), the dark end comes fast.
-  const dim = (1 - c.brightness) ** 2;
-  const value = v * (1 - dim * (1 - DARKEST));
-  // From white, warmth tints toward paper (40°) or ice (210°), a little more colour the further it goes, so warm
-  // white is paper, not lemon; a seed colour is warmed or cooled as a photo's white balance is.
-  if (c.seed === null) return c.warmth === 0 ? dsHsvToHex(0, 0, value) : dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, value);
-  const bright = dsHsvToHex(h, s, value);
-  return c.warmth === 0 ? bright : dsWithWarmth(bright, 0.5 + c.warmth * 0.35);
+  if (c.colour === 0 && c.brightness === 1 && c.warmth === 0) return null;
+  // With no colour, warmth tints toward paper (40°) or ice (210°), a little more the further it goes, so a warm
+  // white is paper, not lemon; a colour is warmed or cooled as a photo's white balance is.
+  if (c.colour < 0.02) {
+    return c.warmth === 0
+      ? dsHsvToHex(0, 0, c.brightness)
+      : dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, c.brightness);
+  }
+  const base = dsHsvToHex(c.hue, c.colour, c.brightness);
+  return c.warmth === 0 ? base : dsWithWarmth(base, 0.5 + c.warmth * 0.35);
 }
 
 /** What the colour derivations take from the character (colours.ts). */
