@@ -419,8 +419,9 @@ function PreviewEmail() {
  * Minimal, Editorial, Luxury, Tech, Warm, Bold, Playful, Wacky. Picking one
  * changes the look at once, drawn at random inside it (the mood, the dials,
  * a background, a button colour, a font pair); picking more draws inside
- * all of them; Shuffle draws again for another take, and with none picked
- * picks one and shows it picked. Unpicking the last brings back the look
+ * all of them. Shuffle, a plain action beside Default so it doesn't read as
+ * a pill, picks one or two pills at random, shows them picked and draws
+ * from them; again for another mix. Unpicking the last brings back the look
  * from before the first was picked. A draw starts the look over: colours,
  * corners and buttons given their own go back to Auto. Default puts
  * Parabola's own back. Undo, in the top bar, takes a take back.
@@ -451,7 +452,22 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
         ))}
       </div>
       <div className="flex items-center gap-ds-8">
-        <DsButton size="small" variant="primary" iconLeft={Shuffle} onClick={() => draw(picked)}>
+        <DsButton
+          size="small"
+          variant="text"
+          iconLeft={Shuffle}
+          onClick={() => {
+            // One or two pills at random, a different mix from the one picked where there is one.
+            const ids = DS_TASTES.map((t) => t.id);
+            let next: string[] = [];
+            for (let tries = 0; tries < 8; tries++) {
+              const count = Math.random() < 0.6 ? 1 : 2;
+              next = [...ids].sort(() => Math.random() - 0.5).slice(0, count);
+              if (next.sort().join() !== [...picked].sort().join()) break;
+            }
+            draw(next);
+          }}
+        >
           Shuffle
         </DsButton>
         <DsButton
