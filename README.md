@@ -123,7 +123,10 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   its own (a colour, `radius`, `buttons`) stays when a dial moves; `null`
   means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
   resolve a theme; `dsCharacterColourOptions` is what the colour
-  derivations take from it. An agent sets a look by moving dials.
+  derivations take from it. An agent sets a look by moving dials. The
+  panel calls it **Style**: Mood (Serious to Playful, `DS_MOODS`,
+  `dsThemeWithMood`, which moves the dials and the fonts together), then
+  Appearance (the base colour in a `DsColourField`, and the dials).
 
 - **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
   colour: base (`theme`, the website's background; Parabola's is white,

@@ -7,6 +7,10 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
+ * - mood: 0 (serious) to 1 (playful), 0.5 Parabola's own. Not a value of
+ *   its own: moving it moves the dials below and the fonts together
+ *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
+ *   described, and they can be fine-tuned after.
  * - seed: the colour the light theme's base starts from, or null for white.
  * - brightness: how bright the base is, 0 (dark) to 1 (as bright as it
  *   comes: white, or the seed as picked).
@@ -24,6 +28,7 @@ import { dsHexToHsv, dsHsvToHex, dsIsHex, dsWithWarmth, type DsColourOptions } f
 import type { DsRadius } from "./radius";
 
 export type DsCharacter = {
+  mood: number;
   seed: string | null;
   brightness: number;
   warmth: number;
@@ -32,7 +37,55 @@ export type DsCharacter = {
   depth: number;
 };
 
-export const DS_DEFAULT_CHARACTER: DsCharacter = { seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
+export const DS_DEFAULT_CHARACTER: DsCharacter = { mood: 0.5, seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
+
+/**
+ * The moods along the Mood bar: what each end, and Parabola in the middle,
+ * does to the dials and the fonts. Between them the dials slide; the fonts
+ * change where a mood takes over. The taste lives here: a later model
+ * improves a mood by changing a line, not every theme.
+ *
+ * - Serious: crisp corners, a little cooler, firmer contrast, flat; an
+ *   editorial serif over a sober sans.
+ * - Parabola: its own look.
+ * - Playful: round, warmer, a touch softer, some depth (gradient, outline);
+ *   a rounded display face over a friendly sans.
+ */
+export const DS_MOODS = [
+  {
+    at: 0,
+    label: "Serious",
+    dials: { warmth: -0.1, contrast: 0.4, roundness: 0.12, depth: 0 },
+    fonts: { heading: { label: "Newsreader", google: "Newsreader:wght@400..700" }, body: { label: "IBM Plex Sans", google: "IBM+Plex+Sans:wght@400;500;600;700" } },
+  },
+  { at: 0.5, label: "Balanced", dials: { warmth: 0, contrast: 0, roundness: 1, depth: 0 }, fonts: null },
+  {
+    at: 1,
+    label: "Playful",
+    dials: { warmth: 0.4, contrast: -0.15, roundness: 1, depth: 0.55 },
+    fonts: { heading: { label: "Fredoka", google: "Fredoka:wght@400..700" }, body: { label: "Nunito", google: "Nunito:wght@400..700" } },
+  },
+] as const;
+
+/** Where a mood's fonts take over from Parabola's: past these, toward either end. */
+export const DS_MOOD_FONT_EDGE = 0.3;
+
+/** A mood's word, for its bar's readout. */
+export function dsMoodLabel(mood: number): string {
+  if (mood < 0.15) return "Serious";
+  if (mood < 0.4) return "Composed";
+  if (mood <= 0.6) return "Balanced";
+  if (mood <= 0.85) return "Lively";
+  return "Playful";
+}
+
+/** The dials at a mood: Parabola's in the middle, sliding toward each end's. */
+export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "contrast" | "roundness" | "depth"> {
+  const [lo, hi] = mood <= 0.5 ? [DS_MOODS[0], DS_MOODS[1]] : [DS_MOODS[1], DS_MOODS[2]];
+  const t = (mood - lo.at) / (hi.at - lo.at);
+  const mix = (k: keyof typeof lo.dials) => Math.round((lo.dials[k] + (hi.dials[k] - lo.dials[k]) * t) * 100) / 100;
+  return { warmth: mix("warmth"), contrast: mix("contrast"), roundness: mix("roundness"), depth: mix("depth") };
+}
 
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
 export const DS_CHARACTER_DIALS = [
@@ -55,8 +108,10 @@ export function parseDsCharacter(value: unknown): DsCharacter {
     const n = raw[id];
     return typeof n === "number" && Number.isFinite(n) ? clamp(n, min, max) : DS_DEFAULT_CHARACTER[id];
   };
+  const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
   return {
-    seed: dsIsHex(raw.seed) ? raw.seed.toUpperCase() : null,
+    mood,
+    seed: dsIsHex(raw.seed) && raw.seed.toUpperCase() !== "#FFFFFF" ? raw.seed.toUpperCase() : null,
     brightness: dial("brightness"),
     warmth: dial("warmth"),
     contrast: dial("contrast"),
@@ -66,6 +121,7 @@ export function parseDsCharacter(value: unknown): DsCharacter {
 }
 
 export const dsCharacterIsDefault = (c: DsCharacter) =>
+  c.mood === 0.5 &&
   c.seed === null && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /** How dark the base goes at brightness 0: about the dark theme's page. */
@@ -81,7 +137,11 @@ export function dsCharacterBase(c: DsCharacter): string | null {
   const { h, s, v } = dsHexToHsv(c.seed ?? "#FFFFFF");
   // On a curve: the top half of the dial stays light (60 is a light grey, not a mid one), the dark end comes fast.
   const dim = (1 - c.brightness) ** 2;
-  const bright = dsHsvToHex(h, s, v * (1 - dim * (1 - DARKEST)));
+  const value = v * (1 - dim * (1 - DARKEST));
+  // From white, warmth tints toward paper (40°) or ice (210°), a little more colour the further it goes, so warm
+  // white is paper, not lemon; a seed colour is warmed or cooled as a photo's white balance is.
+  if (c.seed === null) return c.warmth === 0 ? dsHsvToHex(0, 0, value) : dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, value);
+  const bright = dsHsvToHex(h, s, value);
   return c.warmth === 0 ? bright : dsWithWarmth(bright, 0.5 + c.warmth * 0.35);
 }
 

@@ -9,6 +9,12 @@ type Hsv = { h: number; s: number; v: number };
 
 const clamp = (n: number) => Math.min(1, Math.max(0, n));
 
+/** A colour's hue, saturation and brightness; a white, black or grey has no hue, so it starts at paper's warm 40°. */
+function toHsv(hex: string): Hsv {
+  const hsv = dsHexToHsv(hex);
+  return hsv.s === 0 ? { ...hsv, h: 40 } : hsv;
+}
+
 /** Pointer drag over an element, reporting where it is as fractions (0–1) of its width and height. */
 function useDrag(onMove: (x: number, y: number) => void) {
   return {
@@ -137,7 +143,7 @@ export function DsColourPicker({
   "aria-label"?: string;
 }) {
   // The picker keeps its own hue and saturation, so they survive black, white and greys.
-  const [hsv, setHsv] = React.useState<Hsv>(() => dsHexToHsv(value));
+  const [hsv, setHsv] = React.useState<Hsv>(() => toHsv(value));
   const [text, setText] = React.useState(value);
   const [editing, setEditing] = React.useState(false);
   const shown = dsHsvToHex(hsv.h, hsv.s, hsv.v);
@@ -145,7 +151,7 @@ export function DsColourPicker({
   const [last, setLast] = React.useState(value);
   if (value !== last) {
     setLast(value);
-    if (value !== shown) setHsv(dsHexToHsv(value));
+    if (value !== shown) setHsv(toHsv(value));
   }
 
   const set = (next: Hsv) => {

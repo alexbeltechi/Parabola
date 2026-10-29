@@ -56,6 +56,7 @@ export {
   dsThemeRadius,
   dsThemeButtons,
   dsThemeColourTokens,
+  dsThemeWithMood,
   parseDsThemeConfig,
   parseDsThemeExport,
   dsThemeExport,
@@ -182,9 +183,14 @@ export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
 export { DsColourPicker } from "./components/colour-picker";
+export { DsColourField } from "./components/colour-field";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,
+  DS_MOOD_FONT_EDGE,
+  DS_MOODS,
+  dsMoodDials,
+  dsMoodLabel,
   dsCharacterBase,
   dsCharacterButtons,
   dsCharacterColourOptions,

@@ -16,6 +16,7 @@ import {
   DS_DEFAULT_HEADING_FONT,
   DS_FONTS,
   dsCustomFont,
+  dsCustomFontFromInput,
   dsGoogleFontsUrl,
   dsNearestWeight,
   type DsCustomFont,
@@ -24,10 +25,13 @@ import {
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
+  DS_MOOD_FONT_EDGE,
+  DS_MOODS,
   dsCharacterButtons,
   dsCharacterColourOptions,
   dsCharacterIsDefault,
   dsCharacterRadius,
+  dsMoodDials,
   parseDsCharacter,
   type DsCharacter,
 } from "./character";
@@ -374,6 +378,33 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     fields: parseDsFieldStyle(raw.fields),
     icons,
   };
+}
+
+/**
+ * The theme at a mood (character.ts, DS_MOODS): its warmth, contrast,
+ * roundness and depth slid to the mood's, and its Font and Heading set in
+ * the mood's faces toward either end (added to its fonts if they're not
+ * there), Parabola's in the middle. Colours, the base and anything given its
+ * own stay as they are.
+ */
+export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConfig {
+  const character = { ...theme.character, mood, ...dsMoodDials(mood) };
+  const end = mood < DS_MOOD_FONT_EDGE ? DS_MOODS[0] : mood > 1 - DS_MOOD_FONT_EDGE ? DS_MOODS[2] : null;
+  const customFonts = [...theme.customFonts];
+  const fontId = (face: { label: string; google: string } | undefined, fallback: string) => {
+    if (!face) return fallback;
+    const font = dsCustomFontFromInput(face.label);
+    if (!font) return fallback;
+    const own = { ...font, google: face.google };
+    if (!customFonts.some((f) => f.id === own.id)) customFonts.push(own);
+    return own.id;
+  };
+  const heading = fontId(end?.fonts?.heading, DS_DEFAULT_HEADING_FONT);
+  const body = fontId(end?.fonts?.body, DS_DEFAULT_FONT);
+  const families = theme.families.map((f) =>
+    f.id === DS_HEADING_FAMILY ? { ...f, font: heading } : f.id === DS_BODY_FAMILY ? { ...f, font: body } : f
+  );
+  return parseDsThemeConfig({ ...theme, character, families, customFonts });
 }
 
 /** A theme's corners: its own, or the character's roundness. */

@@ -23,7 +23,15 @@ import { DS_DEFAULT_FIELD_STYLE, DS_OUTLINE_MAX, DS_OUTLINE_WIDTHS, type DsButto
 import { DsAngleDial } from "../components/angle-dial";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
-import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER, dsCharacterBase, dsCharacterColourOptions, type DsCharacter } from "../character";
+import {
+  DS_CHARACTER_DIALS,
+  DS_DEFAULT_CHARACTER,
+  dsCharacterBase,
+  dsCharacterColourOptions,
+  dsMoodLabel,
+  type DsCharacter,
+} from "../character";
+import { DsColourField } from "../components/colour-field";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
@@ -33,6 +41,7 @@ import {
   dsThemeColourTokens,
   dsThemeExport,
   dsThemeRadius,
+  dsThemeWithMood,
   parseDsThemeConfig,
   parseDsThemeExport,
   type DsThemeConfig,
@@ -324,26 +333,29 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
 };
 
 /**
- * The theme's character (character.ts; Alex, 2026-10-29): the dials that set
- * the look as a whole, as a photograph is edited, with everything under them
- * worked out from them until given its own. A base colour to start from
- * (Auto: white), then Brightness, Warmth, Contrast, Roundness and Depth, each
- * a bar drawn in what it does to the theme. The ends are named in
- * DS_CHARACTER_DIALS.
+ * The theme's style (character.ts; Alex, 2026-10-29): the look as a whole,
+ * set the way a photograph is edited, with everything under it worked out
+ * from it until given its own. Two parts, folded in:
+ *
+ * - Mood: one bar from Serious to Playful. Moving it moves the Appearance
+ *   dials and the fonts together (crisp corners and an editorial serif at
+ *   one end, round corners, warmth, some depth and a rounded face at the
+ *   other, Parabola's own in the middle), to fine-tune after.
+ * - Appearance: the base colour (white to start), as Figma shows one, then
+ *   Brightness, Warmth, Contrast, Roundness and Depth, each a bar drawn in
+ *   what it does.
  */
-function CharacterChoice({
-  character,
+function StyleChoice({
   theme,
   mode,
-  onChange,
+  onTheme,
 }: {
-  character: DsCharacter;
   theme: DsThemeConfig;
   mode: "light" | "dark";
-  onChange: (character: DsCharacter) => void;
+  onTheme: (theme: DsThemeConfig) => void;
 }) {
-  const set = (next: Partial<DsCharacter>) => onChange({ ...character, ...next });
-  const [text, setText] = React.useState<string | null>(null);
+  const character = theme.character;
+  const set = (next: Partial<DsCharacter>) => onTheme({ ...theme, character: { ...character, ...next } });
   const at = (next: Partial<DsCharacter>) => dsCharacterBase({ ...character, ...next }) ?? "#FFFFFF";
   const tokensAt = (contrast: number) => dsThemeColourTokens({ ...theme, character: { ...character, contrast } }, mode);
   const base = dsThemeColourTokens(theme, mode).bg;
@@ -368,33 +380,46 @@ function CharacterChoice({
     );
   };
   return (
-    <div className="flex flex-col gap-ds-16">
-      <DsField size="small" label="Base colour">
-        <DsInput
-          size="small"
-          className="font-mono"
-          value={text ?? character.seed ?? ""}
-          placeholder="Auto (white)"
-          onFocus={() => setText(character.seed ?? "")}
-          onBlur={() => setText(null)}
-          onChange={(e) => {
-            setText(e.target.value);
-            if (e.target.value.trim() === "") set({ seed: null });
-            const hex = dsNormalizeHex(e.target.value);
-            if (hex) set({ seed: hex });
-          }}
-        />
-      </DsField>
-      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
-      {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
-      {dial(
-        "contrast",
-        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
-        tokensAt(character.contrast)["fg-muted"]
-      )}
-      {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
-      {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
-    </div>
+    <>
+      <DsAccordion title="Mood" inset>
+        <div className="flex flex-col gap-ds-4">
+          {/* The mood's word above the bar ("Balanced", "Playful"); the section is already called Mood. */}
+          <DsColourBar
+            label="Mood"
+            title={dsMoodLabel(character.mood)}
+            readout=""
+            value={character.mood}
+            onChange={(mood) => onTheme(dsThemeWithMood(theme, Math.round(mood * 100) / 100))}
+            valueText={dsMoodLabel(character.mood)}
+            track="linear-gradient(to right, var(--ds-surface), var(--ds-surface-subtle), var(--ds-surface))"
+            thumb="var(--ds-fg)"
+          />
+          <div className="flex justify-between text-small text-ds-fg-muted">
+            <span>Serious</span>
+            <span>Playful</span>
+          </div>
+        </div>
+      </DsAccordion>
+      <DsAccordion title="Appearance" inset>
+        <DsField size="small" label="Base colour">
+          <DsColourField
+            aria-label="Base colour"
+            value={character.seed ?? "#FFFFFF"}
+            // White is where it starts, so white is no seed at all.
+            onChange={(hex) => set({ seed: hex === "#FFFFFF" ? null : hex })}
+          />
+        </DsField>
+        {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
+        {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
+        {dial(
+          "contrast",
+          `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
+          tokensAt(character.contrast)["fg-muted"]
+        )}
+        {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+        {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+      </DsAccordion>
+    </>
   );
 }
 
@@ -822,15 +847,21 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
-          title="Character"
+          title="Style"
           actions={
-            <SectionRestore section="Character" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, character: DS_DEFAULT_CHARACTER })} />
+            <SectionRestore
+              section="Style"
+              theme={theme}
+              setTheme={setTheme}
+              // The mood back in the middle (Parabola's fonts with it), and every dial at rest.
+              restore={(t) => ({ ...dsThemeWithMood(t, DS_DEFAULT_CHARACTER.mood), character: DS_DEFAULT_CHARACTER })}
+            />
           }
         >
-          <CharacterChoice character={theme.character} theme={theme} mode={mode} onChange={(character) => setTheme({ ...theme, character })} />
+          <StyleChoice theme={theme} mode={mode} onTheme={setTheme} />
         </PanelSection>
 
-        {/* The wheel, for a colour of its own over the character: folded, so the dials come first (Alex, 2026-10-29). */}
+        {/* The wheel, for a colour of its own over the style: folded, so the style comes first (Alex, 2026-10-29). */}
         <PanelSection
           title="Colours"
           defaultOpen={false}
