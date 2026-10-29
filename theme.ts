@@ -394,11 +394,20 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
   return dsThemeWithFonts({ ...theme, character: { ...theme.character, mood, ...dsMoodDials(mood) } }, dsMoodFonts(mood));
 }
 
-/** The theme at an expression (character.ts): its contrast and depth slid to it, from toned down to expressive. */
+/**
+ * The theme at an expression (character.ts), quiet to loud: its contrast and
+ * depth slid to it, and the headlines (Display, H1, H2) heavier and larger
+ * as it rises, so the bar shows on any page, not only on solid buttons.
+ */
 export function dsThemeWithExpression(theme: DsThemeConfig, expression: number): DsThemeConfig {
   const weight = dsExpressionWeight(expression);
+  // The headlines grow with it: 90% of Parabola's size when quiet, 100% at its own 0.25, 130% when loud.
+  const scale = 1 + (expression - 0.25) * 0.4;
   const type = { ...theme.type };
-  for (const s of ["display", "h1", "h2"] as const) type[s] = { ...type[s], weight };
+  for (const s of ["display", "h1", "h2"] as const) {
+    const d = DS_TEXT_STYLE_DEFAULTS[s];
+    type[s] = { ...type[s], weight, size: Math.round(d.size * scale), lineHeight: Math.round(d.lineHeight * scale) };
+  }
   return { ...theme, type, character: { ...theme.character, expression, ...dsExpressionDials(expression) } };
 }
 

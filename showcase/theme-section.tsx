@@ -54,6 +54,7 @@ import { DsInfoCard } from "../components/info-card";
 import { dsFontOptions } from "../components/font-pairing";
 import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourOptions, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { cn } from "../cn";
+import { DsScrollRow } from "../primitives/scroll-row";
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
@@ -77,6 +78,7 @@ import {
 import {
   DS_TASTES,
   dsNudgeTaste,
+  dsPickTaste,
   dsRandomTastes,
   dsShuffleTaste,
   dsTasteBackground,
@@ -85,7 +87,6 @@ import {
   dsTasteFonts,
   dsTastePeople,
   dsTasteStory,
-  type DsTasteGroup,
 } from "../taste";
 import {
   DS_BODY_FAMILY,
@@ -559,33 +560,35 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   natural: Leaf,
 };
 
-/** The taste pills, Feel then World, the picked ones pressed; `compact` runs them in one row for inside a section. */
+/**
+ * The taste pills in their tracks, Feel then World, each a row that slides
+ * sideways (DsScrollRow) and takes one pick, as tabs do. The pills are the
+ * light kind (text buttons): no fill at rest, a soft one when picked, with
+ * an icon each. `compact` leaves the tracks' names off, inside a section.
+ */
 function TastePills({ picked, onToggle, compact = false }: { picked: string[]; onToggle: (id: string) => void; compact?: boolean }) {
-  const pills = (id: DsTasteGroup) =>
-    DS_TASTES.filter((t) => t.group === id).map((t) => (
-      <DsButton key={t.id} size="small" iconLeft={TASTE_ICONS[t.id]} pressed={picked.includes(t.id)} onClick={() => onToggle(t.id)}>
-        {t.label}
-      </DsButton>
-    ));
-  if (compact) {
-    return (
-      <div className="flex flex-wrap gap-ds-4" role="group" aria-label="Tastes">
-        {pills("feel")}
-        {pills("world")}
-      </div>
-    );
-  }
   return (
-    <>
+    <div className="flex flex-col gap-ds-8">
       {(["feel", "world"] as const).map((id) => (
-        <div key={id} className="flex flex-col gap-ds-8">
-          <span className="text-small text-ds-fg-muted">{id === "feel" ? "Feel" : "World"}</span>
-          <div className="flex flex-wrap gap-ds-4" role="group" aria-label={id === "feel" ? "Feel" : "World"}>
-            {pills(id)}
-          </div>
+        <div key={id} className="flex flex-col gap-ds-4">
+          {!compact && <span className="text-small text-ds-fg-muted">{id === "feel" ? "Feel" : "World"}</span>}
+          <DsScrollRow role="group" aria-label={id === "feel" ? "Feel" : "World"} className="-mx-2 px-2">
+            {DS_TASTES.filter((t) => t.group === id).map((t) => (
+              <DsButton
+                key={t.id}
+                size="small"
+                variant="text"
+                iconLeft={TASTE_ICONS[t.id]}
+                pressed={picked.includes(t.id)}
+                onClick={() => onToggle(t.id)}
+              >
+                {t.label}
+              </DsButton>
+            ))}
+          </DsScrollRow>
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -694,8 +697,9 @@ const TEMPERATURE_TRACK = "linear-gradient(to right, #DCEBFF, var(--ds-surface),
 function TasteChoice({ theme, onTheme, takes }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void; takes: Takes }) {
   const character = theme.character;
   const picked = character.tastes;
+  // One pick per track: picking replaces the track's other pick, picking it again takes it off.
   const toggle = (id: string) => {
-    const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
+    const ids = dsPickTaste(picked, id);
     if (ids.length) takes.draw(ids);
     else takes.clear();
   };
@@ -758,7 +762,7 @@ function ScopedTastes({
       compact
       picked={picked}
       onToggle={(id) => {
-        const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
+        const ids = dsPickTaste(picked, id);
         const scoped = { ...theme.character.scoped };
         if (ids.length) scoped[scope] = ids;
         else delete scoped[scope];
@@ -1321,9 +1325,12 @@ export function ThemeSection() {
               // Parabola's own again: its pills, the bars at rest, its fonts, every value Auto.
               restore={(t) => {
                 takes.reset();
-                return dsThemeWithFonts(
-                  { ...t, character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null },
-                  null
+                return dsThemeWithExpression(
+                  dsThemeWithFonts(
+                    { ...t, character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null },
+                    null
+                  ),
+                  DS_DEFAULT_CHARACTER.expression
                 );
               }}
             />

@@ -2,10 +2,13 @@
  * Tastes (Alex, 2026-10-29): the styles a theme can be pushed toward, in
  * two groups, the way people describe a brand:
  *
- * - **Feel**, its look and feel: Approachable, Restrained, Editorial,
- *   Luxurious, Bold, Candid.
- * - **World**, the world it belongs to: Playful, Wacky, Tech, Sci-fi,
- *   Fashion, Natural.
+ * - **Feel**, its look and feel: Approachable, Restrained, Luxurious, Bold,
+ *   Candid.
+ * - **World**, the world it belongs to: Editorial, Playful, Wacky, Tech,
+ *   Sci-fi, Fashion, Natural.
+ *
+ * Each group is a track and a track takes one pick, as tabs do (Alex,
+ * 2026-10-29: Restrained and Bold can't both be true): one Feel, one World.
  *
  * Each is a recipe of ranges, not one fixed look: where on the Mood bar it
  * sits, where the Appearance dials may go, the backgrounds (light, dark and
@@ -95,7 +98,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "editorial",
     label: "Editorial",
-    group: "feel",
+    group: "world",
     mood: [0.1, 0.5],
     expression: [0.15, 0.35],
     dials: { warmth: [0, 0.3], contrast: [0.2, 0.5], depth: [0, 0.05] },
@@ -260,12 +263,21 @@ function meetOf(ranges: Range[]): Range {
   return [mid, mid];
 }
 
+/** The picks with `id` toggled in its track: picked, it replaces the track's other pick; picked already, it's taken off. */
+export function dsPickTaste(picked: string[], id: string): string[] {
+  if (picked.includes(id)) return picked.filter((t) => t !== id);
+  const group = DS_TASTES.find((t) => t.id === id)?.group;
+  return [...picked.filter((t) => DS_TASTES.find((x) => x.id === t)?.group !== group), id];
+}
+
 /** One or two tastes at random, a different mix from `not` where there is one: what Shuffle puts on. */
 export function dsRandomTastes(not: string[] = []): string[] {
-  const ids = DS_TASTES.map((t) => t.id);
   let next: string[] = [];
+  // One from each track, or from one of them, never two from the same.
   for (let tries = 0; tries < 8; tries++) {
-    next = [...ids].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.6 ? 1 : 2);
+    const feel = pick(DS_TASTES.filter((t) => t.group === "feel")).id;
+    const world = pick(DS_TASTES.filter((t) => t.group === "world")).id;
+    next = Math.random() < 0.7 ? [feel, world] : [pick([feel, world])];
     if ([...next].sort().join() !== [...not].sort().join()) break;
   }
   return next;
