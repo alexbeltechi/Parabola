@@ -13,7 +13,8 @@ import { DsLink, type DsLinkProps } from "../provider";
  *   reads over images.
  * - primary: the same shape, solid `ds-button` (the theme's button colour,
  *   the text's by default); the one main action on a screen
- *   (Publish, Save).
+ *   (Publish, Save). It wears the theme's button look (button-style.ts):
+ *   a gradient, an outline, a 3D label, each off by default.
  * - danger: solid `ds-error`, for a confirmed destructive action (Delete).
  * - text: the ghost button. No surface at rest, for quiet actions like
  *   "Read more", a row's ⋮ or a site's nav. Hovering lays a light surface
@@ -64,7 +65,13 @@ export const dsButtonVariants = cva(
     variants: {
       variant: {
         default: "backdrop-blur-[24px] bg-ds-surface/70 text-ds-fg ds-hover disabled:text-ds-fg-subtle",
-        primary: "backdrop-blur-[24px] bg-ds-button text-ds-on-button ds-hover-inverse disabled:opacity-40",
+        // The theme's button look (button-style.ts): a gradient under the hover wash, an inset outline, and a
+        // label shadow, which falls on text only, never the icons.
+        primary: [
+          "backdrop-blur-[24px] bg-ds-button text-ds-on-button disabled:opacity-40",
+          "[background-image:var(--ds-button-image)] [box-shadow:var(--ds-button-ring)] [text-shadow:var(--ds-button-text-shadow)]",
+          "hover:[background-image:linear-gradient(var(--ds-hover-inverse),var(--ds-hover-inverse)),var(--ds-button-image)]",
+        ],
         danger: "backdrop-blur-[24px] bg-ds-error text-ds-bg ds-hover-inverse disabled:opacity-40",
         // The ghost: one light surface on hover, no tint, the same as when it's current.
         text: "text-ds-fg hover:bg-ds-surface/40 disabled:bg-transparent disabled:text-ds-fg-subtle",
@@ -107,7 +114,9 @@ export const dsButtonVariants = cva(
       {
         variant: "primary",
         destructive: true,
-        className: "bg-ds-error",
+        // Red, plain: the theme's button look is for its own colour.
+        className:
+          "bg-ds-error [background-image:none] [box-shadow:none] [text-shadow:none] hover:[background-image:linear-gradient(var(--ds-hover-inverse),var(--ds-hover-inverse))]",
       },
       {
         variant: "default",

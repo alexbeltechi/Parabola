@@ -282,6 +282,11 @@
      page by default; a theme's button colour sets its own (colours.ts). */
   --ds-button: var(--ds-fg);
   --ds-on-button: var(--ds-bg);
+  /* The solid buttons' look, all off here: a theme sets a gradient fill, an
+     inset outline and a 3D label's text shadow (button-style.ts). */
+  --ds-button-image: none;
+  --ds-button-ring: none;
+  --ds-button-text-shadow: none;
   /* Derived from the palette (not new colours): hover washes, a thin layer
      of the text colour over default buttons and of the page colour over
      inverted (selected) ones, so hover always moves a button away from its

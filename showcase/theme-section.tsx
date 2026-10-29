@@ -15,8 +15,11 @@ import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsNormalizeHex, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsColourTokens, dsNormalizeHex, dsShift, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsColourWheel } from "../components/colour-wheel";
+import { DsColourBar } from "../components/colour-picker";
+import { DsSwitch } from "../primitives/switch";
+import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "../button-style";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
 import {
   DS_BODY_FAMILY,
@@ -285,18 +288,77 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
 };
 
 /**
- * The theme's radius: None, Small, Medium, Large and Custom in one row, the
- * five sharing its width; Custom opens a field for the pixels (the cards'
- * and buttons' corner, the smaller ones scaled from it).
+ * The theme's buttons (button-style.ts; Alex, 2026-10-29): their fill,
+ * Solid or Gradient, and for a gradient its contrast, a bar from a hint of
+ * sheen to a strong one, drawn in the button colour; an outline; a 3D
+ * label (a 1px shadow on the text only); and their roundness, which rounds
+ * every corner of the theme.
+ */
+function ButtonChoice({
+  style,
+  button,
+  radius,
+  onStyle,
+  onRadius,
+}: {
+  style: DsButtonStyle;
+  /** The button colour in the mode shown, for the contrast bar. */
+  button: string;
+  radius: DsRadius;
+  onStyle: (style: DsButtonStyle) => void;
+  onRadius: (radius: DsRadius) => void;
+}) {
+  const set = (next: Partial<DsButtonStyle>) => onStyle({ ...style, ...next });
+  const toggle = (label: string, on: boolean, change: (on: boolean) => void) => (
+    // The switch right after its label (decisions, 2026-10-28).
+    <label className="inline-flex items-center gap-ds-8 self-start text-p text-ds-fg">
+      {label}
+      <DsSwitch checked={on} onCheckedChange={change} />
+    </label>
+  );
+  return (
+    <div className="flex flex-col gap-ds-16">
+      <div className="flex items-center gap-ds-4" role="group" aria-label="Fill">
+        {(["solid", "gradient"] as const).map((fill) => (
+          <DsButton key={fill} size="small" className="min-w-0 flex-1 px-0" pressed={style.fill === fill} onClick={() => set({ fill })}>
+            {fill === "solid" ? "Solid" : "Gradient"}
+          </DsButton>
+        ))}
+      </div>
+      {style.fill === "gradient" && (
+        <DsColourBar
+          label="Gradient contrast"
+          title="Contrast"
+          readout={String(Math.round(style.contrast * 100))}
+          value={style.contrast}
+          onChange={(contrast) => set({ contrast: Math.round(contrast * 100) / 100 })}
+          // From flat to a strong sheen, in the button colour: its lighter end on the left, the darker on the right.
+          track={`linear-gradient(to right, ${dsShift(button, 0.2)}, ${button}, ${dsShift(button, -0.2)})`}
+          thumb={button}
+        />
+      )}
+      {toggle("Outline", style.outline, (outline) => set({ outline }))}
+      {toggle("3D label", style.emboss, (emboss) => set({ emboss }))}
+      <DsField label="Roundness">
+        <RadiusChoice radius={radius} onChange={onRadius} />
+      </DsField>
+    </div>
+  );
+}
+
+/**
+ * The theme's roundness: None, Small (a crisp 2px), Medium, Large and
+ * Custom in one row, the five sharing its width; Custom opens a field for
+ * the pixels (the cards' and buttons' corner, the smaller ones scaled from
+ * it). It rounds every corner, buttons first.
  */
 function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radius: DsRadius) => void }) {
   const custom = typeof radius === "number";
   const [text, setText] = React.useState(custom ? String(radius) : "");
   return (
     <div className="flex flex-col gap-ds-8">
-      <div className="flex items-center gap-ds-4" role="group" aria-label="Radius">
-        {/* Small is left out of the choices (an older theme's still reads); Custom covers what's between. */}
-        {DS_RADII.filter((r) => r.id !== "small").map((r) => (
+      <div className="flex items-center gap-ds-4" role="group" aria-label="Roundness">
+        {DS_RADII.map((r) => (
           <DsButton key={r.id} size="small" className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
             {r.label}
           </DsButton>
@@ -318,7 +380,7 @@ function RadiusChoice({ radius, onChange }: { radius: DsRadius; onChange: (radiu
       </div>
       {custom && (
         <DsInput
-          aria-label="Radius in pixels"
+          aria-label="Roundness in pixels"
           inputMode="numeric"
           className="w-full"
           value={text}
@@ -575,10 +637,23 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
-          title="Radius"
-          actions={<SectionRestore section="Radius" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS })} />}
+          title="Buttons"
+          actions={
+            <SectionRestore
+              section="Buttons"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => ({ ...t, radius: DS_DEFAULT_RADIUS, buttons: DS_DEFAULT_BUTTON_STYLE })}
+            />
+          }
         >
-          <RadiusChoice radius={theme.radius} onChange={(radius) => setTheme({ ...theme, radius })} />
+          <ButtonChoice
+            style={theme.buttons}
+            button={dsColourTokens(theme.colours, mode).button}
+            radius={theme.radius}
+            onStyle={(buttons) => setTheme({ ...theme, buttons })}
+            onRadius={(radius) => setTheme({ ...theme, radius })}
+          />
         </PanelSection>
 
         <PanelSection

@@ -147,7 +147,12 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   family, weight, size and line height. By default Display to H2 are in
   Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
   (Instrument Sans, Medium).
-- **Radius** (`radius.ts`): None, Small, Medium, Large (the default) or a
+- **Buttons** (`button-style.ts`): the solid buttons' fill, solid or a
+  gradient of the button colour (lighter top, darker bottom, its contrast
+  0 to 1), an inset outline, a 3D label (a 1px text shadow, never on the
+  icons), each `none` until on (`--ds-button-image`, `--ds-button-ring`,
+  `--ds-button-text-shadow`); and their roundness, the radius below.
+- **Radius** (`radius.ts`): None, Small (2px), Medium, Large (the default) or a
   custom number of pixels (the cards' and pills' corner, the rest scaled),
   for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill
   (`rounded-ds-pill`: buttons, nav items, tooltips), which is fully round

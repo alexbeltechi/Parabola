@@ -22,6 +22,7 @@ import {
   type DsFont,
 } from "./fonts";
 import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
+import { DS_DEFAULT_BUTTON_STYLE, dsButtonStyleVars, parseDsButtonStyle, type DsButtonStyle } from "./button-style";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -40,6 +41,8 @@ import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusP
  *   Heading, the rest in Font, by default), weight, size and line height;
  * - a radius (None, Small, Medium, Large) for every corner, buttons
  *   included: fully round only at Large (radius.ts);
+ * - the buttons' look: solid or a gradient (with its contrast), an outline,
+ *   a 3D label (button-style.ts);
  * - an icon library (Lucide, for now).
  *
  * Themes are kept in a library (DsThemeLibrary): Parabola (the default) and
@@ -100,6 +103,8 @@ export type DsThemeConfig = {
   hiddenFonts: string[];
   /** How round every corner is: a preset, or custom pixels (radius.ts). */
   radius: DsRadius;
+  /** How the solid buttons look: fill, outline, 3D label (button-style.ts). */
+  buttons: DsButtonStyle;
   /** The icon library, by id (colours.ts). */
   icons: string;
 };
@@ -119,6 +124,7 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   customFonts: [],
   hiddenFonts: [],
   radius: DS_DEFAULT_RADIUS,
+  buttons: DS_DEFAULT_BUTTON_STYLE,
   icons: "lucide",
 };
 
@@ -315,12 +321,21 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
         : DS_DEFAULT_RADIUS;
   const icons = DS_ICON_LIBRARIES.some((l) => l.id === raw.icons && l.ready) ? (raw.icons as string) : "lucide";
 
-  return { colours, families, type, customFonts, hiddenFonts, radius, icons };
+  const buttonStyle = parseDsButtonStyle(raw.buttons);
+
+  return { colours, families, type, customFonts, hiddenFonts, radius, buttons: buttonStyle, icons };
 }
 
-/** A theme's colour tokens in light or dark, every one of them, so a theme's CSS stands on its own over another's. */
+/**
+ * A theme's colour tokens in light or dark, every one of them, so a theme's CSS stands on its own over another's,
+ * and its buttons' look, which follows their colour.
+ */
 function colourVars(theme: DsThemeConfig, mode: "light" | "dark"): Record<string, string> {
-  return Object.fromEntries(Object.entries(dsColourTokens(theme.colours, mode)).map(([name, value]) => [`--ds-${name}`, value]));
+  const tokens = dsColourTokens(theme.colours, mode);
+  return {
+    ...Object.fromEntries(Object.entries(tokens).map(([name, value]) => [`--ds-${name}`, value])),
+    ...dsButtonStyleVars(theme.buttons, tokens.button, tokens["on-button"]),
+  };
 }
 
 /** The CSS custom properties a theme sets on :root, in the light theme (tokens.css has the defaults). */
@@ -422,6 +437,14 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
       "small buttons and pills": round(px.control),
       "smallest (tags, swatches)": round(px.sm),
       buttons: round(px.pill),
+    },
+    buttons: {
+      fill:
+        theme.buttons.fill === "gradient"
+          ? `a gradient, the button colour lighter at the top and darker at the bottom (contrast ${Math.round(theme.buttons.contrast * 100)} of 100)`
+          : "solid, the button colour",
+      outline: theme.buttons.outline ? "a 1px line inside the edge, the button colour a step darker" : "none",
+      label: theme.buttons.emboss ? "3D: a 1px shadow on the text only, darker above light text or lighter below dark" : "flat",
     },
     settings: theme,
   };

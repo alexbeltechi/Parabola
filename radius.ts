@@ -14,7 +14,8 @@ export type DsRadiusToken = (typeof DS_RADIUS_TOKENS)[number];
 
 export const DS_RADII = [
   { id: "none", label: "None", px: { sm: 0, control: 0, md: 0, lg: 0, pill: 0 } },
-  { id: "small", label: "Small", px: { sm: 2, control: 4, md: 4, lg: 6, pill: 6 } },
+  // Small: a crisp 2px corner on everything, buttons included (Alex, 2026-10-29).
+  { id: "small", label: "Small", px: { sm: 2, control: 2, md: 2, lg: 2, pill: 2 } },
   { id: "medium", label: "Medium", px: { sm: 4, control: 6, md: 8, lg: 12, pill: 12 } },
   { id: "large", label: "Large", px: { sm: 4, control: 8, md: 12, lg: 16, pill: 9999 } },
 ] as const satisfies { id: string; label: string; px: Record<DsRadiusToken, number> }[];
