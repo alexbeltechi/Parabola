@@ -7,7 +7,13 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful. Not a value of
+ * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: how
+ *   playful the brand is, moving warmth, roundness and the fonts.
+ * - expression: 0 (toned down) to 1 (expressive), 0.25 Parabola's own: how
+ *   loud it is, moving contrast and depth. The two are levers, not values
+ *   of their own (Alex, 2026-10-29: two bars, not one).
+ * - scoped: taste pills picked inside one section (Typography, Buttons,
+ *   Fields, Appearance), which decide only that section's values. Not a value of
  *   its own: moving it moves the dials below and the fonts together
  *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
  *   described, and they can be fine-tuned after.
@@ -29,9 +35,14 @@ import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
 import { dsHexToHsv, dsHsvToHex, dsIsHex, dsWithWarmth, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
+/** The panel sections taste pills can be picked in, each deciding only its own values. */
+export type DsTasteScope = "type" | "buttons" | "fields" | "appearance";
+
 export type DsCharacter = {
   tastes: string[];
+  scoped: Partial<Record<DsTasteScope, string[]>>;
   mood: number;
+  expression: number;
   warmth: number;
   hue: number;
   colour: number;
@@ -41,9 +52,17 @@ export type DsCharacter = {
   depth: number;
 };
 
+/**
+ * Parabola's own look is a taste too: restrained and editorial, writing
+ * first, a little finesse (Alex, 2026-10-29), so those pills show picked.
+ */
+export const DS_DEFAULT_TASTES = ["restrained", "editorial"];
+
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
-  tastes: [],
+  tastes: DS_DEFAULT_TASTES,
+  scoped: {},
   mood: 0.5,
+  expression: 0.25,
   warmth: 0,
   hue: 40,
   colour: 0,
@@ -76,10 +95,10 @@ const pair = (heading: string, headingAxes: string, body: string, bodyAxes: stri
  *   loud display face.
  */
 export const DS_MOODS = [
-  { at: 0, label: "Serious", dials: { warmth: -0.1, contrast: 0.4, roundness: 0.12, depth: 0 }, fonts: pair("Newsreader", ":wght@400..700", "IBM Plex Sans", ":wght@400;500;600;700"), reach: 0.2 },
-  { at: 0.5, label: "Balanced", dials: { warmth: 0, contrast: 0, roundness: 1, depth: 0 }, fonts: null, reach: 0 },
-  { at: 0.75, label: "Playful", dials: { warmth: 0.4, contrast: -0.15, roundness: 1, depth: 0.55 }, fonts: pair("Fredoka", ":wght@400..700", "Nunito", ":wght@400..700"), reach: 0.13 },
-  { at: 1, label: "Wacky", dials: { warmth: 0.6, contrast: 0.5, roundness: 1, depth: 1 }, fonts: pair("Shrikhand", "", "DM Sans", ":wght@400..700"), reach: 0.12 },
+  { at: 0, label: "Serious", dials: { warmth: -0.1, roundness: 0.12 }, fonts: pair("Newsreader", ":wght@400..700", "IBM Plex Sans", ":wght@400;500;600;700"), reach: 0.2 },
+  { at: 0.5, label: "Balanced", dials: { warmth: 0, roundness: 1 }, fonts: null, reach: 0 },
+  { at: 0.75, label: "Playful", dials: { warmth: 0.4, roundness: 1 }, fonts: pair("Fredoka", ":wght@400..700", "Nunito", ":wght@400..700"), reach: 0.13 },
+  { at: 1, label: "Wacky", dials: { warmth: 0.6, roundness: 1 }, fonts: pair("Shrikhand", "", "DM Sans", ":wght@400..700"), reach: 0.12 },
 ] as const;
 
 /** The fonts at a mood: the nearest stop's within its reach, or null for Parabola's own. */
@@ -99,13 +118,28 @@ export function dsMoodLabel(mood: number): string {
 }
 
 /** The dials at a mood: sliding between the stops either side of it. */
-export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "contrast" | "roundness" | "depth"> {
+export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "roundness"> {
   const i = Math.max(0, DS_MOODS.findIndex((m) => m.at >= mood) - 1);
   const lo = DS_MOODS[i];
   const hi = DS_MOODS[Math.min(DS_MOODS.length - 1, i + 1)];
   const t = hi.at === lo.at ? 0 : (mood - lo.at) / (hi.at - lo.at);
   const mix = (k: keyof typeof lo.dials) => Math.round((lo.dials[k] + (hi.dials[k] - lo.dials[k]) * t) * 100) / 100;
-  return { warmth: mix("warmth"), contrast: mix("contrast"), roundness: mix("roundness"), depth: mix("depth") };
+  return { warmth: mix("warmth"), roundness: mix("roundness") };
+}
+
+/** An expression's word, for its bar. */
+export function dsExpressionLabel(expression: number): string {
+  if (expression < 0.15) return "Quiet";
+  if (expression < 0.4) return "Toned down";
+  if (expression < 0.65) return "Lively";
+  if (expression < 0.85) return "Expressive";
+  return "Loud";
+}
+
+/** The dials at an expression: contrast from soft to hard, depth from flat to deep; Parabola's at 0.25. */
+export function dsExpressionDials(expression: number): Pick<DsCharacter, "contrast" | "depth"> {
+  const round = (n: number) => Math.round(n * 100) / 100;
+  return { contrast: round(Math.min(1, Math.max(-1, -0.2 + 0.8 * expression))), depth: round(Math.max(0, (expression - 0.3) / 0.7)) };
 }
 
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
@@ -123,6 +157,17 @@ export type DsCharacterDial = (typeof DS_CHARACTER_DIALS)[number]["id"];
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+/** The pills picked inside each section, from stored data. */
+function parseScoped(value: unknown): Partial<Record<DsTasteScope, string[]>> {
+  const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const out: Partial<Record<DsTasteScope, string[]>> = {};
+  for (const scope of ["type", "buttons", "fields", "appearance"] as const) {
+    const ids = raw[scope];
+    if (Array.isArray(ids) && ids.length) out[scope] = [...new Set(ids.filter((t): t is string => typeof t === "string"))];
+  }
+  return out;
+}
+
 /** A theme's character from stored data: anything missing or odd is Parabola's. */
 export function parseDsCharacter(value: unknown): DsCharacter {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
@@ -136,8 +181,10 @@ export function parseDsCharacter(value: unknown): DsCharacter {
   // A background picked as a hex for a day (`seed`) becomes its hue, colour and brightness.
   const seed = dsIsHex(raw.seed) ? dsHexToHsv(raw.seed) : null;
   return {
-    tastes,
+    tastes: Array.isArray(raw.tastes) ? tastes : DS_DEFAULT_TASTES,
+    scoped: parseScoped(raw.scoped),
     mood,
+    expression: typeof raw.expression === "number" && Number.isFinite(raw.expression) ? clamp(raw.expression, 0, 1) : DS_DEFAULT_CHARACTER.expression,
     warmth: dial("warmth"),
     hue: seed && seed.s > 0 ? Math.round(seed.h) : dial("hue"),
     colour: seed ? Math.round(seed.s * 100) / 100 : dial("colour"),
@@ -149,8 +196,10 @@ export function parseDsCharacter(value: unknown): DsCharacter {
 }
 
 export const dsCharacterIsDefault = (c: DsCharacter) =>
-  c.tastes.length === 0 &&
+  [...c.tastes].sort().join() === [...DS_DEFAULT_TASTES].sort().join() &&
+  Object.keys(c.scoped).length === 0 &&
   c.mood === 0.5 &&
+  c.expression === 0.25 &&
   c.colour === 0 && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /**

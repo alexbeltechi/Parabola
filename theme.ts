@@ -30,6 +30,7 @@ import {
   dsCharacterColourOptions,
   dsCharacterIsDefault,
   dsCharacterRadius,
+  dsExpressionDials,
   dsMoodDials,
   dsMoodFonts,
   type DsFontPair,
@@ -390,6 +391,11 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
  */
 export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConfig {
   return dsThemeWithFonts({ ...theme, character: { ...theme.character, mood, ...dsMoodDials(mood) } }, dsMoodFonts(mood));
+}
+
+/** The theme at an expression (character.ts): its contrast and depth slid to it, from toned down to expressive. */
+export function dsThemeWithExpression(theme: DsThemeConfig, expression: number): DsThemeConfig {
+  return { ...theme, character: { ...theme.character, expression, ...dsExpressionDials(expression) } };
 }
 
 /**

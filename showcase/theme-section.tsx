@@ -3,10 +3,13 @@
 import * as React from "react";
 import {
   Camera,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   ClipboardPaste,
   Copy,
+  ArrowRight,
   BadgeCheck,
   BarChart3,
   Bookmark,
@@ -62,10 +65,24 @@ import {
   DS_DEFAULT_CHARACTER,
   dsCharacterBase,
   dsCharacterColourOptions,
+  dsExpressionDials,
+  dsExpressionLabel,
+  dsMoodDials,
   dsMoodLabel,
   type DsCharacter,
+  type DsTasteScope,
 } from "../character";
-import { DS_TASTES, dsRandomTastes, dsShuffleTaste, dsTastePeople, type DsTasteGroup } from "../taste";
+import {
+  DS_TASTES,
+  dsRandomTastes,
+  dsShuffleTaste,
+  dsTasteBackground,
+  dsTasteButtons,
+  dsTasteField,
+  dsTasteFonts,
+  dsTastePeople,
+  type DsTasteGroup,
+} from "../taste";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
@@ -75,6 +92,7 @@ import {
   dsThemeColourTokens,
   dsThemeExport,
   dsThemeRadius,
+  dsThemeWithExpression,
   dsThemeWithFonts,
   dsThemeWithMood,
   parseDsThemeConfig,
@@ -252,8 +270,9 @@ function ColourWheelChoice({
 }
 
 /**
- * A panel section's ⋮, at its header's right: Restore puts that part of the
- * open theme back to Parabola's, with Undo in the toast.
+ * A panel section's Restore, the icon at its header's right (every section
+ * has one; Alex, 2026-10-29): puts that part of the open theme back to
+ * Parabola's, with Undo in the toast.
  */
 function SectionRestore({
   section,
@@ -267,23 +286,18 @@ function SectionRestore({
   restore: (theme: DsThemeConfig) => DsThemeConfig;
 }) {
   return (
-    <DsDropdown>
-      <DsDropdownTrigger asChild>
-        <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${section}`} />
-      </DsDropdownTrigger>
-      <DsDropdownContent align="end">
-        <DsDropdownItem
-          iconLeft={RotateCcw}
-          onSelect={() => {
-            const before = theme;
-            setTheme(restore(theme));
-            dsToast(`${section} restored`, { action: { label: "Undo", onClick: () => setTheme(before) } });
-          }}
-        >
-          Restore
-        </DsDropdownItem>
-      </DsDropdownContent>
-    </DsDropdown>
+    <DsButton
+      size="small"
+      variant="text"
+      iconLeft={RotateCcw}
+      aria-label={`Restore ${section}`}
+      title="Restore"
+      onClick={() => {
+        const before = theme;
+        setTheme(restore(theme));
+        dsToast(`${section} restored`, { action: { label: "Undo", onClick: () => setTheme(before) } });
+      }}
+    />
   );
 }
 
@@ -523,28 +537,66 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   natural: Leaf,
 };
 
+/** The taste pills, Feel then World, the picked ones pressed; `compact` runs them in one row for inside a section. */
+function TastePills({ picked, onToggle, compact = false }: { picked: string[]; onToggle: (id: string) => void; compact?: boolean }) {
+  const pills = (id: DsTasteGroup) =>
+    DS_TASTES.filter((t) => t.group === id).map((t) => (
+      <DsButton key={t.id} size="small" iconLeft={TASTE_ICONS[t.id]} pressed={picked.includes(t.id)} onClick={() => onToggle(t.id)}>
+        {t.label}
+      </DsButton>
+    ));
+  if (compact) {
+    return (
+      <div className="flex flex-wrap gap-ds-4" role="group" aria-label="Tastes">
+        {pills("feel")}
+        {pills("world")}
+      </div>
+    );
+  }
+  return (
+    <>
+      {(["feel", "world"] as const).map((id) => (
+        <div key={id} className="flex flex-col gap-ds-8">
+          <span className="text-small text-ds-fg-muted">{id === "feel" ? "Feel" : "World"}</span>
+          <div className="flex flex-wrap gap-ds-4" role="group" aria-label={id === "feel" ? "Feel" : "World"}>
+            {pills(id)}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** Two tastes' colours for the bars' tracks: a serious ink and a wacky pink; a quiet stone and a loud orange. */
+const MOOD_TRACK = "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
+const EXPRESSION_TRACK = "linear-gradient(to right, #DCDCD7, var(--ds-surface), #FF4F00)";
+
 /**
- * The taste feeder (taste.ts; Alex, 2026-10-29): styles as pills with
- * icons, in two groups, Feel (how the brand comes across) and World (where
- * it belongs). Picking one changes the look at once, drawn inside it;
- * picking more draws inside all of them; unpicking the last brings back the
- * look from before the first. Under them, like a player: Shuffle, on or
- * off, and back and forward through the takes. Forward draws a new take (with
- * Shuffle on, from one or two pills picked at random, shown picked; off,
- * from the pills picked), back returns to the one before, and forward again
- * replays what was undone before drawing anew. Default puts Parabola's own
- * back. A draw starts the look over: colours, corners and buttons given
- * their own go back to Auto.
+ * The taste feeder (taste.ts; Alex, 2026-10-29): first two bars, Mood
+ * (Serious to Wacky: warmth, roundness and the fonts) and Expression (Toned
+ * down to Expressive: contrast and depth), then the style pills with icons
+ * in two groups, Feel (how the brand comes across) and World (where it
+ * belongs); the bars and the pills work together, a pill drawing inside its
+ * ranges on both. Parabola's own is a mix of pills too (Restrained and
+ * Editorial), so that's what shows picked at the start. Picking a pill
+ * changes the look at once; unpicking the last brings back the look from
+ * before the first. Under them, centred, like a player: Shuffle, on or off,
+ * and back and forward through takes with a counter (forward draws anew,
+ * from random pills with Shuffle on, from the picked ones off; back
+ * returns; forward replays before drawing). A draw starts the look over:
+ * colours, corners and buttons given their own go back to Auto. Restore,
+ * at the section's top right, is Parabola's own again.
  */
 function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void }) {
-  const picked = theme.character.tastes;
+  const character = theme.character;
+  const picked = character.tastes;
   // The look before the first pill was picked, to come back to when the last is unpicked.
   const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
   const [shuffle, setShuffle] = React.useState(false);
   // The takes so far, and which one is showing.
   const [takes, setTakes] = React.useState<{ list: DsThemeConfig[]; at: number }>({ list: [], at: -1 });
   const drawn = (ids: string[]) => {
-    const next = dsShuffleTaste(ids, theme.character);
+    const next = dsShuffleTaste(ids, character);
     const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
     return dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts);
   };
@@ -557,7 +609,7 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
   const toggle = (id: string) => {
     const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
     if (ids.length) return show(drawn(ids));
-    onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...theme.character, tastes: [] } });
+    onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...character, tastes: [] } });
     setBefore(null);
   };
   const forward = () => {
@@ -572,23 +624,25 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
     setTakes({ ...takes, at: takes.at - 1 });
     onTheme(takes.list[takes.at - 1]);
   };
-  const group = (id: DsTasteGroup, title: string) => (
-    <div className="flex flex-col gap-ds-8">
-      <span className="text-small text-ds-fg-muted">{title}</span>
-      <div className="flex flex-wrap gap-ds-4" role="group" aria-label={title}>
-        {DS_TASTES.filter((t) => t.group === id).map((t) => (
-          <DsButton key={t.id} size="small" iconLeft={TASTE_ICONS[t.id]} pressed={picked.includes(t.id)} onClick={() => toggle(t.id)}>
-            {t.label}
-          </DsButton>
-        ))}
+  const bar = (label: string, title: string, value: number, track: string, ends: [string, string], onChange: (x: number) => void) => (
+    <div className="flex flex-col gap-ds-4">
+      <DsColourBar label={label} title={title} readout="" value={value} onChange={onChange} valueText={title} track={track} thumb="var(--ds-fg)" />
+      <div className="flex justify-between text-small text-ds-fg-muted">
+        <span>{ends[0]}</span>
+        <span>{ends[1]}</span>
       </div>
     </div>
   );
   return (
     <div className="flex flex-col gap-ds-16">
-      {group("feel", "Feel")}
-      {group("world", "World")}
-      <div className="flex items-center gap-ds-4">
+      {bar("Mood", dsMoodLabel(character.mood), character.mood, MOOD_TRACK, ["Serious", "Wacky"], (x) =>
+        onTheme(dsThemeWithMood(theme, Math.round(x * 100) / 100))
+      )}
+      {bar("Expression", dsExpressionLabel(character.expression), character.expression, EXPRESSION_TRACK, ["Toned down", "Expressive"], (x) =>
+        onTheme(dsThemeWithExpression(theme, Math.round(x * 100) / 100))
+      )}
+      <TastePills picked={picked} onToggle={toggle} />
+      <div className="flex items-center justify-center gap-ds-4">
         <DsButton size="small" iconLeft={Shuffle} pressed={shuffle} onClick={() => setShuffle((on) => !on)}>
           Shuffle
         </DsButton>
@@ -597,53 +651,68 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
           {takes.list.length ? `${takes.at + 1}/${takes.list.length}` : "–"}
         </span>
         <DsButton size="small" variant="text" iconLeft={ChevronRight} aria-label="Next take" onClick={forward} />
-        <DsButton
-          size="small"
-          variant="text"
-          iconLeft={RotateCcw}
-          className="ml-auto"
-          onClick={() => {
-            setBefore(null);
-            setTakes({ list: [], at: -1 });
-            onTheme({
-              ...dsThemeWithMood(theme, DS_DEFAULT_CHARACTER.mood),
-              character: DS_DEFAULT_CHARACTER,
-              colours: DS_DEFAULT_COLOURS,
-              radius: null,
-              pillRadius: null,
-              buttons: null,
-            });
-          }}
-        >
-          Default
-        </DsButton>
       </div>
     </div>
   );
 }
 
 /**
- * The theme's style (character.ts; Alex, 2026-10-29): the look as a whole,
- * set the way a photograph is edited, with everything under it worked out
- * from it until given its own. Two parts, folded in:
- *
- * - Mood: one bar from Serious to Wacky. Moving it moves the Appearance
- *   dials and the fonts together, to fine-tune after.
- * - Appearance: the background as dials, Warmth first, then Hue, Colour
- *   (none to full) and Brightness (dark to light), so light, mid-tone and
- *   dark backgrounds are a drag away (a hex is Colours' job); then
- *   Contrast, Roundness and Depth. Each bar is drawn in what it does.
+ * Taste pills inside one section (Typography, Buttons, Fields, Appearance;
+ * Alex, 2026-10-29): the same pills, compact, deciding only that section's
+ * values when picked (a font pair; a roundness, depth and button colour; a
+ * field outline; a background), and leaving them as Parabola's own when the
+ * last is unpicked. Kept on the theme (`character.scoped`).
  */
-function StyleChoice({
+function ScopedTastes({
+  scope,
+  theme,
+  onTheme,
+  apply,
+}: {
+  scope: DsTasteScope;
+  theme: DsThemeConfig;
+  onTheme: (theme: DsThemeConfig) => void;
+  /** The theme with this section's values drawn from the pills (none: Parabola's own). */
+  apply: (ids: string[], theme: DsThemeConfig) => DsThemeConfig;
+}) {
+  const picked = theme.character.scoped[scope] ?? [];
+  return (
+    <TastePills
+      compact
+      picked={picked}
+      onToggle={(id) => {
+        const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
+        const scoped = { ...theme.character.scoped };
+        if (ids.length) scoped[scope] = ids;
+        else delete scoped[scope];
+        onTheme(apply(ids, { ...theme, character: { ...theme.character, scoped } }));
+      }}
+    />
+  );
+}
+
+/**
+ * The theme's appearance (character.ts; Alex, 2026-10-29): the background
+ * as dials, Warmth first, then Hue, Colour (none to full) and Brightness
+ * (dark to light), so light, mid-tone and dark backgrounds are a drag away;
+ * then Contrast, Roundness and Depth. Each bar is drawn in what it does.
+ * Taste pills at the top draw a background. "Show colour controls" slides
+ * open the colours themselves (the wheel, Light and Dark), for a colour of
+ * its own over the dials.
+ */
+function AppearanceChoice({
   theme,
   mode,
+  setPreviewMode,
   onTheme,
 }: {
   theme: DsThemeConfig;
   mode: "light" | "dark";
+  setPreviewMode: (mode: "light" | "dark") => void;
   onTheme: (theme: DsThemeConfig) => void;
 }) {
   const character = theme.character;
+  const [colours, setColours] = React.useState(false);
   const set = (next: Partial<DsCharacter>) => onTheme({ ...theme, character: { ...character, ...next } });
   const at = (next: Partial<DsCharacter>) => dsCharacterBase({ ...character, ...next }) ?? "#FFFFFF";
   const tokensAt = (contrast: number) => dsThemeColourTokens({ ...theme, character: { ...character, contrast } }, mode);
@@ -671,44 +740,57 @@ function StyleChoice({
   // The hue bar shows each hue at a strength that reads, even while the background has little colour.
   const strong = { colour: Math.max(character.colour, 0.6), brightness: Math.max(character.brightness, 0.7), warmth: 0 };
   return (
-    <>
-      <DsAccordion title="Mood" inset>
-        <div className="flex flex-col gap-ds-4">
-          {/* The mood's word above the bar ("Balanced", "Playful"); the section is already called Mood. */}
-          <DsColourBar
-            label="Mood"
-            title={dsMoodLabel(character.mood)}
-            readout=""
-            value={character.mood}
-            onChange={(mood) => onTheme(dsThemeWithMood(theme, Math.round(mood * 100) / 100))}
-            valueText={dsMoodLabel(character.mood)}
-            track="linear-gradient(to right, var(--ds-surface), var(--ds-surface-subtle), var(--ds-surface))"
-            thumb="var(--ds-fg)"
-          />
-          <div className="flex justify-between text-small text-ds-fg-muted">
-            <span>Serious</span>
-            <span>Wacky</span>
+    <div className="flex flex-col gap-ds-16">
+      <ScopedTastes
+        scope="appearance"
+        theme={theme}
+        onTheme={onTheme}
+        apply={(ids, t) => ({
+          ...t,
+          character: {
+            ...t.character,
+            ...(ids.length ? dsTasteBackground(ids, t.character) : { hue: 40, colour: 0, brightness: 1, warmth: dsMoodDials(t.character.mood).warmth }),
+          },
+        })}
+      />
+      {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
+      {dial(
+        "hue",
+        `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
+        at({ ...strong })
+      )}
+      {dial("colour", `linear-gradient(to right, ${at({ colour: 0, warmth: 0 })}, ${at({ colour: 1 })})`, base)}
+      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
+      {dial(
+        "contrast",
+        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
+        tokensAt(character.contrast)["fg-muted"]
+      )}
+      {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+      {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
+      <DsButton variant="text" size="small" iconRight={colours ? ChevronUp : ChevronDown} className="-ml-2 self-start" onClick={() => setColours((on) => !on)}>
+        {colours ? "Hide colour controls" : "Show colour controls"}
+      </DsButton>
+      {colours && (
+        <>
+          <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
+            {/* The preview's mode only; the UI's is the sidebar's toggle. */}
+            <DsButton size="small" iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
+              Light
+            </DsButton>
+            <DsButton size="small" iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
+              Dark
+            </DsButton>
           </div>
-        </div>
-      </DsAccordion>
-      <DsAccordion title="Appearance" inset>
-        {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
-        {dial(
-          "hue",
-          `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
-          at({ ...strong })
-        )}
-        {dial("colour", `linear-gradient(to right, ${at({ colour: 0, warmth: 0 })}, ${at({ colour: 1 })})`, base)}
-        {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
-        {dial(
-          "contrast",
-          `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
-          tokensAt(character.contrast)["fg-muted"]
-        )}
-        {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
-        {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
-      </DsAccordion>
-    </>
+          <ColourWheelChoice
+            colours={theme.colours}
+            mode={mode}
+            options={dsCharacterColourOptions(theme.character)}
+            onChange={(c) => onTheme({ ...theme, colours: c })}
+          />
+        </>
+      )}
+    </div>
   );
 }
 
@@ -1039,12 +1121,19 @@ export function ThemeSection() {
           <DsPill>Essay</DsPill>
           <DsPill variant="dark">Published</DsPill>
         </div>
-        <h1 className="text-display text-ds-fg">Ars longa, vita brevis</h1>
-        <h2 className="text-h2 text-ds-fg">Make the small version first</h2>
+        <h1 className="text-display text-ds-fg">Creating tasteful AI in an AI-infested world</h1>
+        <h2 className="text-h2 text-ds-fg">Where to let it decide, and where to keep the choice</h2>
         <p className="text-prose text-ds-fg-muted">
-          Everything I&apos;ve finished started bigger and got smaller. Everything I abandoned stayed big.
+          The hard part isn&apos;t what AI can do. It&apos;s knowing which decisions to hand over and which ones have to stay
+          mine, because the ones I keep are the ones people recognise me by.
         </p>
-        <p className="text-small text-ds-fg-muted">2026 · 2 min · Small, the floor</p>
+        <p className="text-small text-ds-fg-muted">2026 · 4 min · Taste, the floor</p>
+        {/* The one big marketing button on the page, in its context: on to the essay. */}
+        <div>
+          <DsButton variant="primary" size="large" iconRight={ArrowRight}>
+            Read the essay
+          </DsButton>
+        </div>
       </article>
 
       <figure className="flex flex-col gap-ds-8">
@@ -1055,17 +1144,15 @@ export function ThemeSection() {
       {/* A card above the fold, on the surface, with the big marketing buttons. */}
       <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
         <div className="flex flex-col gap-ds-4">
-          <h3 className="text-h3 text-ds-fg">The studio notebook</h3>
-          <p className="text-p text-ds-fg-muted">One letter a season: what I made, what I dropped and why.</p>
+          <h3 className="text-h3 text-ds-fg">Keep up with my thoughts</h3>
+          <p className="text-p text-ds-fg-muted">One letter in your inbox a week.</p>
         </div>
         <div className="@max-2xl:ds-fields-fill">
           <DsInput aria-label="Email" placeholder="you@example.com" />
         </div>
         <div className="flex flex-wrap items-center gap-ds-8">
-          <DsButton variant="primary" size="large">
-            Subscribe
-          </DsButton>
-          <DsButton size="large">Learn more</DsButton>
+          <DsButton variant="primary">Subscribe</DsButton>
+          <DsButton>Learn more</DsButton>
         </div>
       </section>
 
@@ -1141,46 +1228,51 @@ export function ThemeSection() {
         </PanelSection>
 
         {/* The taste feeder first: push the whole look somewhere, then tune it below (Alex, 2026-10-29). */}
-        <PanelSection title="Taste">
+        <PanelSection
+          title="Taste"
+          actions={
+            <SectionRestore
+              section="Taste"
+              theme={theme}
+              setTheme={setTheme}
+              // Parabola's own again: its pills, the bars at rest, its fonts, every value Auto.
+              restore={(t) =>
+                dsThemeWithFonts(
+                  { ...t, character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null },
+                  null
+                )
+              }
+            />
+          }
+        >
           <TasteChoice theme={theme} onTheme={setTheme} />
         </PanelSection>
 
         <PanelSection
-          title="Style"
+          title="Appearance"
           actions={
             <SectionRestore
-              section="Style"
+              section="Appearance"
               theme={theme}
               setTheme={setTheme}
-              // The mood back in the middle (Parabola's fonts with it), and every dial at rest.
-              restore={(t) => ({ ...dsThemeWithMood(t, DS_DEFAULT_CHARACTER.mood), character: DS_DEFAULT_CHARACTER })}
+              // The dials back where the bars put them, the pills off, every colour Auto.
+              restore={(t) => ({
+                ...t,
+                character: {
+                  ...t.character,
+                  scoped: { ...t.character.scoped, appearance: undefined },
+                  hue: 40,
+                  colour: 0,
+                  brightness: 1,
+                  ...dsMoodDials(t.character.mood),
+                  ...dsExpressionDials(t.character.expression),
+                },
+                colours: DS_DEFAULT_COLOURS,
+              })}
             />
           }
         >
-          <StyleChoice theme={theme} mode={mode} onTheme={setTheme} />
-        </PanelSection>
-
-        {/* The wheel, for a colour of its own over the style: folded, so the style comes first (Alex, 2026-10-29). */}
-        <PanelSection
-          title="Colours"
-          defaultOpen={false}
-          actions={<SectionRestore section="Colours" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, colours: DS_DEFAULT_COLOURS })} />}
-        >
-          <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
-            {/* The preview's mode only; the UI's is the sidebar's toggle. */}
-            <DsButton size="small" iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
-              Light
-            </DsButton>
-            <DsButton size="small" iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
-              Dark
-            </DsButton>
-          </div>
-          <ColourWheelChoice
-            colours={theme.colours}
-            mode={mode}
-            options={dsCharacterColourOptions(theme.character)}
-            onChange={(colours) => setTheme({ ...theme, colours })}
-          />
+          <AppearanceChoice theme={theme} mode={mode} setPreviewMode={setPreviewMode} onTheme={setTheme} />
         </PanelSection>
 
         <PanelSection
@@ -1194,6 +1286,7 @@ export function ThemeSection() {
             />
           }
         >
+          <ScopedTastes scope="type" theme={theme} onTheme={setTheme} apply={(ids, t) => dsThemeWithFonts(t, dsTasteFonts(ids))} />
           {heading && (
             <DsField label={heading.label}>
               <DsSelect options={fontOptions} value={heading.font} onValueChange={(font) => setFamilyFont(heading.id, font)} />
@@ -1220,6 +1313,32 @@ export function ThemeSection() {
             />
           }
         >
+          <ScopedTastes
+            scope="buttons"
+            theme={theme}
+            onTheme={setTheme}
+            apply={(ids, t) => {
+              if (!ids.length) {
+                return {
+                  ...t,
+                  character: { ...t.character, roundness: dsMoodDials(t.character.mood).roundness, depth: dsExpressionDials(t.character.expression).depth },
+                  colours: { ...t.colours, accent: { light: null, dark: null } },
+                  radius: null,
+                  pillRadius: null,
+                  buttons: null,
+                };
+              }
+              const { roundness, depth, button } = dsTasteButtons(ids, dsThemeColourTokens(t, "light").bg);
+              return {
+                ...t,
+                character: { ...t.character, roundness, depth },
+                colours: { ...t.colours, accent: { light: button, dark: null } },
+                radius: null,
+                pillRadius: null,
+                buttons: null,
+              };
+            }}
+          />
           <ButtonChoice
             style={dsThemeButtons(theme)}
             button={dsThemeColourTokens(theme, mode).button}
@@ -1237,6 +1356,12 @@ export function ThemeSection() {
             <SectionRestore section="Fields" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, fields: DS_DEFAULT_FIELD_STYLE })} />
           }
         >
+          <ScopedTastes
+            scope="fields"
+            theme={theme}
+            onTheme={setTheme}
+            apply={(ids, t) => ({ ...t, fields: ids.length ? dsTasteField(ids) : DS_DEFAULT_FIELD_STYLE })}
+          />
           <OutlineChoice
             label="Field outline"
             on={theme.fields.outline}
