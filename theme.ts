@@ -25,13 +25,13 @@ import {
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
-  DS_MOOD_FONT_EDGE,
-  DS_MOODS,
   dsCharacterButtons,
   dsCharacterColourOptions,
   dsCharacterIsDefault,
   dsCharacterRadius,
   dsMoodDials,
+  dsMoodFonts,
+  type DsFontPair,
   parseDsCharacter,
   type DsCharacter,
 } from "./character";
@@ -388,8 +388,14 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
  * own stay as they are.
  */
 export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConfig {
-  const character = { ...theme.character, mood, ...dsMoodDials(mood) };
-  const end = mood < DS_MOOD_FONT_EDGE ? DS_MOODS[0] : mood > 1 - DS_MOOD_FONT_EDGE ? DS_MOODS[2] : null;
+  return dsThemeWithFonts({ ...theme, character: { ...theme.character, mood, ...dsMoodDials(mood) } }, dsMoodFonts(mood));
+}
+
+/**
+ * The theme with its Heading and Font in a pair of Google fonts (added to its
+ * fonts if they're not there), or Parabola's own for null.
+ */
+export function dsThemeWithFonts(theme: DsThemeConfig, fonts: DsFontPair | null): DsThemeConfig {
   const customFonts = [...theme.customFonts];
   const fontId = (face: { label: string; google: string } | undefined, fallback: string) => {
     if (!face) return fallback;
@@ -399,12 +405,12 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
     if (!customFonts.some((f) => f.id === own.id)) customFonts.push(own);
     return own.id;
   };
-  const heading = fontId(end?.fonts?.heading, DS_DEFAULT_HEADING_FONT);
-  const body = fontId(end?.fonts?.body, DS_DEFAULT_FONT);
+  const heading = fontId(fonts?.heading, DS_DEFAULT_HEADING_FONT);
+  const body = fontId(fonts?.body, DS_DEFAULT_FONT);
   const families = theme.families.map((f) =>
     f.id === DS_HEADING_FAMILY ? { ...f, font: heading } : f.id === DS_BODY_FAMILY ? { ...f, font: body } : f
   );
-  return parseDsThemeConfig({ ...theme, character, families, customFonts });
+  return parseDsThemeConfig({ ...theme, families, customFonts });
 }
 
 /** A theme's corners: its own, or the character's roundness. */

@@ -7,7 +7,7 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: 0 (serious) to 1 (playful), 0.5 Parabola's own. Not a value of
+ * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful. Not a value of
  *   its own: moving it moves the dials below and the fonts together
  *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
  *   described, and they can be fine-tuned after.
@@ -39,50 +39,57 @@ export type DsCharacter = {
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = { mood: 0.5, seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
 
+/** A font pair: a Google font for headlines over one for text. */
+export type DsFontPair = { heading: { label: string; google: string }; body: { label: string; google: string } };
+
+const pair = (heading: string, headingAxes: string, body: string, bodyAxes: string): DsFontPair => ({
+  heading: { label: heading, google: `${heading.replace(/ /g, "+")}${headingAxes}` },
+  body: { label: body, google: `${body.replace(/ /g, "+")}${bodyAxes}` },
+});
+
 /**
- * The moods along the Mood bar: what each end, and Parabola in the middle,
- * does to the dials and the fonts. Between them the dials slide; the fonts
- * change where a mood takes over. The taste lives here: a later model
- * improves a mood by changing a line, not every theme.
+ * The moods along the Mood bar, Serious to Wacky: what each stop does to the
+ * dials and the fonts. Between stops the dials slide; the fonts are the
+ * nearest stop's within `fonts` of it, Parabola's otherwise. The taste lives
+ * here: a later model improves a mood by changing a line, not every theme.
  *
  * - Serious: crisp corners, a little cooler, firmer contrast, flat; an
  *   editorial serif over a sober sans.
- * - Parabola: its own look.
- * - Playful: round, warmer, a touch softer, some depth (gradient, outline);
- *   a rounded display face over a friendly sans.
+ * - Balanced: Parabola's own.
+ * - Playful: round, warmer, a touch softer, some depth; a rounded display
+ *   face over a friendly sans.
+ * - Wacky: everything turned up: round, warm, hard, as deep as it goes; a
+ *   loud display face.
  */
 export const DS_MOODS = [
-  {
-    at: 0,
-    label: "Serious",
-    dials: { warmth: -0.1, contrast: 0.4, roundness: 0.12, depth: 0 },
-    fonts: { heading: { label: "Newsreader", google: "Newsreader:wght@400..700" }, body: { label: "IBM Plex Sans", google: "IBM+Plex+Sans:wght@400;500;600;700" } },
-  },
-  { at: 0.5, label: "Balanced", dials: { warmth: 0, contrast: 0, roundness: 1, depth: 0 }, fonts: null },
-  {
-    at: 1,
-    label: "Playful",
-    dials: { warmth: 0.4, contrast: -0.15, roundness: 1, depth: 0.55 },
-    fonts: { heading: { label: "Fredoka", google: "Fredoka:wght@400..700" }, body: { label: "Nunito", google: "Nunito:wght@400..700" } },
-  },
+  { at: 0, label: "Serious", dials: { warmth: -0.1, contrast: 0.4, roundness: 0.12, depth: 0 }, fonts: pair("Newsreader", ":wght@400..700", "IBM Plex Sans", ":wght@400;500;600;700"), reach: 0.2 },
+  { at: 0.5, label: "Balanced", dials: { warmth: 0, contrast: 0, roundness: 1, depth: 0 }, fonts: null, reach: 0 },
+  { at: 0.75, label: "Playful", dials: { warmth: 0.4, contrast: -0.15, roundness: 1, depth: 0.55 }, fonts: pair("Fredoka", ":wght@400..700", "Nunito", ":wght@400..700"), reach: 0.13 },
+  { at: 1, label: "Wacky", dials: { warmth: 0.6, contrast: 0.5, roundness: 1, depth: 1 }, fonts: pair("Shrikhand", "", "DM Sans", ":wght@400..700"), reach: 0.12 },
 ] as const;
 
-/** Where a mood's fonts take over from Parabola's: past these, toward either end. */
-export const DS_MOOD_FONT_EDGE = 0.3;
-
-/** A mood's word, for its bar's readout. */
-export function dsMoodLabel(mood: number): string {
-  if (mood < 0.15) return "Serious";
-  if (mood < 0.4) return "Composed";
-  if (mood <= 0.6) return "Balanced";
-  if (mood <= 0.85) return "Lively";
-  return "Playful";
+/** The fonts at a mood: the nearest stop's within its reach, or null for Parabola's own. */
+export function dsMoodFonts(mood: number): DsFontPair | null {
+  const near = DS_MOODS.find((m) => m.fonts && Math.abs(mood - m.at) <= m.reach);
+  return near?.fonts ?? null;
 }
 
-/** The dials at a mood: Parabola's in the middle, sliding toward each end's. */
+/** A mood's word, for its bar. */
+export function dsMoodLabel(mood: number): string {
+  if (mood < 0.15) return "Serious";
+  if (mood < 0.38) return "Composed";
+  if (mood <= 0.6) return "Balanced";
+  if (mood < 0.68) return "Lively";
+  if (mood < 0.88) return "Playful";
+  return "Wacky";
+}
+
+/** The dials at a mood: sliding between the stops either side of it. */
 export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "contrast" | "roundness" | "depth"> {
-  const [lo, hi] = mood <= 0.5 ? [DS_MOODS[0], DS_MOODS[1]] : [DS_MOODS[1], DS_MOODS[2]];
-  const t = (mood - lo.at) / (hi.at - lo.at);
+  const i = Math.max(0, DS_MOODS.findIndex((m) => m.at >= mood) - 1);
+  const lo = DS_MOODS[i];
+  const hi = DS_MOODS[Math.min(DS_MOODS.length - 1, i + 1)];
+  const t = hi.at === lo.at ? 0 : (mood - lo.at) / (hi.at - lo.at);
   const mix = (k: keyof typeof lo.dials) => Math.round((lo.dials[k] + (hi.dials[k] - lo.dials[k]) * t) * 100) / 100;
   return { warmth: mix("warmth"), contrast: mix("contrast"), roundness: mix("roundness"), depth: mix("depth") };
 }

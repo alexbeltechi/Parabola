@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight, ClipboardPaste, Copy, Moon, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
+import { ChevronRight, ClipboardPaste, Copy, Moon, Shuffle, MoreVertical, Pencil, Plus, RotateCcw, Sun, Trash2 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsConfirmDialog, DsDialog, DsDialogActions } from "../primitives/dialog";
@@ -13,7 +13,6 @@ import { DsSelect } from "../primitives/select";
 import { dsToast } from "../primitives/toast";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
-import { DsLinkList } from "../components/link-list";
 import { dsFontOptions } from "../components/font-pairing";
 import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourOptions, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
 import { DsColourWheel } from "../components/colour-wheel";
@@ -32,6 +31,7 @@ import {
   type DsCharacter,
 } from "../character";
 import { DsColourField } from "../components/colour-field";
+import { DS_TASTES, dsShuffleTaste } from "../taste";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
@@ -41,6 +41,7 @@ import {
   dsThemeColourTokens,
   dsThemeExport,
   dsThemeRadius,
+  dsThemeWithFonts,
   dsThemeWithMood,
   parseDsThemeConfig,
   parseDsThemeExport,
@@ -332,6 +333,137 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   surface: "base",
 };
 
+/** Ilo's photos for the preview, small copies of the seed's (seed/ilo/media). */
+const PREVIEW_MEDIA = "/parabola/preview";
+
+/** The heading family, for type set by hand over a photo. */
+const HEADING_FONT = { fontFamily: "var(--ds-family-heading)" };
+
+/**
+ * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
+ * bars and her name at the top, and two lines laid over it in the theme, one
+ * in the page colour, one on the button colour, as a post's narrative is
+ * placed over an image.
+ */
+function PreviewStory() {
+  return (
+    <div className="relative aspect-[9/16] w-[220px] shrink-0 overflow-hidden rounded-ds-lg bg-ds-surface">
+      <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="Ilo, by the water" className="absolute inset-0 size-full object-cover" />
+      <div className="absolute inset-x-3 top-3 flex flex-col gap-ds-8">
+        <div className="flex gap-1">
+          {[1, 0.4, 0.4].map((o, i) => (
+            <span key={i} className="h-0.5 flex-1 rounded-full bg-ds-bg" style={{ opacity: o }} />
+          ))}
+        </div>
+        <div className="flex items-center gap-ds-8">
+          <span className="flex size-6 items-center justify-center rounded-full bg-ds-button text-[10px] text-ds-on-button">IO</span>
+          <span className="text-small text-ds-bg">iloodena</span>
+        </div>
+      </div>
+      <p className="absolute top-[38%] left-3 max-w-[80%] rounded-ds-sm bg-ds-bg px-2 py-1 text-h3 leading-tight text-ds-fg" style={HEADING_FONT}>
+        Keep fewer moments
+      </p>
+      <span className="absolute bottom-4 left-3 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">New letter →</span>
+    </div>
+  );
+}
+
+/** A post on X: her name and handle, a line, a photo, the counts and the link back to the site. */
+function PreviewXPost() {
+  return (
+    <div className="flex min-w-[240px] flex-1 flex-col gap-ds-8 rounded-ds-lg border border-ds-border bg-ds-bg p-ds-16">
+      <div className="flex items-center gap-ds-8">
+        <span className="flex size-9 items-center justify-center rounded-full bg-ds-button text-small text-ds-on-button">IO</span>
+        <div className="flex flex-col">
+          <span className="text-p text-ds-fg">Ilo Odena</span>
+          <span className="text-small text-ds-fg-muted">@iloodena · 2h</span>
+        </div>
+      </div>
+      <p className="text-p text-ds-fg">Make the small version first. Everything I&apos;ve finished started bigger and got smaller.</p>
+      <img src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`} alt="Black sand and a line of foam" className="aspect-[16/10] w-full rounded-ds-md object-cover" />
+      <div className="flex items-center justify-between gap-ds-8">
+        <span className="text-small text-ds-fg-muted">12 replies · 48 reposts · 310 likes</span>
+        <DsPill>iloodena.com</DsPill>
+      </div>
+    </div>
+  );
+}
+
+/** An email, as a reader's inbox opens one: who it's from, its subject, then the letter on the page colour. */
+function PreviewEmail() {
+  return (
+    <div className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-16">
+      <div className="flex flex-col gap-ds-4">
+        <span className="text-small text-ds-fg-muted">Ilo Odena · The studio notebook</span>
+        <span className="text-p text-ds-fg">A letter from the lake</span>
+      </div>
+      <div className="flex flex-col gap-ds-16 rounded-ds-md bg-ds-bg p-ds-20">
+        <h3 className="text-h2 text-ds-fg" style={HEADING_FONT}>
+          Keep fewer moments
+        </h3>
+        <p className="text-prose text-ds-fg-muted">
+          This season I kept three. A dragonfly that waited, the lake at four in the morning, and a stone that holds one
+          drop of it.
+        </p>
+        <div>
+          <DsButton variant="primary">Read the letter</DsButton>
+        </div>
+        <p className="text-small text-ds-fg-subtle">You&apos;re getting this because you subscribed at iloodena.com. Unsubscribe.</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The taste feeder (taste.ts; Alex, 2026-10-29): common styles as pills,
+ * Minimal, Editorial, Luxury, Tech, Warm, Bold, Playful, Wacky. Pick one or
+ * several, then Shuffle: a whole look is drawn at random inside them (the
+ * mood, the dials, a base, a button colour, a font pair), and Shuffle again
+ * for another take; with none picked, from any. A shuffle starts the look
+ * over: colours, corners and buttons given their own go back to Auto first.
+ * Default puts Parabola's own back. Undo, in the top bar, takes a take back.
+ */
+function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void }) {
+  const [picked, setPicked] = React.useState<string[]>([]);
+  const shuffle = () => {
+    const draw = dsShuffleTaste(picked, theme.character);
+    const colours = { ...DS_DEFAULT_COLOURS, accent: { light: draw.button, dark: null } };
+    onTheme(dsThemeWithFonts({ ...theme, character: draw.character, colours, radius: null, pillRadius: null, buttons: null }, draw.fonts));
+  };
+  return (
+    <div className="flex flex-col gap-ds-16">
+      <div className="flex flex-wrap gap-ds-4" role="group" aria-label="Tastes">
+        {DS_TASTES.map((t) => (
+          <DsButton
+            key={t.id}
+            size="small"
+            pressed={picked.includes(t.id)}
+            onClick={() => setPicked((p) => (p.includes(t.id) ? p.filter((id) => id !== t.id) : [...p, t.id]))}
+          >
+            {t.label}
+          </DsButton>
+        ))}
+      </div>
+      <div className="flex items-center gap-ds-8">
+        <DsButton size="small" variant="primary" iconLeft={Shuffle} onClick={shuffle}>
+          Shuffle
+        </DsButton>
+        <DsButton
+          size="small"
+          variant="text"
+          iconLeft={RotateCcw}
+          onClick={() => {
+            setPicked([]);
+            onTheme({ ...dsThemeWithMood(theme, DS_DEFAULT_CHARACTER.mood), character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null });
+          }}
+        >
+          Default
+        </DsButton>
+      </div>
+    </div>
+  );
+}
+
 /**
  * The theme's style (character.ts; Alex, 2026-10-29): the look as a whole,
  * set the way a photograph is edited, with everything under it worked out
@@ -396,7 +528,7 @@ function StyleChoice({
           />
           <div className="flex justify-between text-small text-ds-fg-muted">
             <span>Serious</span>
-            <span>Playful</span>
+            <span>Wacky</span>
           </div>
         </div>
       </DsAccordion>
@@ -727,8 +859,9 @@ export function ThemeSection() {
   const body = theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // A page of a site at the CMS's reading width (600px), as the site lays one out: most of it on the
-    // page itself, in the theme colour; a card (the surface) only where a site puts one.
+    // The brand, not just the UI (Alex, 2026-10-29): first the site at a glance at the CMS's reading width
+    // (600px), a post, an image with its caption, the subscribe card; then the same look out in the world, a
+    // story, a post on X and an email, with Ilo's own photos.
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
       <div className="flex items-center justify-between gap-ds-16">
         <span className="text-p text-ds-fg">Ilo Odena</span>
@@ -755,6 +888,11 @@ export function ThemeSection() {
         <p className="text-small text-ds-fg-muted">2026 · 2 min · Small, the floor</p>
       </article>
 
+      <figure className="flex flex-col gap-ds-8">
+        <img src={`${PREVIEW_MEDIA}/ilo-lake.jpg`} alt="A still lake at dawn" className="aspect-[3/2] w-full rounded-ds-lg object-cover" />
+        <figcaption className="text-small text-ds-fg-muted">Three summers at the lake, and one drop of it kept.</figcaption>
+      </figure>
+
       {/* A card above the fold, on the surface, with the big marketing buttons. */}
       <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
         <div className="flex flex-col gap-ds-4">
@@ -773,15 +911,12 @@ export function ThemeSection() {
       </section>
 
       <section className="flex flex-col gap-ds-20">
-        <h2 className="text-h2 text-ds-fg">Writing</h2>
-        <DsLinkList
-          items={[
-            { label: "How to listen to a lake", href: "#", meta: "2026 · 2 min" },
-            { label: "Keep fewer moments", href: "#", meta: "2026 · 1 min" },
-            { label: "Make the small version first", href: "#", meta: "2026 · 2 min" },
-          ]}
-          more={{ label: "All 6 posts", href: "#" }}
-        />
+        <p className="text-small text-ds-fg-muted">Out in the world</p>
+        <div className="flex flex-wrap items-start gap-ds-20">
+          <PreviewStory />
+          <PreviewXPost />
+        </div>
+        <PreviewEmail />
       </section>
 
       {/* A product card, as the admin shows a draft: its name and state, a note, its actions. */}
@@ -844,6 +979,11 @@ export function ThemeSection() {
             value={entry.id}
             onValueChange={(value) => (value === ADD_THEME ? setNaming("add") : select(value))}
           />
+        </PanelSection>
+
+        {/* The taste feeder first: push the whole look somewhere, then tune it below (Alex, 2026-10-29). */}
+        <PanelSection title="Taste">
+          <TasteChoice theme={theme} onTheme={setTheme} />
         </PanelSection>
 
         <PanelSection
