@@ -33,6 +33,7 @@ import {
   Orbit,
   Pill,
   Shapes,
+  Shuffle,
   Square,
   SquareDashed,
   BarChart3,
@@ -1306,6 +1307,8 @@ function useTakes(
   return {
     canBack: takes.at > 0,
     dice: () => show(drawn(dsRandomTastes(picked), "wide")),
+    // Another version of the style picked, wherever the player is.
+    shuffle: () => fresh(),
     // A style's own look the first time; the one last seen with it after that.
     draw: (ids: string[]) =>
       show(seen.current.get(keyOf(ids)) ?? drawn(ids, "first")),
@@ -1349,19 +1352,19 @@ function DiceControl({ takes }: { takes: Takes }) {
 }
 
 /**
- * Previous and Next, under the mood (Alex, 2026-10-29), Previous at the left
- * with its chevron on the left, Next at the right with its chevron on the
- * right: they step through variations of the style picked (another Elegant,
- * say), Next drawing a new one at the end.
+ * Previous, shuffle and Next, under the mood (Alex, 2026-10-29), grey
+ * buttons: Previous at the left with its chevron on the left, Next at the
+ * right with its chevron on the right, stepping back and forth through the
+ * versions seen; between them, filling the space, Shuffle, which draws
+ * another version of the style picked (another Elegant, say). Not the dice, which
+ * starts over with any style and mood.
  */
 function VariationControls({ takes }: { takes: Takes }) {
   return (
     <div className="flex items-center justify-between gap-ds-8">
       <DsButton
         size="small"
-        variant="text"
         iconLeft={ChevronLeft}
-        className="-ml-2"
         disabled={!takes.canBack}
         onClick={takes.back}
       >
@@ -1369,11 +1372,14 @@ function VariationControls({ takes }: { takes: Takes }) {
       </DsButton>
       <DsButton
         size="small"
-        variant="text"
-        iconRight={ChevronRight}
-        className="-mr-2"
-        onClick={takes.forward}
+        iconLeft={Shuffle}
+        className="flex-1"
+        title="Another version of this style"
+        onClick={takes.shuffle}
       >
+        Shuffle
+      </DsButton>
+      <DsButton size="small" iconRight={ChevronRight} onClick={takes.forward}>
         Next
       </DsButton>
     </div>
@@ -1391,9 +1397,9 @@ const MOOD_LINE =
  * and Buttons; then the Mood slider, the personality, Serious to Playful
  * (on to Wacky at its end), which changes the look you can see inside that style (its
  * fonts, its buttons, its colour, its voice). Parabola's own is Classic and
- * Balanced. Picking a style changes the look at once (a take); Previous and
- * Next under the mood step through its variations, the dice at the top
- * right starts over. Restore, beside the dice, is Parabola's own again.
+ * Balanced. Picking a style changes the look at once (a take); under the
+ * mood, the shuffle draws another version of it and Previous and Next step
+ * through the versions seen; the dice at the top right starts over. Restore, beside the dice, is Parabola's own again.
  */
 function TasteChoice({
   theme,
