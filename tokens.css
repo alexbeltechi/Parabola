@@ -285,8 +285,9 @@
   --ds-hover-inverse: color-mix(in srgb, var(--ds-bg) 18%, transparent);
   /* Error: shadcn's destructive red (#E7000B light, #FF6467 dark). */
   --ds-error: oklch(0.577 0.245 27.325);
-  /* Highlight: by default the buttons' colour, the text's (colours.ts:
-     a theme's accent is based on its buttons until given its own). */
+  /* Highlight, the tertiary colour: by default the text's (colours.ts:
+     a theme's accent is based on its text, and its buttons on the accent,
+     until given their own). */
   --ds-highlight: #000000;
   /* The highlight pill's background: solid (the highlight at 14% on the
      page), not a translucent tint, so it holds its colour on any surface,

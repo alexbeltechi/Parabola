@@ -29,8 +29,8 @@ import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusP
  * 2026-10-28; BEL-109), much as shadcn's create page sets a style:
  *
  * - colours: the theme colour (the website's background), fonts and UI (the
- *   text and the greys drawn from it) and the accent colour (the
- *   highlight), each Parabola's or a hex picked for the light theme, and in
+ *   text and the greys drawn from it) and the tertiary colour (the
+ *   accent: calls to action and highlights), each Parabola's or a hex picked for the light theme, and in
  *   dark based on the light one (its counterpart) or picked apart (colours.ts);
  * - font families: Font (text) and Heading (headlines) to start, and any a
  *   theme adds, each a name and a font, the font one of Parabola's (fonts.ts)
@@ -372,10 +372,10 @@ const COLOUR_ROLES: [token: string, role: string][] = [
   ["field", "input fields"],
   ["surface", "secondary buttons and image placeholders"],
   ["surface-inverse", "toasts and tooltips"],
+  ["highlight", "tertiary colour, the accent (calls to action, highlight pills, what needs attention)"],
+  ["highlight-tint", "accent background"],
   ["button", "primary buttons and selected states"],
   ["on-button", "text on primary buttons"],
-  ["highlight", "accent (highlight pills, what needs attention)"],
-  ["highlight-tint", "accent background"],
 ];
 
 /**

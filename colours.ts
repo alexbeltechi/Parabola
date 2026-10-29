@@ -10,11 +10,13 @@
  *   Parabola's own is black or white, whichever reads on the theme colour,
  *   with Stone's warm greys on the default page (tokens.css;
  *   `npm run check:parabola` checks).
+ * - the **tertiary colour** (`accent`, was "accent colour"): the calls to
+ *   action and what needs attention, the highlight pill and its tint, and,
+ *   until they're given their own, the buttons. By default the typography's.
  * - **buttons**: the solid buttons (Publish) and selected states (the
  *   current nav item, a pressed button, a checked box, the dark pill), with
- *   black or white on them, whichever reads. By default the typography's.
- * - the **accent colour**: the one highlight, for the few things that need
- *   attention (a highlight pill), and its tint. By default the buttons'.
+ *   black or white on them, whichever reads. By default the tertiary
+ *   colour, or while that's Parabola's own, the typography.
  *
  * Each is picked for the light theme (or left as Parabola's, or as what
  * it's based on, a little lighter or darker). In the dark theme each is, by
@@ -503,20 +505,23 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     (cardShift !== undefined ? dsShift(cardBase, cardShift) : mode === "dark" && lightCard ? cardBase : null);
   // Only the cards: secondary buttons, pills and hovers (`surface`) stay with the page.
   if (card) tokens["surface-subtle"] = card;
-  // Buttons and selected states: their own colour with black or white on it, or the text on the page.
-  const button = hexIn(colours.button, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg, 2));
-  tokens.button = button ?? tokens.fg;
-  tokens["on-button"] = button ? (dsLuminance(button) > 0.18 ? BLACK : WHITE) : tokens.bg;
-  // The highlight: an older theme's preset; else its own colour or the buttons', its tint a wash of it on the page.
+  // The tertiary colour, the highlight: an older theme's preset; else its own colour or the text's, its tint a
+  // wash of it on the page.
   const preset = colours.accent.light && !dsIsHex(colours.accent.light) && !(mode === "dark" && colours.accent.dark);
+  const accent = preset ? null : hexIn(colours.accent, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg));
   if (preset) {
-    const accent = dsAccentTokens(colours.accent.light!, mode);
-    tokens.highlight = accent.highlight;
-    tokens["highlight-tint"] = accent.tint;
+    const old = dsAccentTokens(colours.accent.light!, mode);
+    tokens.highlight = old.highlight;
+    tokens["highlight-tint"] = old.tint;
   } else {
-    tokens.highlight = hexIn(colours.accent, mode, () => tokens.button, (hex) => dsInkCounterpart(hex, tokens.bg)) ?? tokens.button;
+    tokens.highlight = accent ?? tokens.fg;
     tokens["highlight-tint"] = dsMix(tokens.highlight, tokens.bg, 0.14);
   }
+  // Buttons and selected states: their own colour, or the tertiary's, with black or white on it; or the text on
+  // the page while neither is set.
+  const button = hexIn(colours.button, mode, () => accent ?? tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg, 2)) ?? accent;
+  tokens.button = button ?? tokens.fg;
+  tokens["on-button"] = button ? (dsLuminance(button) > 0.18 ? BLACK : WHITE) : tokens.bg;
   return tokens;
 }
 

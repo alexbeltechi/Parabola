@@ -30,21 +30,23 @@ import {
 } from "../theme";
 import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
 
-/** The theme's colours on the wheel, in the order each is based on the one before. */
+/** The theme's colours on the wheel, in the order they're picked. */
+// The tertiary colour (calls to action, pills) comes right after the text: it's the one picked next, before
+// the surface or buttons of their own (Alex, 2026-10-29).
 const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Primary colour" },
-  { kind: "surface", label: "Surface" },
   { kind: "text", label: "Secondary colour" },
+  { kind: "accent", label: "Tertiary colour" },
+  { kind: "surface", label: "Surface" },
   { kind: "button", label: "Buttons" },
-  { kind: "accent", label: "Accent colour" },
 ];
 
 /**
  * The theme's five colours on one wheel, for the light or the dark theme
  * (whichever the preview is in). Every colour is a point: its own as a
- * solid dot, one still based on another (the surface on the primary
- * colour, buttons on the secondary, the accent on the buttons; in dark,
- * each on the light one) faint. Drag a point to give it a colour of its
+ * solid dot, one still based on another (the tertiary on the secondary,
+ * the surface on the primary, buttons on the tertiary; in dark, each on
+ * the light one) faint. Drag a point to give it a colour of its
  * own; hover the disc for a plus, and a click there gives the next
  * based colour its own, where you clicked. Under the wheel, the five in a
  * list: pick one to move it with the arcs or type its hex, or put it back
@@ -256,8 +258,8 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   theme: null,
   surface: "primary colour",
   text: null,
-  button: "secondary colour",
-  accent: "buttons",
+  button: "tertiary colour",
+  accent: "secondary colour",
 };
 
 /**
