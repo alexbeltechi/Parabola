@@ -88,6 +88,12 @@ export function useThemeEditor(): ThemeEditor {
   return editor;
 }
 
+/** Whether two themes look the same: the fonts a theme has added but doesn't use don't count. */
+const sameLook = (a: DsThemeConfig, b: DsThemeConfig) => {
+  const look = (t: DsThemeConfig) => JSON.stringify({ ...parseDsThemeConfig(t), customFonts: [], hiddenFonts: [] });
+  return look(a) === look(b);
+};
+
 export function ThemeEditorProvider({ children }: { children: React.ReactNode }) {
   const { themeLibrary, publishedTheme, onThemeLibraryChange } = useDsThemeLibrary();
   const [saved, setSaved] = React.useState<DsThemeLibrary>(() => parseDsThemeLibrary(themeLibrary ?? DS_DEFAULT_LIBRARY));
@@ -125,6 +131,13 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const setTheme = React.useCallback(
     (theme: DsThemeConfig) => {
       if (JSON.stringify(theme) === JSON.stringify(entry.theme)) return;
+      // Custom brought back to Parabola's own (its sections restored, say) is Parabola again (Alex, 2026-10-29: a
+      // restore left him on Custom): Parabola opens and the working copy goes, unless it's the one the site wears.
+      if (entry.id === CUSTOM_THEME_ID && library.active !== CUSTOM_THEME_ID && sameLook(theme, DS_DEFAULT_THEME)) {
+        change({ ...library, themes: library.themes.filter((t) => t.id !== CUSTOM_THEME_ID) });
+        setSelected(DS_DEFAULT_THEME_ID);
+        return;
+      }
       if (entry.id === DS_DEFAULT_THEME_ID) {
         // Parabola stays as it is: the change goes into Custom, the one working copy, opened.
         const custom = { id: CUSTOM_THEME_ID, name: "Custom", theme };
