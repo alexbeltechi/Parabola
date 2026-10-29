@@ -12,6 +12,8 @@ import {
   Copy,
   Aperture,
   Armchair,
+  Archive,
+  ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Box,
@@ -47,6 +49,9 @@ import {
   Minus,
   Moon,
   MoreVertical,
+  OctagonAlert,
+  Reply,
+  Star,
   Newspaper,
   PartyPopper,
   Pencil,
@@ -749,9 +754,10 @@ function StoryText({
 
 /**
  * The platforms' own look, which a theme can't brand (Alex, 2026-10-29:
- * "you can't do custom branding there, so let's not mislead"): Instagram's
- * and X's white, their inks and their system font. Only what Ilo puts in a
- * post (her photo, her words on it, her avatar) carries the theme.
+ * "you can't do custom branding there, so let's not mislead"): Instagram's,
+ * X's and Gmail's white, framed in a grey outline, their inks and their
+ * system font. Only what Ilo puts in a post or a letter (her photo, her
+ * words, her avatar, the letter itself) carries the theme.
  */
 const PLATFORM = {
   font: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -761,6 +767,10 @@ const PLATFORM = {
   blue: "rgb(29 155 240)",
   dot: "rgb(0 149 246)",
   faint: "rgb(219 219 219)",
+  /** Gmail's: its inks and the grey of its label chips. */
+  gmailInk: "rgb(31 31 31)",
+  gmailMuted: "rgb(94 94 94)",
+  gmailChip: "rgb(233 235 238)",
 } as const;
 
 /**
@@ -838,7 +848,7 @@ function PreviewStory({
 }
 
 /**
- * A post in the feed, beside the story, on Instagram's white (PLATFORM): a
+ * A post in the feed, beside the story, on Instagram's white in a grey outline (PLATFORM): a
  * carousel's cover, square, another of Ilo's photos with its title on it
  * ("5 …") the way her story sets words, "1/5" in the corner, the actions
  * under it and the carousel's dots.
@@ -854,8 +864,9 @@ function PreviewCarouselPost({
 }) {
   return (
     <div
-      className="flex min-w-0 flex-col gap-ds-8 rounded-ds-lg p-3"
+      className="flex min-w-0 flex-col gap-ds-8 overflow-hidden rounded-ds-lg border p-3"
       style={{
+        borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
         color: PLATFORM.ink,
         fontFamily: PLATFORM.font,
@@ -908,7 +919,7 @@ function PreviewCarouselPost({
 }
 
 /**
- * A post on X, on X's white with its inks and font (PLATFORM), laid out as
+ * A post on X, on X's white in a grey outline, with its inks and font (PLATFORM), laid out as
  * X lays one out: her avatar beside the post, her name, the blue check, her
  * handle and time, the ⋯, the text, the photo (square, her head in), then
  * the counts with their icons and bookmark and share at the end.
@@ -926,8 +937,9 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
   );
   return (
     <div
-      className="flex w-full gap-3 rounded-ds-lg p-ds-16"
+      className="flex w-full gap-3 rounded-ds-lg border p-ds-16"
       style={{
+        borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
         color: PLATFORM.ink,
         fontFamily: PLATFORM.font,
@@ -980,43 +992,106 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
 }
 
 /**
- * The top of her newsletter, as a reader opens it (Alex, 2026-10-29: right
- * after the subscribe box, cropped, "here's what I've been up to lately"):
- * who it's from and the subject, then the letter in the theme, its
- * masthead, the issue, the title, a greeting and the opening in the
- * taste's voice, fading out where the rest would follow.
+ * Her newsletter as a reader opens it in Gmail (Alex, 2026-10-29: "create a
+ * layout close… it's in Gmail"), right after the subscribe box: Gmail's own
+ * white, inks and font (PLATFORM), its toolbar, the subject with its Inbox
+ * label, the sender's row (avatar, name and address, "to me", the time,
+ * star and reply), then the letter itself in the theme, its masthead, the
+ * issue, the title, a greeting and the opening in the taste's voice, cropped,
+ * fading out where the rest would follow.
  */
-function PreviewEmail({ copy }: { copy: PreviewCopy }) {
-  const fade = "linear-gradient(to bottom, black 70%, transparent)";
+function PreviewEmail({ people, copy }: { people: People; copy: PreviewCopy }) {
+  const fade = "linear-gradient(to bottom, black 65%, transparent)";
+  const tool = (Icon: LucideIcon, label: string) => (
+    <Icon aria-label={label} className="size-4" />
+  );
   return (
-    <div className="flex flex-col gap-ds-16">
-      <div className="flex items-baseline justify-between gap-ds-16">
-        <div className="flex min-w-0 flex-col gap-ds-4">
-          <span className="text-small text-ds-fg-muted">Ilo Odena</span>
-          <span className="truncate text-p text-ds-fg">
-            {copy.email.subject}
-          </span>
-        </div>
-        <span className="shrink-0 text-small text-ds-fg-muted">9:14</span>
-      </div>
+    <div
+      className="flex max-h-[520px] flex-col gap-ds-16 overflow-hidden rounded-ds-lg border p-ds-16"
+      style={{
+        borderColor: PLATFORM.faint,
+        backgroundColor: PLATFORM.bg,
+        color: PLATFORM.gmailInk,
+        fontFamily: PLATFORM.font,
+        maskImage: fade,
+        WebkitMaskImage: fade,
+      }}
+    >
       <div
-        className="flex max-h-[360px] flex-col gap-ds-20 overflow-hidden rounded-ds-lg border border-ds-border bg-ds-bg p-ds-20"
-        style={{ maskImage: fade, WebkitMaskImage: fade }}
+        className="flex items-center gap-ds-20"
+        style={{ color: PLATFORM.gmailMuted }}
       >
-        <div className="flex items-baseline justify-between gap-ds-16">
-          <span className="text-h3 text-ds-fg">Ilo Odena</span>
-          <span className="text-small text-ds-fg-muted">
-            Letter 14 · October 2026
+        {tool(ArrowLeft, "Back to Inbox")}
+        {tool(Archive, "Archive")}
+        {tool(OctagonAlert, "Report spam")}
+        {tool(Trash2, "Delete")}
+        {tool(MoreVertical, "More")}
+      </div>
+      <div className="flex flex-wrap items-center gap-ds-8 pl-[52px]">
+        <span style={{ fontSize: 22, lineHeight: 1.25 }}>
+          {copy.email.subject}
+        </span>
+        <span
+          className="rounded px-1.5"
+          style={{
+            backgroundColor: PLATFORM.gmailChip,
+            color: PLATFORM.gmailMuted,
+            fontSize: 12,
+          }}
+        >
+          Inbox
+        </span>
+      </div>
+      <div className="flex gap-3">
+        <PreviewAvatar people={people} className="size-10" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-baseline gap-1" style={{ fontSize: 14 }}>
+            <span className="shrink-0" style={{ fontWeight: 600 }}>
+              Ilo Odena
+            </span>
+            <span
+              className="truncate"
+              style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+            >
+              &lt;letters@iloodena.com&gt;
+            </span>
+            <span
+              className="ml-auto flex shrink-0 items-center gap-3 pl-ds-8"
+              style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+            >
+              9:14 AM (2 hours ago)
+              <Star aria-label="Star" className="size-4" />
+              <Reply aria-label="Reply" className="size-4" />
+              <MoreVertical aria-label="More" className="size-4" />
+            </span>
+          </div>
+          <span
+            className="flex items-center gap-0.5"
+            style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+          >
+            to me
+            <ChevronDown aria-hidden className="size-3" />
           </span>
         </div>
-        <DsDivider />
-        <h3 className="text-h2 text-ds-fg">{copy.email.title}</h3>
-        <p className="text-prose text-ds-fg">{copy.email.greeting}</p>
-        <p className="text-prose text-ds-fg-muted">{copy.email.body}</p>
-        <p className="text-prose text-ds-fg-muted">
-          First, the piece itself. It started as a sketch on the back of a ferry
-          ticket, and for a long time it stayed there.
-        </p>
+      </div>
+      {/* The letter: hers, so in the theme, its column centred as a newsletter's is. */}
+      <div className="ml-[52px] bg-ds-bg p-ds-20">
+        <div className="mx-auto flex max-w-[480px] flex-col gap-ds-20">
+          <div className="flex items-baseline justify-between gap-ds-16">
+            <span className="text-h3 text-ds-fg">Ilo Odena</span>
+            <span className="text-small text-ds-fg-muted">
+              Letter 14 · October 2026
+            </span>
+          </div>
+          <DsDivider />
+          <h3 className="text-h2 text-ds-fg">{copy.email.title}</h3>
+          <p className="text-prose text-ds-fg">{copy.email.greeting}</p>
+          <p className="text-prose text-ds-fg-muted">{copy.email.body}</p>
+          <p className="text-prose text-ds-fg-muted">
+            First, the piece itself. It started as a sketch on the back of a
+            ferry ticket, and for a long time it stayed there.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -2058,7 +2133,7 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="Email">
-        <PreviewEmail copy={copy} />
+        <PreviewEmail people={people} copy={copy} />
       </PreviewPart>
 
       <PreviewPart title="Social">
