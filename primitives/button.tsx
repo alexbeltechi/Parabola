@@ -66,9 +66,10 @@ export const dsButtonVariants = cva(
       variant: {
         default: "backdrop-blur-[24px] bg-ds-surface/70 text-ds-on-surface ds-hover disabled:text-ds-fg-subtle",
         // The theme's button look (button-style.ts): a gradient under the hover wash, an inset outline, and a
-        // label shadow, which falls on text only, never the icons.
+        // label shadow, which falls on text only, never the icons; or no fill at all, the label in the button
+        // colour (an outline or a text button).
         primary: [
-          "backdrop-blur-[24px] bg-ds-button text-ds-on-button disabled:opacity-40",
+          "backdrop-blur-[24px] [background-color:var(--ds-button-fill,var(--ds-button))] [color:var(--ds-button-label,var(--ds-on-button))] disabled:opacity-40",
           "[background-image:var(--ds-button-image)] [box-shadow:var(--ds-button-ring)] [text-shadow:var(--ds-button-text-shadow)]",
           "hover:[background-image:linear-gradient(var(--ds-hover-inverse),var(--ds-hover-inverse)),var(--ds-button-image)]",
         ],

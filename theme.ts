@@ -22,7 +22,7 @@ import {
   type DsCustomFont,
   type DsFont,
 } from "./fonts";
-import { dsButtonLookAt, dsMoodSaturation, dsPaletteButton, dsTypeStyleFonts } from "./taste";
+import { dsButtonLookAt, dsButtonLookStyle, dsMoodSaturation, dsPaletteButton, dsTypeStyleFonts } from "./taste";
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
@@ -409,7 +409,11 @@ export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConf
   const saturation = Math.round(Math.min(1, (c.colour * dsMoodSaturation(mood)) / dsMoodSaturation(c.mood)) * 100) / 100;
   const character = { ...c, mood, ...(look ?? dsMoodDials(mood)), ...(colour ? { colour: saturation } : {}) };
   const colours = colour ? { ...theme.colours, accent: { light: dsPaletteButton(colour, character, mood), dark: null } } : theme.colours;
-  return dsThemeWithFonts({ ...theme, character, colours }, type ? dsTypeStyleFonts(type, mood) : dsMoodFonts(mood));
+  // An outline or text button keeps its own look; any other's comes from the depth.
+  return dsThemeWithFonts(
+    { ...theme, character, colours, buttons: dsButtonLookStyle(buttons) ?? theme.buttons },
+    type ? dsTypeStyleFonts(type, mood) : dsMoodFonts(mood)
+  );
 }
 
 /**
@@ -700,6 +704,18 @@ export function dsClearAppliedTheme(): void {
 }
 
 // ---------------------------------------------------------------------------
+/**
+ * Whether two themes look the same: the style they're named for and fonts
+ * added but unused don't count (a style is a label for how a look was made).
+ */
+export function dsSameLook(a: DsThemeConfig, b: DsThemeConfig): boolean {
+  const look = (t: DsThemeConfig) => {
+    const p = parseDsThemeConfig(t);
+    return JSON.stringify({ ...p, character: { ...p.character, tastes: [] }, customFonts: [], hiddenFonts: [] });
+  };
+  return look(a) === look(b);
+}
+
 // The library: every theme a site has, one of them in use.
 
 /** A named theme in a library. */
@@ -758,7 +774,7 @@ export function parseDsThemeLibrary(value: unknown, legacy?: unknown): DsThemeLi
   let active = typeof raw.active === "string" && others.some((t) => t.id === raw.active) ? raw.active : DS_DEFAULT_THEME_ID;
   // Parabola is Parabola's own and never changes. One changed before that (its colours, its fonts) becomes a
   // theme of its own, Custom, and stays the site's if it was, so the site looks as it did.
-  if (JSON.stringify(first.theme) !== JSON.stringify(parseDsThemeConfig(DS_DEFAULT_THEME))) {
+  if (!dsSameLook(first.theme, DS_DEFAULT_THEME)) {
     const names = new Set(others.map((t) => t.name));
     let name = "Custom";
     for (let n = 2; names.has(name); n++) name = `Custom ${n}`;

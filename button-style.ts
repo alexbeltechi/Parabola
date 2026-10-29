@@ -3,7 +3,9 @@
  * buttons (Publish, Subscribe), in the theme's primary button colour
  * (colours.ts).
  *
- * - fill: solid, or a gradient of the button colour. `contrast` runs from
+ * - fill: solid, a gradient of the button colour, or none (Alex,
+ *   2026-10-29: outline and text buttons): no fill, the label in the button
+ *   colour, an outline if it's on. For a gradient, `contrast` runs from
  *   -1 to 1 and starts at 0, flat: above 0 the top is lighter and the
  *   bottom darker, below 0 the other way round, further apart the further
  *   from 0 (the panel shows it as -50 to +50).
@@ -28,7 +30,7 @@
  */
 import { dsHexToHsl, dsHslToHex, dsShift } from "./colours";
 
-export type DsButtonFill = "solid" | "gradient";
+export type DsButtonFill = "solid" | "gradient" | "none";
 
 export type DsButtonStyle = {
   fill: DsButtonFill;
@@ -72,7 +74,7 @@ export function parseDsButtonStyle(value: unknown): DsButtonStyle {
   const contrast = num(raw.contrast);
   const angle = num(raw.shadowAngle);
   return {
-    fill: raw.fill === "gradient" ? "gradient" : "solid",
+    fill: raw.fill === "gradient" || raw.fill === "none" ? raw.fill : "solid",
     contrast: contrast === null ? DS_DEFAULT_BUTTON_STYLE.contrast : Math.min(1, Math.max(-1, contrast)),
     outline: raw.outline === true,
     ...parseOutline(raw, DS_DEFAULT_BUTTON_STYLE.outlineWidth),
@@ -113,7 +115,11 @@ export function dsFieldStyleVars(style: DsFieldStyle, border: string): Record<st
 /** How far a gradient's ends sit from the button colour, as lightness, at full contrast. */
 const SPREAD = 0.2;
 
-/** The button style's custom properties for a button colour, each "none" when off. */
+/**
+ * The button style's custom properties for a button colour, each "none" when
+ * off; the fill and the label "initial" (the button colour and the label on
+ * it) unless the fill is none.
+ */
 export function dsButtonStyleVars(style: DsButtonStyle, button: string): Record<string, string> {
   const [h, s, l] = dsHexToHsl(button);
   const spread = Math.abs(style.contrast) * SPREAD;
@@ -135,5 +141,7 @@ export function dsButtonStyleVars(style: DsButtonStyle, button: string): Record<
       ? `inset 0 0 0 ${style.outlineWidth}px ${faded(dsShift(button, dark ? 0.2 : -0.15), style.outlineOpacity)}`
       : "none",
     "--ds-button-text-shadow": style.shadow ? `${x}px ${y}px 0 ${dsShift(button, dark ? 0.28 : -0.22)}` : "none",
+    "--ds-button-fill": style.fill === "none" ? "transparent" : "initial",
+    "--ds-button-label": style.fill === "none" ? button : "initial",
   };
 }

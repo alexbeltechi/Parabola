@@ -50,11 +50,14 @@ export type DsCharacter = {
   depth: number;
 };
 
-/** Parabola's own look is a style too: editorial, writing first (Alex, 2026-10-29), so that shows picked. */
-export const DS_DEFAULT_TASTES = ["editorial"];
+/** Parabola's own look is a style too, Default, so that shows picked. */
+export const DS_DEFAULT_TASTES = ["default"];
 
 /** Ids from the Feel and Era tracks, retired the same day for one Style rail and the Mood bar (taste.ts). */
 const RETIRED_TASTES = ["restrained", "technical", "approachable", "luxurious", "bold", "candid", "playful", "wacky", "modern", "contemporary", "futuristic"];
+
+/** Styles renamed or folded into another, the same day: Fashion and Luxury are Elegant, Sci-fi is Tech. */
+const RENAMED_TASTES: Record<string, string> = { fashion: "elegant", luxury: "elegant", scifi: "tech" };
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
@@ -160,7 +163,10 @@ export function parseDsCharacter(value: unknown): DsCharacter {
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
   // One style: the first stored that isn't retired.
   const tastes = Array.isArray(raw.tastes)
-    ? (raw.tastes as unknown[]).filter((t): t is string => typeof t === "string" && !RETIRED_TASTES.includes(t)).slice(0, 1)
+    ? (raw.tastes as unknown[])
+        .filter((t): t is string => typeof t === "string" && !RETIRED_TASTES.includes(t))
+        .map((t) => RENAMED_TASTES[t] ?? t)
+        .slice(0, 1)
     : [];
   // A background stored the older ways becomes its hue, saturation and brightness: a hex picked for a day (`seed`),
   // or a temperature over an HSL brightness (`warmth`).

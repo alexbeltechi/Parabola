@@ -34,9 +34,9 @@ import {
   Pill,
   Shapes,
   Square,
+  SquareDashed,
   BarChart3,
   Bookmark,
-  Gem,
   Heart,
   Leaf,
   MessageCircle,
@@ -44,6 +44,7 @@ import {
   Repeat2,
   Upload,
   Moon,
+  Minus,
   MoreVertical,
   OctagonAlert,
   Reply,
@@ -51,13 +52,12 @@ import {
   Newspaper,
   Pencil,
   Plus,
-  Rocket,
   Send,
   RotateCcw,
-  Shirt,
   Sun,
   Terminal,
   Trash2,
+  Type,
   type LucideIcon,
 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
@@ -125,6 +125,7 @@ import {
   DS_TASTES,
   DS_TYPE_STYLES,
   dsButtonLookAt,
+  dsButtonLookStyle,
   dsPaletteDraw,
   dsPickTaste,
   dsRandomTastes,
@@ -492,7 +493,6 @@ const PREVIEW_MEDIA = "/parabola/preview";
 type PreviewCopy = {
   x: string;
   story: [title: string, note: string, sticker: string];
-  carousel: string;
   email: { subject: string; title: string; greeting: string; body: string };
 };
 
@@ -512,7 +512,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers at the lake, one pair of glasses.",
       "New letter →",
     ],
-    carousel: "5 things I learned making Dragonfly",
     email: {
       subject: "A letter from the lake",
       title: "Dragonfly, finished",
@@ -523,7 +522,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   precise: {
     x: "Dragonfly is finished: hand-formed silver, 38 g, three summers of work. Process notes and the recordings are on the site.",
     story: ["Dragonfly", "Silver, 38 g. 2024–2026.", "See the process →"],
-    carousel: "5 steps from sketch to silver",
     email: {
       subject: "Dragonfly is finished",
       title: "How Dragonfly was made",
@@ -538,7 +536,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers of mornings at the lake.",
       "Say hi →",
     ],
-    carousel: "5 reasons I nearly gave up (and didn't)",
     email: {
       subject: "Hi, it's Ilo",
       title: "Come see what I made",
@@ -549,7 +546,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   elegant: {
     x: "Dragonfly. Silver, glass, three summers.",
     story: ["Dragonfly", "One of one.", "Discover"],
-    carousel: "5 details, one piece",
     email: {
       subject: "Dragonfly",
       title: "One of one",
@@ -564,7 +560,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers. One piece. Done.",
       "Read it →",
     ],
-    carousel: "5 rules for finishing",
     email: {
       subject: "Finish one thing.",
       title: "Done beats perfect.",
@@ -579,7 +574,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "eleven failed casts. not joking.",
       "the letter →",
     ],
-    carousel: "5 mistakes I made on Dragonfly",
     email: {
       subject: "Eleven failed casts",
       title: "What finishing actually looked like",
@@ -594,7 +588,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "On finishing, after three summers at the lake.",
       "Read the essay →",
     ],
-    carousel: "5 ideas on making less",
     email: {
       subject: "On finishing",
       title: "Keep fewer things",
@@ -605,7 +598,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   playful: {
     x: "Made myself dragonfly glasses 🕶️ The real dragonflies at the lake seem to approve.",
     story: ["new face, who dis 🕶️", "the dragonflies approve", "new letter ✨"],
-    carousel: "5 reasons dragonflies are my muse",
     email: {
       subject: "I made dragonfly glasses 🕶️",
       title: "Notes from the 4am club",
@@ -616,7 +608,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   wild: {
     x: "I MADE DRAGONFLY GLASSES!!! Three summers. Zero regrets. LOOK AT THEM!!!",
     story: ["DRAGONFLY!!!", "three summers. ZERO regrets.", "LOOK →"],
-    carousel: "5 things the lake made me do",
     email: {
       subject: "I MADE DRAGONFLY GLASSES",
       title: "It's another planet",
@@ -627,7 +618,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   futurist: {
     x: "Log, 04:00. Lake surface still. Dragonfly unit complete: silver, glass, 38 g. Field recordings attached.",
     story: ["Dragonfly / 03", "Status: complete. Signal: still.", "Open log →"],
-    carousel: "5 frames from the build",
     email: {
       subject: "Transmission 03: Dragonfly",
       title: "Unit complete",
@@ -638,7 +628,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   chic: {
     x: "Dragonfly. Silver eyewear, one of one. Out now.",
     story: ["Dragonfly", "SS27. Silver, by hand.", "Shop the piece"],
-    carousel: "5 ways to wear Dragonfly",
     email: {
       subject: "Dragonfly",
       title: "The silver series",
@@ -649,7 +638,6 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   grounded: {
     x: "Mist on the water, silver on the bench, a dragonfly on a reed. Three summers of mornings like that, and now the piece is done.",
     story: ["Slow mornings", "Mist, reeds, cold silver.", "Read the letter →"],
-    carousel: "5 sounds from the lake at dawn",
     email: {
       subject: "From the water's edge",
       title: "Slow mornings, a finished piece",
@@ -765,26 +753,34 @@ const PLATFORM = {
 
 /**
  * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
- * bars and her name at the top, and near the foot three bits of words in the
- * theme's main font, a line, a note and what to tap, in the taste's voice,
- * set the way the taste asks (StoryText), the last in the other colour.
- * They sit square, except in a playful or wacky taste, which tilts them a
- * little, as a person would place them (dsTasteTilt).
+ * bars and her name at the top, and low in the middle two bits of words in
+ * the theme's main font, the line and what to tap, in the taste's voice, set
+ * the way the taste asks (StoryText), the second in the other colour. Kept
+ * to two and centred, as people place them (Alex, 2026-10-29: "you're trying
+ * very hard"); a playful mood tilts them a little (dsTasteTilt). Its corners
+ * are rounded where the Social piece's outer corners are (`className`).
  */
 function PreviewStory({
   people,
   story,
   tilt,
   copy,
+  className,
 }: {
   people: People;
   story: Story;
   tilt: boolean;
   copy: PreviewCopy;
+  className?: string;
 }) {
-  const [title, note, cta] = copy.story;
+  const [title, , cta] = copy.story;
   return (
-    <div className="relative min-h-[320px] overflow-hidden rounded-ds-lg bg-ds-surface">
+    <div
+      className={cn(
+        "relative min-h-[320px] overflow-hidden bg-ds-surface",
+        className,
+      )}
+    >
       <img
         src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`}
         alt="Ilo, by the water"
@@ -815,21 +811,11 @@ function PreviewStory({
           </span>
         </div>
       </div>
-      <div className="absolute inset-x-4 bottom-5 flex flex-col items-start gap-ds-8">
-        <StoryText story={story} className={cn(tilt && "-rotate-3")}>
+      <div className="absolute inset-x-4 bottom-8 flex flex-col items-center gap-ds-8 text-center">
+        <StoryText story={story} className={cn(tilt && "-rotate-2")}>
           {title}
         </StoryText>
-        <StoryText
-          story={story}
-          className={cn(tilt && "translate-x-3 rotate-2")}
-        >
-          {note}
-        </StoryText>
-        <StoryText
-          story={story}
-          alt
-          className={cn("mt-ds-8", tilt && "-rotate-2")}
-        >
+        <StoryText story={story} alt className={cn(tilt && "rotate-2")}>
           {cta}
         </StoryText>
       </div>
@@ -838,28 +824,34 @@ function PreviewStory({
 }
 
 /**
- * A post in the feed, beside the story, on Instagram's white in a grey outline (PLATFORM): a
- * carousel's cover, square, another of Ilo's photos with its title on it
- * ("5 …") the way her story sets words, "1/5" in the corner, the actions
- * under it and the carousel's dots.
+ * A post in the feed, beside the story, on Instagram's white in a grey
+ * outline (PLATFORM): one photo, square, with nothing written on it (Alex,
+ * 2026-10-29: not a carousel), the actions under it, then the likes and her
+ * caption in the taste's voice. Its corners are rounded where the Social
+ * piece's outer corners are (`className`).
  */
-function PreviewCarouselPost({
+function PreviewFeedPost({
   people,
-  story,
   copy,
+  className,
 }: {
   people: People;
-  story: Story;
   copy: PreviewCopy;
+  className?: string;
 }) {
   return (
     <div
-      className="flex min-w-0 flex-col gap-ds-8 overflow-hidden rounded-ds-lg border p-3"
+      className={cn(
+        "flex min-w-0 flex-col gap-ds-8 overflow-hidden border p-3",
+        className,
+      )}
       style={{
         borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
         color: PLATFORM.ink,
         fontFamily: PLATFORM.font,
+        fontSize: 13,
+        lineHeight: 1.35,
       }}
     >
       <div className="flex items-center gap-ds-8">
@@ -867,43 +859,21 @@ function PreviewCarouselPost({
         <span style={{ fontSize: 14, fontWeight: 600 }}>iloodena</span>
         <MoreHorizontal aria-hidden className="ml-auto size-4" />
       </div>
-      <div className="relative -mx-3 aspect-square overflow-hidden bg-ds-surface">
-        <img
-          src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
-          alt="A still lake at dawn"
-          className="absolute inset-0 size-full object-cover"
-        />
-        <span
-          className="absolute top-3 right-3 rounded-full px-2 py-0.5"
-          style={{
-            color: "white",
-            backgroundColor: "rgb(0 0 0 / 0.55)",
-            fontSize: 12,
-          }}
-        >
-          1/5
-        </span>
-        <StoryText story={story} className="absolute right-4 bottom-4 left-4">
-          {copy.carousel}
-        </StoryText>
+      <img
+        src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
+        alt="A still lake at dawn"
+        className="-mx-3 aspect-square w-[calc(100%+1.5rem)] max-w-none object-cover"
+      />
+      <div className="flex items-center gap-3">
+        <Heart aria-label="Like" className="size-5" />
+        <MessageCircle aria-label="Comment" className="size-5" />
+        <Send aria-label="Share" className="size-5" />
+        <Bookmark aria-label="Save" className="ml-auto size-5" />
       </div>
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center">
-        <span className="flex items-center gap-3">
-          <Heart aria-label="Like" className="size-5" />
-          <MessageCircle aria-label="Comment" className="size-5" />
-          <Send aria-label="Share" className="size-5" />
-        </span>
-        <span className="flex gap-1" aria-label="1 of 5">
-          {[1, 0, 0, 0, 0].map((on, i) => (
-            <span
-              key={i}
-              className="size-1.5 rounded-full"
-              style={{ backgroundColor: on ? PLATFORM.dot : PLATFORM.faint }}
-            />
-          ))}
-        </span>
-        <Bookmark aria-label="Save" className="size-5 justify-self-end" />
-      </div>
+      <span style={{ fontWeight: 600 }}>1,204 likes</span>
+      <p>
+        <span style={{ fontWeight: 600 }}>iloodena</span> {copy.story[1]}
+      </p>
     </div>
   );
 }
@@ -912,9 +882,18 @@ function PreviewCarouselPost({
  * A post on X, on X's white in a grey outline, with its inks and font (PLATFORM), laid out as
  * X lays one out: her avatar beside the post, her name, the blue check, her
  * handle and time, the ⋯, the text, the photo (square, her head in), then
- * the counts with their icons and bookmark and share at the end.
+ * the counts with their icons and bookmark and share at the end. Its corners
+ * are rounded where the Social piece's outer corners are (`className`).
  */
-function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
+function PreviewXPost({
+  people,
+  copy,
+  className,
+}: {
+  people: People;
+  copy: PreviewCopy;
+  className?: string;
+}) {
   const count = (Icon: LucideIcon, n: string, label: string) => (
     <span
       className="flex items-center gap-1"
@@ -927,7 +906,7 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
   );
   return (
     <div
-      className="flex w-full gap-3 rounded-ds-lg border p-ds-16"
+      className={cn("flex w-full gap-3 border p-ds-16", className)}
       style={{
         borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
@@ -986,25 +965,22 @@ function PreviewXPost({ people, copy }: { people: People; copy: PreviewCopy }) {
  * layout close… it's in Gmail"), right after the subscribe box: Gmail's own
  * white, inks and font (PLATFORM), its toolbar, the subject with its Inbox
  * label, the sender's row (avatar, name and address, "to me", the time,
- * star and reply), then the letter itself in the theme, its masthead, the
- * issue, the title, a greeting and the opening in the taste's voice, cropped,
- * fading out where the rest would follow.
+ * star and reply), then the letter itself in the theme: short and whole
+ * (Alex, 2026-10-29: no fade), its masthead and issue, the title, a
+ * greeting, a few lines in the taste's voice, a link on and her name.
  */
 function PreviewEmail({ people, copy }: { people: People; copy: PreviewCopy }) {
-  const fade = "linear-gradient(to bottom, black 65%, transparent)";
   const tool = (Icon: LucideIcon, label: string) => (
     <Icon aria-label={label} className="size-4" />
   );
   return (
     <div
-      className="flex max-h-[520px] flex-col gap-ds-16 overflow-hidden rounded-ds-lg border p-ds-16"
+      className="flex flex-col gap-ds-16 overflow-hidden rounded-ds-lg border p-ds-16"
       style={{
         borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
         color: PLATFORM.gmailInk,
         fontFamily: PLATFORM.font,
-        maskImage: fade,
-        WebkitMaskImage: fade,
       }}
     >
       <div
@@ -1077,10 +1053,12 @@ function PreviewEmail({ people, copy }: { people: People; copy: PreviewCopy }) {
           <h3 className="text-h2 text-ds-fg">{copy.email.title}</h3>
           <p className="text-prose text-ds-fg">{copy.email.greeting}</p>
           <p className="text-prose text-ds-fg-muted">{copy.email.body}</p>
-          <p className="text-prose text-ds-fg-muted">
-            First, the piece itself. It started as a sketch on the back of a
-            ferry ticket, and for a long time it stayed there.
+          <p className="text-prose text-ds-fg">
+            <span className="text-ds-highlight underline underline-offset-4">
+              {copy.story[2].replace(/\s*[→↗]$/, "")}
+            </span>
           </p>
+          <p className="text-prose text-ds-fg">Ilo</p>
         </div>
       </div>
     </div>
@@ -1157,12 +1135,11 @@ function PreviewBrand({
 /** Each taste's icon, by id (taste.ts holds the data, the panel the pictures). */
 const TASTE_ICONS: Record<string, LucideIcon> = {
   // Style's rail (and its namesakes on the others).
+  default: Circle,
+  minimal: Minus,
   editorial: Newspaper,
   tech: Terminal,
-  fashion: Shirt,
   natural: Leaf,
-  scifi: Rocket,
-  luxury: Gem,
   retro: CassetteTape,
   sport: Trophy,
   // Colour's rail.
@@ -1185,6 +1162,8 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   product: MousePointerClick,
   soft: Pill,
   sharp: Square,
+  outline: SquareDashed,
+  text: Type,
   tactile: Layers,
   chunky: Box,
 };
@@ -1228,14 +1207,12 @@ function PillRow({
  * undone one, or draws a new variation inside the style picked (its other
  * chips and colours, at the same mood); the dice picks another style and a
  * mood at random and draws wide. A draw starts the look over: colours, corners and buttons
- * given their own go back to Auto. Unpicking the last pill brings back the
- * look from before the first was picked.
+ * given their own go back to Auto.
  */
 function useTakes(
   theme: DsThemeConfig,
   onTheme: (theme: DsThemeConfig) => void,
 ) {
-  const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
   // The last look had with each pick of pills, tweaks and all (Alex, 2026-10-29: back to Approachable should be
   // the Approachable he saw). Forward and the dice are for new ones; picking another theme forgets them (reset).
   const seen = React.useRef(new Map<string, DsThemeConfig>());
@@ -1261,13 +1238,12 @@ function useTakes(
         colours,
         radius: null,
         pillRadius: null,
-        buttons: null,
+        buttons: next.buttonStyle,
       },
       next.fonts,
     );
   };
   const show = (next: DsThemeConfig) => {
-    if (!before) setBefore(theme);
     setTakes(({ list, at }) => ({
       list: [...list.slice(0, at + 1), next],
       at: at + 1,
@@ -1275,23 +1251,14 @@ function useTakes(
     onTheme(next);
   };
   const picked = theme.character.tastes;
-  // Another variation of the look locked in: the pills picked (one at random with none).
+  // Another variation of the look locked in: the style picked (one at random with none).
   const fresh = () => show(drawn(picked.length ? picked : dsRandomTastes()));
   return {
     canBack: takes.at > 0,
     dice: () => show(drawn(dsRandomTastes(picked), true)),
     draw: (ids: string[]) => show(seen.current.get(keyOf(ids)) ?? drawn(ids)),
-    clear: () => {
-      onTheme(
-        before
-          ? { ...before, character: { ...before.character, tastes: [] } }
-          : { ...theme, character: { ...theme.character, tastes: [] } },
-      );
-      setBefore(null);
-    },
     reset: () => {
       seen.current.clear();
-      setBefore(null);
       setTakes({ list: [], at: -1 });
     },
     back: () => {
@@ -1356,14 +1323,13 @@ const MOOD_TRACK =
 
 /**
  * Taste (taste.ts; Alex, 2026-10-29: "aesthetics and personality"): the
- * Style rail, one pick (Editorial, Tech, Fashion, Natural, Sci-fi…), which
- * chooses a chip in Colour, Typography and Buttons; then the Mood bar, the
- * personality, Restrained to Wacky, which changes the look you can see
- * inside that style (its fonts, its buttons, its colour, its voice).
- * Parabola's own is Editorial and Balanced. Picking a style changes the look
- * at once (a take, in the player at the top); unpicking it brings back the
- * look from before. Restore, at the section's top right, is Parabola's own
- * again.
+ * Style rail, one pick at a time as tabs are (Default, Minimal, Editorial,
+ * Elegant, Tech…), which chooses a chip in Colour, Typography and Buttons;
+ * then the Mood bar, the personality, Restrained to Wacky, which changes the
+ * look you can see inside that style (its fonts, its buttons, its colour,
+ * its voice). Parabola's own is Default and Balanced. Picking a style
+ * changes the look at once (a take, in the player at the top). Restore, at
+ * the section's top right, is Parabola's own again.
  */
 function TasteChoice({
   theme,
@@ -1376,10 +1342,9 @@ function TasteChoice({
 }) {
   const character = theme.character;
   const picked = character.tastes;
+  // One style at a time, as tabs are: picking the one picked does nothing.
   const toggle = (id: string) => {
-    const ids = dsPickTaste(picked, id);
-    if (ids.length) takes.draw(ids);
-    else takes.clear();
+    if (!picked.includes(id)) takes.draw(dsPickTaste(picked, id));
   };
   return (
     <div className="flex flex-col gap-ds-16">
@@ -1410,8 +1375,8 @@ function TasteChoice({
 /**
  * A section's one rail (Alex, 2026-10-29): in Colour a palette, in
  * Typography a kind of type, in Buttons a kind of button, nothing else. The
- * tastes pick one on each; picking another by hand decides only that
- * section's values, picking it again leaves them as Parabola's own. Kept on
+ * style picks one on each; picking another by hand decides only that
+ * section's values. One at a time, as tabs are (Alex, 2026-10-29). Kept on
  * the theme (`character.scoped`).
  */
 function SectionRail({
@@ -1436,13 +1401,17 @@ function SectionRail({
       label={label}
       options={options}
       picked={picked ? [picked] : []}
+      // One at a time, as tabs are: picking the one picked does nothing.
       onToggle={(id) => {
-        const next = id === picked ? null : id;
-        const scoped = { ...theme.character.scoped };
-        if (next) scoped[scope] = next;
-        else delete scoped[scope];
+        if (id === picked) return;
         onTheme(
-          apply(next, { ...theme, character: { ...theme.character, scoped } }),
+          apply(id, {
+            ...theme,
+            character: {
+              ...theme.character,
+              scoped: { ...theme.character.scoped, [scope]: id },
+            },
+          }),
         );
       }}
     />
@@ -1757,7 +1726,7 @@ function ButtonChoice({
         role="group"
         aria-label="Fill"
       >
-        {(["solid", "gradient"] as const).map((fill) => (
+        {(["solid", "gradient", "none"] as const).map((fill) => (
           <DsButton
             key={fill}
             size="small"
@@ -1765,7 +1734,11 @@ function ButtonChoice({
             pressed={style.fill === fill}
             onClick={() => set({ fill })}
           >
-            {fill === "solid" ? "Solid" : "Gradient"}
+            {fill === "solid"
+              ? "Solid"
+              : fill === "gradient"
+                ? "Gradient"
+                : "None"}
           </DsButton>
         ))}
       </div>
@@ -2094,13 +2067,29 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="Social">
-        {/* Two columns sized so the story comes out about 9:16 beside the card at the preview's width; the story
-            stretches to the card's height, so the two line up top and bottom. */}
-        <div className="grid grid-cols-[23fr_35fr] gap-ds-20">
-          <PreviewStory people={people} story={story} tilt={tilt} copy={copy} />
-          <PreviewCarouselPost people={people} story={story} copy={copy} />
+        {/* One piece (Alex, 2026-10-29): the story and the feed post side by side over the post on X, 4px apart,
+            rounded only at the piece's outer corners. The story stretches to the post's height. */}
+        <div className="flex flex-col gap-1">
+          <div className="grid grid-cols-[23fr_35fr] gap-1">
+            <PreviewStory
+              people={people}
+              story={story}
+              tilt={tilt}
+              copy={copy}
+              className="rounded-tl-ds-lg"
+            />
+            <PreviewFeedPost
+              people={people}
+              copy={copy}
+              className="rounded-tr-ds-lg"
+            />
+          </div>
+          <PreviewXPost
+            people={people}
+            copy={copy}
+            className="rounded-b-ds-lg"
+          />
         </div>
-        <PreviewXPost people={people} copy={copy} />
       </PreviewPart>
 
       <PreviewPart title="App">
@@ -2389,7 +2378,8 @@ export function ThemeSection() {
                 },
                 radius: null,
                 pillRadius: null,
-                buttons: null,
+                // Outline and Text have a look of their own (no fill); the others come from the depth.
+                buttons: dsButtonLookStyle(id ?? undefined),
               };
             }}
           />

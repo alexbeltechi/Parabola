@@ -125,19 +125,21 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
   panel opens with **Taste** (`taste.ts`), aesthetics and personality:
-  the **Style** rail, one pick (`DS_TASTES`: Editorial, Tech, Fashion,
-  Natural, Sci-fi, Luxury, Retro, Sport; `dsPickTaste`, `dsShuffleTaste`,
-  `dsRandomTastes`), which chooses one chip on each section's rail
+  the **Style** rail, one pick at a time as tabs are (`DS_TASTES`:
+  Default, Minimal, Editorial, Elegant, Tech, Natural, Retro, Sport;
+  `dsPickTaste`, `dsShuffleTaste`, `dsRandomTastes`), which chooses one chip on each section's rail
   (`character.scoped`): a palette in Colour (`DS_PALETTES`,
   `dsPaletteDraw`), a kind of type in Typography (`DS_TYPE_STYLES`,
   `dsTypeStyleFonts`) and a kind of button in Buttons (`DS_BUTTON_LOOKS`,
-  `dsButtonLookAt`); each can be picked by hand after. Then the **Mood**
+  `dsButtonLookAt`; Outline and Text have no fill, `dsButtonLookStyle`, the
+  primary button's fill "none"); each can be picked by hand after, one at a
+  time. Then the **Mood**
   bar, the personality, Restrained to Wacky (`dsThemeWithMood`), which
   changes the look inside the style: the kind of type's four font pairs,
   the buttons' roundness and depth, the colour's saturation
   (`dsMoodSaturation`) and the button colour (`dsPaletteButton`), and the
   voice (`dsTasteVoice`; words placed loose from Playful, `dsTasteTilt`).
-  Parabola's own is Editorial and Balanced, with Classic, Classic and Soft.
+  Parabola's own is Default and Balanced, with Classic, Classic and Soft.
   **Colour** is the palettes, then the background as a
   photo is edited, hue, saturation and brightness (more saturation on a
   white: paper, sand, a bright orange), then contrast, with the colours

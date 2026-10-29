@@ -56,6 +56,7 @@ export {
   dsThemeRadius,
   dsThemeButtons,
   dsThemeColourTokens,
+  dsSameLook,
   dsThemeWithMood,
   dsThemeWithFonts,
   parseDsThemeConfig,
@@ -187,7 +188,7 @@ export { DsColourBar, DsColourPicker } from "./components/colour-picker";
 export { DsSlider } from "./primitives/slider";
 export { DsScrollRow } from "./primitives/scroll-row";
 export { DsColourField } from "./components/colour-field";
-export { DS_BUTTON_LOOKS, DS_PALETTES, DS_TASTES, DS_TYPE_STYLES, dsButtonLookAt, dsMoodSaturation, dsPaletteButton, dsPaletteDraw, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteNames, dsTastePeople, dsTasteStory, dsTasteTilt, dsTasteVoice, dsTypeStyleFonts, type DsPalette, type DsTaste, type DsTasteDraw, type DsTone } from "./taste";
+export { DS_BUTTON_LOOKS, DS_PALETTES, DS_TASTES, DS_TYPE_STYLES, dsButtonLookAt, dsButtonLookStyle, dsMoodSaturation, dsPaletteButton, dsPaletteDraw, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteNames, dsTastePeople, dsTasteStory, dsTasteTilt, dsTasteVoice, dsTypeStyleFonts, type DsPalette, type DsTaste, type DsTasteDraw, type DsTone } from "./taste";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,
