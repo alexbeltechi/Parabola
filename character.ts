@@ -8,8 +8,7 @@
  * look by moving dials, not by writing hexes; a person drags from there.
  *
  * - mood: the personality (Alex, 2026-10-29), 0 (serious) through 0.5
- *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky), stepped an
- *   eighth at a time with + Serious and + Playful. It moves the
+ *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky), a slider. It moves the
  *   look inside the style's chips (taste.ts): the fonts, the buttons'
  *   roundness and depth, the colour's saturation and the button colour
  *   (`dsThemeWithMood` in theme.ts), and the voice. With no chips (a theme
@@ -108,7 +107,7 @@ export function dsMoodFonts(mood: number): DsFontPair | null {
   return near?.fonts ?? null;
 }
 
-/** A mood's word, Serious to Wacky, for where its steps have got to. */
+/** A mood's word, Serious to Wacky, for its slider. */
 export function dsMoodLabel(mood: number): string {
   if (mood < 0.2) return "Serious";
   if (mood < 0.45) return "Composed";

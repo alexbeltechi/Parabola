@@ -8,9 +8,8 @@
  *   (`DS_PALETTES`), a kind of type in Typography (`DS_TYPE_STYLES`), a kind
  *   of button in Buttons (`DS_BUTTON_LOOKS`). Its first pick of each is its
  *   own look; › draws variations from the rest. Parabola's own is Classic.
- * - **Mood**, the personality: stepped with two buttons, + Serious and
- *   + Playful, from Serious through Balanced to Wacky (character.ts,
- *   `DS_MOOD_STEP`). Each step changes the look you can see
+ * - **Mood**, the personality: a slider from Serious through Balanced to
+ *   Wacky (character.ts). Moving it changes the look you can see
  *   inside the style: the soberer or the wilder of the type's fonts, flatter
  *   or rounder and deeper buttons, quieter or more saturated colour and a
  *   livelier button colour (`dsThemeWithMood`), and how it speaks (a calm
@@ -369,13 +368,6 @@ export function dsTypeStyleFonts(id: string, mood: number): DsFontPair | null {
   return fonts[Math.min(fonts.length - 1, Math.max(0, stop))];
 }
 
-/** How far + Serious or + Playful moves the mood: eight steps from one end to the other, Balanced in the middle. */
-export const DS_MOOD_STEP = 0.125;
-
-/** The mood a step toward Serious (-1) or Playful (+1) lands on, on the steps' grid. */
-export const dsMoodStep = (mood: number, by: -1 | 1) =>
-  Math.min(1, Math.max(0, Math.round(mood / DS_MOOD_STEP + by) * DS_MOOD_STEP));
-
 /**
  * A kind of button at a mood: its roundness along its range, the restrained
  * end at 0; its depth at its least up to Balanced, rising from there to
@@ -429,7 +421,7 @@ export function dsPaletteDraw(
  * A look drawn inside the style picked (one at random with none), at the
  * mood set: `first`, the style's own look, the first of each of its lists
  * (Classic at Balanced is Parabola's own); `vary` (›), any of them; `wide`
- * (the dice), a mood step too, and past the style's own palette and type
+ * (the dice), a mood too, and past the style's own palette and type
  * half the time, so a random look is plainly different.
  */
 export function dsShuffleTaste(ids: string[], current: DsCharacter, how: "first" | "vary" | "wide" = "vary"): DsTasteDraw {
@@ -437,7 +429,7 @@ export function dsShuffleTaste(ids: string[], current: DsCharacter, how: "first"
   const first = how === "first";
   const wide = how === "wide";
   const choose = <T>(list: readonly T[]) => (first ? list[0] : pick(list));
-  const mood = wide ? Math.round(between([0, 1]) / DS_MOOD_STEP) * DS_MOOD_STEP : current.mood;
+  const mood = wide ? between([0.05, 0.95]) : current.mood;
   const colour = wide && Math.random() < 0.5 ? pick(DS_PALETTES).id : choose(style.palettes);
   const type = wide && Math.random() < 0.5 ? pick(DS_TYPE_STYLES).id : choose(style.types);
   const buttons = choose(style.buttons);

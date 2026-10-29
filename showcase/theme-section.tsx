@@ -124,10 +124,8 @@ import {
   DS_PALETTES,
   DS_TASTES,
   DS_TYPE_STYLES,
-  DS_MOOD_STEP,
   dsButtonLookAt,
   dsButtonLookStyle,
-  dsMoodStep,
   dsPaletteDraw,
   dsPickTaste,
   dsRandomTastes,
@@ -495,6 +493,8 @@ const PREVIEW_MEDIA = "/parabola/preview";
 type PreviewCopy = {
   x: string;
   story: [title: string, note: string, sticker: string];
+  /** Her next project, a line on her story (Alex, 2026-10-29): short. */
+  vision: string;
   email: { subject: string; title: string; greeting: string; body: string };
 };
 
@@ -514,6 +514,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers at the lake, one pair of glasses.",
       "New letter →",
     ],
+    vision: "Next: Dragonfly Vision.",
     email: {
       subject: "A letter from the lake",
       title: "Dragonfly, finished",
@@ -524,6 +525,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   precise: {
     x: "Dragonfly is finished: hand-formed silver, 38 g, three summers of work. Process notes and the recordings are on the site.",
     story: ["Dragonfly", "Silver, 38 g. 2024–2026.", "See the process →"],
+    vision: "Next: Dragonfly Vision.",
     email: {
       subject: "Dragonfly is finished",
       title: "How Dragonfly was made",
@@ -538,6 +540,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers of mornings at the lake.",
       "Say hi →",
     ],
+    vision: "On to Dragonfly Vision!",
     email: {
       subject: "Hi, it's Ilo",
       title: "Come see what I made",
@@ -548,6 +551,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   elegant: {
     x: "Dragonfly. Silver, glass, three summers.",
     story: ["Dragonfly", "One of one.", "Discover"],
+    vision: "Next: Dragonfly Vision.",
     email: {
       subject: "Dragonfly",
       title: "One of one",
@@ -562,6 +566,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "Three summers. One piece. Done.",
       "Read it →",
     ],
+    vision: "NEXT UP: DRAGONFLY VISION.",
     email: {
       subject: "Finish one thing.",
       title: "Done beats perfect.",
@@ -576,6 +581,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "eleven failed casts. not joking.",
       "the letter →",
     ],
+    vision: "Starting Dragonfly Vision.",
     email: {
       subject: "Eleven failed casts",
       title: "What finishing actually looked like",
@@ -590,6 +596,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
       "On finishing, after three summers at the lake.",
       "Read the essay →",
     ],
+    vision: "Now: Dragonfly Vision.",
     email: {
       subject: "On finishing",
       title: "Keep fewer things",
@@ -600,6 +607,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   playful: {
     x: "Made myself dragonfly glasses 🕶️ The real dragonflies at the lake seem to approve.",
     story: ["new face, who dis 🕶️", "the dragonflies approve", "new letter ✨"],
+    vision: "next up: dragonfly vision 👀",
     email: {
       subject: "I made dragonfly glasses 🕶️",
       title: "Notes from the 4am club",
@@ -610,6 +618,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   wild: {
     x: "I MADE DRAGONFLY GLASSES!!! Three summers. Zero regrets. LOOK AT THEM!!!",
     story: ["DRAGONFLY!!!", "three summers. ZERO regrets.", "LOOK →"],
+    vision: "DRAGONFLY VISION. SOON.",
     email: {
       subject: "I MADE DRAGONFLY GLASSES",
       title: "It's another planet",
@@ -620,6 +629,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   futurist: {
     x: "Log, 04:00. Lake surface still. Dragonfly unit complete: silver, glass, 38 g. Field recordings attached.",
     story: ["Dragonfly / 03", "Status: complete. Signal: still.", "Open log →"],
+    vision: "Next build: Dragonfly Vision.",
     email: {
       subject: "Transmission 03: Dragonfly",
       title: "Unit complete",
@@ -630,6 +640,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   chic: {
     x: "Dragonfly. Silver eyewear, one of one. Out now.",
     story: ["Dragonfly", "SS27. Silver, by hand.", "Shop the piece"],
+    vision: "Coming: Dragonfly Vision.",
     email: {
       subject: "Dragonfly",
       title: "The silver series",
@@ -640,6 +651,7 @@ const VOICE_COPY: Record<DsTone, PreviewCopy> = {
   grounded: {
     x: "Mist on the water, silver on the bench, a dragonfly on a reed. Three summers of mornings like that, and now the piece is done.",
     story: ["Slow mornings", "Mist, reeds, cold silver.", "Read the letter →"],
+    vision: "Slowly: Dragonfly Vision.",
     email: {
       subject: "From the water's edge",
       title: "Slow mornings, a finished piece",
@@ -712,7 +724,7 @@ function StoryText({
         ? "button"
         : "page";
   return (
-    <p className={cn("text-p leading-[1.35]", className)}>
+    <p className={cn("text-small leading-[1.35]", className)}>
       <span
         className={cn(
           "[-webkit-box-decoration-break:clone] [box-decoration-break:clone]",
@@ -755,11 +767,12 @@ const PLATFORM = {
 
 /**
  * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
- * bars and her name at the top, and low in the middle two bits of words in
- * the theme's main font, the line and what to tap, in the taste's voice, set
- * the way the taste asks (StoryText), the second in the other colour. Kept
- * to two and centred, as people place them (Alex, 2026-10-29: "you're trying
- * very hard"); a playful mood tilts them a little (dsTasteTilt). Its corners
+ * bars and her name at the top, then a short story in two moments, small,
+ * in the taste's voice and set the way the taste asks (StoryText): her next
+ * project, Dragonfly Vision, by her cheek, lined up on the left with her
+ * avatar; and low in the middle the line and what to tap, the second in the
+ * other colour (Alex, 2026-10-29). A playful mood tilts them a little
+ * (dsTasteTilt). Its corners
  * are rounded where the Social piece's outer corners are (`className`).
  */
 function PreviewStory({
@@ -813,6 +826,16 @@ function PreviewStory({
           </span>
         </div>
       </div>
+      {/* Two moments: what's next, by her cheek, left with her avatar; then the line and what to tap, low. */}
+      <StoryText
+        story={story}
+        className={cn(
+          "absolute top-[52%] left-3 max-w-[70%]",
+          tilt && "-rotate-2",
+        )}
+      >
+        {copy.vision}
+      </StoryText>
       <div className="absolute inset-x-4 bottom-8 flex flex-col items-center gap-ds-8 text-center">
         <StoryText story={story} className={cn(tilt && "-rotate-2")}>
           {title}
@@ -827,8 +850,8 @@ function PreviewStory({
 
 /**
  * A post in the feed, beside the story, on Instagram's white in a grey
- * outline (PLATFORM): one photo, square, with nothing written on it (Alex,
- * 2026-10-29: not a carousel), the actions under it, then the likes and her
+ * outline (PLATFORM): one photo, square, her at the lake's edge well inside
+ * the frame, with nothing written on it (Alex, 2026-10-29: not a carousel), the actions under it, then the likes and her
  * caption in the taste's voice. Its corners are rounded where the Social
  * piece's outer corners are (`className`).
  */
@@ -862,8 +885,8 @@ function PreviewFeedPost({
         <MoreHorizontal aria-hidden className="ml-auto size-4" />
       </div>
       <img
-        src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
-        alt="A still lake at dawn"
+        src={`${PREVIEW_MEDIA}/ilo-lake-day.jpg`}
+        alt="Ilo sitting at the lake's edge"
         className="-mx-3 aspect-square w-[calc(100%+1.5rem)] max-w-none object-cover"
       />
       <div className="flex items-center gap-3">
@@ -1321,12 +1344,16 @@ function TakeControls({ takes }: { takes: Takes }) {
   );
 }
 
+/** The Mood bar's track: a 1px line in the border colour, centred in the bar's height. */
+const MOOD_LINE =
+  "linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--ds-border) calc(50% - 0.5px), var(--ds-border) calc(50% + 0.5px), transparent calc(50% + 0.5px))";
+
 /**
  * Taste (taste.ts; Alex, 2026-10-29: "aesthetics and personality"): the
  * Style rail, one pick at a time as tabs are (Classic, Minimal, Elegant,
  * Tech, Natural, Retro, Sport), which chooses a chip in Colour, Typography
- * and Buttons; then the mood, the personality, stepped with + Serious and
- * + Playful, which changes the look you can see inside that style (its
+ * and Buttons; then the Mood slider, the personality, Serious to Playful
+ * (on to Wacky at its end), which changes the look you can see inside that style (its
  * fonts, its buttons, its colour, its voice). Parabola's own is Classic and
  * Balanced. Picking a style
  * changes the look at once (a take, in the player at the top). Restore, at
@@ -1358,55 +1385,18 @@ function TasteChoice({
           onToggle={toggle}
         />
       </div>
-      {/* Mood in steps (Alex, 2026-10-29: two buttons, "plus, plus, plus, minus, minus"), where it's got to above
-          them, the word and a dot for each step. */}
-      <div className="flex flex-col gap-ds-8">
-        <div className="flex items-center justify-between gap-ds-16">
-          <span className="text-p text-ds-fg">Mood</span>
-          <span className="text-p text-ds-fg">
-            {dsMoodLabel(character.mood)}
-          </span>
-        </div>
-        <div
-          className="flex items-center justify-between"
-          role="img"
-          aria-label={`Mood: ${dsMoodLabel(character.mood)}`}
-        >
-          {Array.from({ length: 1 / DS_MOOD_STEP + 1 }, (_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "size-1.5 rounded-full",
-                Math.round(character.mood / DS_MOOD_STEP) === i
-                  ? "bg-ds-fg"
-                  : "bg-ds-border",
-              )}
-            />
-          ))}
-        </div>
-        <div className="flex gap-ds-8">
-          <DsButton
-            iconLeft={Plus}
-            className="flex-1"
-            disabled={character.mood <= 0}
-            onClick={() =>
-              onTheme(dsThemeWithMood(theme, dsMoodStep(character.mood, -1)))
-            }
-          >
-            Serious
-          </DsButton>
-          <DsButton
-            iconLeft={Plus}
-            className="flex-1"
-            disabled={character.mood >= 1}
-            onClick={() =>
-              onTheme(dsThemeWithMood(theme, dsMoodStep(character.mood, 1)))
-            }
-          >
-            Playful
-          </DsButton>
-        </div>
-      </div>
+      {/* Mood as a slider again (Alex, 2026-10-29), its track a 1px line rather than a colour: Serious to Playful. */}
+      <DsColourBar
+        label="Mood"
+        readout={dsMoodLabel(character.mood)}
+        value={character.mood}
+        onChange={(x) =>
+          onTheme(dsThemeWithMood(theme, Math.round(x * 100) / 100))
+        }
+        valueText={dsMoodLabel(character.mood)}
+        track={MOOD_LINE}
+        ends={["Serious", "Playful"]}
+      />
     </div>
   );
 }

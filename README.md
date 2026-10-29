@@ -134,9 +134,8 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   `dsButtonLookAt`; Outline and Text have no fill, `dsButtonLookStyle`, the
   primary button's fill "none"; Chunky a thick edge; only Tactile has a
   gradient); each can be picked by hand after, one at a time. A style's own
-  look is the first of each of its lists; › draws from the rest. Then the **Mood**, the personality, stepped with two buttons, + Serious
-  and + Playful (`DS_MOOD_STEP`, `dsMoodStep`, eight steps, Balanced in the
-  middle; `dsThemeWithMood`), which changes the look inside the style:
+  look is the first of each of its lists; › draws from the rest. Then the **Mood**, the personality, a slider from Serious to Playful
+  (on to Wacky at its end; its track a 1px line; `dsThemeWithMood`), which changes the look inside the style:
   the kind of type's four font pairs, the buttons' roundness, the colour's
   saturation (`dsMoodSaturation`) and the button colour (`dsPaletteButton`),
   and the voice (`dsTasteVoice`; words placed loose from Playful,
