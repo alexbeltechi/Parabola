@@ -118,6 +118,7 @@ import {
   dsCharacterColourOptions,
   dsMoodDials,
   dsMoodLabel,
+  dsTemperatureLabel,
   type DsCharacter,
   type DsTasteScope,
 } from "../character";
@@ -1516,11 +1517,14 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
  * The theme's colour (character.ts, taste.ts; Alex, 2026-10-29): first the
  * palettes, colour chips (Classic is Parabola's own, Neutral a startup's,
  * Vibrant, Sport…), each a background, a button colour and a contrast; then
- * the background as a photo is edited, Hue (paper's by default), Saturation
- * (more of it on a white: paper, sand, a bright orange), Brightness, then
- * Contrast. Each bar is drawn in what it does. "Show advanced options" opens
- * the colours themselves (the wheel, for the mode picked under the theme),
- * for a colour of its own.
+ * the background as three bars: Hue (paper's by default; dragged onto a
+ * white it tints it), Temperature (cooler or warmer: ice or paper on a
+ * white, the hue leaned blue or orange on a colour) and Brightness, a true
+ * one, black to the colour to white. No Saturation or Contrast bar (Alex:
+ * "it's not like an actual saturation"; a palette sets both). Each bar is
+ * drawn in what it does. "Show advanced options" opens the colours
+ * themselves (the wheel, for the mode picked under the theme), for a colour
+ * of its own.
  */
 function ColourChoice({
   theme,
@@ -1536,11 +1540,6 @@ function ColourChoice({
     onTheme({ ...theme, character: { ...character, ...next } });
   const at = (next: Partial<DsCharacter>) =>
     dsCharacterBase({ ...character, ...next }) ?? "#FFFFFF";
-  const tokensAt = (contrast: number) =>
-    dsThemeColourTokens(
-      { ...theme, character: { ...character, contrast } },
-      mode,
-    );
   const base = dsThemeColourTokens(theme, mode).bg;
   // -50 to +50 from 0 in the middle, as the colours' numbers read.
   const signed = (n: number) =>
@@ -1566,15 +1565,23 @@ function ColourChoice({
         key={id}
         label={label}
         readout={
-          id === "hue" ? `${shown}°` : centred ? signed(shown) : String(shown)
+          id === "hue"
+            ? `${shown}°`
+            : id === "warmth"
+              ? dsTemperatureLabel(value)
+              : centred
+                ? signed(shown)
+                : String(shown)
         }
         value={(value - min) / (max - min)}
-        // A hue dragged onto a background with no colour gives it a tint, so the drag shows.
+        // A hue dragged onto a background with no colour gives it a tint, so the drag shows (on white, a touch
+        // below full brightness, where white has no hue).
         onChange={(x) =>
           id === "hue"
             ? set({
                 hue: Math.round(x * 360) % 360,
                 colour: Math.max(character.colour, 0.25),
+                brightness: Math.min(character.brightness, 0.94),
               })
             : set({ [id]: Math.round((min + x * (max - min)) * 100) / 100 })
         }
@@ -1591,7 +1598,8 @@ function ColourChoice({
   // The hue bar shows each hue at a strength that reads, even while the background has little colour.
   const strong = {
     colour: Math.max(character.colour, 0.6),
-    brightness: Math.max(character.brightness, 0.7),
+    brightness: 0.6,
+    warmth: 0,
   };
   return (
     <div className="flex flex-col gap-ds-16">
@@ -1605,7 +1613,13 @@ function ColourChoice({
           const drawn = id
             ? dsPaletteDraw(id, t.character)
             : {
-                character: { hue: 40, colour: 0, brightness: 1, contrast: 0 },
+                character: {
+                  hue: 40,
+                  colour: 0,
+                  brightness: 1,
+                  warmth: 0,
+                  contrast: 0,
+                },
                 button: null,
               };
           return {
@@ -1625,19 +1639,14 @@ function ColourChoice({
         at({ ...strong }),
       )}
       {dial(
-        "colour",
-        `linear-gradient(to right, ${at({ colour: 0, brightness: Math.max(character.brightness, 0.7) })}, ${at({ colour: 1, brightness: Math.max(character.brightness, 0.7) })})`,
+        "warmth",
+        `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`,
         base,
       )}
       {dial(
         "brightness",
         `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
         base,
-      )}
-      {dial(
-        "contrast",
-        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
-        tokensAt(character.contrast)["fg-muted"],
       )}
       <AdvancedOptions>
         <ColourWheelChoice
@@ -1648,6 +1657,46 @@ function ColourChoice({
         />
       </AdvancedOptions>
     </div>
+  );
+}
+
+/**
+ * The type's contrast (character.ts `ink`; Alex, 2026-10-29): full is black
+ * or white text; turned down, the text becomes an ink of the theme's hue,
+ * more coloured and nearer the page, not a grey. The bar runs from the
+ * softest ink to full, drawn in them.
+ */
+function TypeContrast({
+  theme,
+  mode,
+  onTheme,
+}: {
+  theme: DsThemeConfig;
+  mode: "light" | "dark";
+  onTheme: (theme: DsThemeConfig) => void;
+}) {
+  const ink = theme.character.ink;
+  const at = (i: number) =>
+    dsThemeColourTokens(
+      { ...theme, character: { ...theme.character, ink: i } },
+      mode,
+    ).fg;
+  const shown = Math.round(ink * 100);
+  return (
+    <DsColourBar
+      label="Contrast"
+      readout={String(shown)}
+      value={ink}
+      onChange={(x) =>
+        onTheme({
+          ...theme,
+          character: { ...theme.character, ink: Math.round(x * 100) / 100 },
+        })
+      }
+      valueText={`${shown}: ${ink >= 0.98 ? "full" : ink <= 0.02 ? "soft" : "between soft and full"}`}
+      track={`linear-gradient(to right, ${at(0)}, ${at(0.5)}, ${at(1)})`}
+      thumb={at(ink)}
+    />
   );
 }
 
@@ -2337,6 +2386,7 @@ export function ThemeSection() {
                   ...t.character,
                   scoped: { ...t.character.scoped, colour: "classic" },
                   hue: 40,
+                  warmth: 0,
                   colour: 0,
                   brightness: 1,
                   contrast: 0,
@@ -2362,6 +2412,7 @@ export function ThemeSection() {
                   character: {
                     ...t.character,
                     scoped: { ...t.character.scoped, type: "classic" },
+                    ink: 1,
                   },
                   families: DS_DEFAULT_THEME.families,
                   hiddenFonts: [],
@@ -2383,6 +2434,7 @@ export function ThemeSection() {
               )
             }
           />
+          <TypeContrast theme={theme} mode={mode} onTheme={setTheme} />
           <AdvancedOptions>
             {heading && (
               <DsField label={heading.label}>

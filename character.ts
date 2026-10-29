@@ -18,13 +18,20 @@
  *   deciding only that section's values.
  * - tastes: the style the look was drawn from (taste.ts), by id; one.
  * - The background, as dials rather than a hex (a hex is Colours' job;
- *   Alex, 2026-10-29), in Colour, as a photo is edited: hue, 0 to 360
- *   (40, paper's, by default); colour, the Saturation bar, 0 (none: white,
- *   greys, black) to 1 (the hue at full strength), so raising it on a white
- *   goes paper, then sand, then a bright orange; brightness, 0 (black) to 1
- *   (as light as it goes). It replaced a Temperature bar (warmth).
+ *   Alex, 2026-10-29), in Colour: hue, 0 to 360 (40, paper's, by default);
+ *   warmth, the Temperature bar, -1 (cool) to 1 (warm): on a white, ice or
+ *   paper, on a colour its hue leaned toward blue or orange; brightness, a
+ *   true one, 0 black, 0.5 the colour at its strongest, 1 white. colour,
+ *   how much of the hue there is, 0 (none) to 1 (full), is set by a palette
+ *   or a hue dragged onto a white; it has no bar of its own (a Saturation
+ *   bar replaced Temperature for a day; Alex: "it's not like an actual
+ *   saturation").
+ * - ink, the type's contrast, Typography's Contrast bar: 1 (full, Parabola's)
+ *   to 0 (soft): lower, the text becomes an ink of the hue, more coloured
+ *   and nearer the page, not a grey (colours.ts).
  * - contrast: -1 (soft) to 1 (hard), 0 Parabola's: how far the quieter
- *   text, the borders and the cards sit from the base.
+ *   text, the borders and the cards sit from the base; a palette sets it,
+ *   it has no bar of its own.
  * - roundness: 0 (sharp) to 1 (round): every corner, None to Large.
  * - depth: 0 (flat) to 1 (dimensional): the buttons' gradient, outline and
  *   text shadow, in that order as it rises.
@@ -32,7 +39,7 @@
  * Pure data and functions, so the server and the browser share them.
  */
 import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
-import { dsHexToHsv, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
+import { dsHexToHsl, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
 /** The panel sections with a rail of their own, each deciding only its own values. */
@@ -42,6 +49,9 @@ export type DsCharacter = {
   tastes: string[];
   scoped: Partial<Record<DsTasteScope, string>>;
   mood: number;
+  /** The type's contrast: 1 full (black or white text), lower softens it toward an ink of the hue. */
+  ink: number;
+  warmth: number;
   hue: number;
   colour: number;
   brightness: number;
@@ -64,6 +74,8 @@ export const DS_DEFAULT_CHARACTER: DsCharacter = {
   // Parabola's own chips: its colours, its fonts, its round buttons.
   scoped: { colour: "classic", type: "classic", buttons: "soft" },
   mood: 0.5,
+  ink: 1,
+  warmth: 0,
   hue: 40,
   colour: 0,
   brightness: 1,
@@ -127,8 +139,19 @@ export function dsMoodDials(mood: number): Pick<DsCharacter, "roundness"> {
   return { roundness: mix("roundness") };
 }
 
+/** A temperature's word, for its bar. */
+export function dsTemperatureLabel(warmth: number): string {
+  if (warmth < -0.6) return "Cool";
+  if (warmth < -0.2) return "Crisp";
+  if (warmth <= 0.2) return "Neutral";
+  if (warmth <= 0.6) return "Warm";
+  return "Cosy";
+}
+
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
 export const DS_CHARACTER_DIALS = [
+  { id: "warmth", label: "Temperature", min: -1, max: 1, low: "Cool", high: "Warm" },
+  { id: "ink", label: "Type contrast", min: 0, max: 1, low: "Soft", high: "Full" },
   { id: "hue", label: "Hue", min: 0, max: 360, low: "Red", high: "Red" },
   { id: "colour", label: "Saturation", min: 0, max: 1, low: "None", high: "Full" },
   { id: "brightness", label: "Brightness", min: 0, max: 1, low: "Dark", high: "Light" },
@@ -168,22 +191,25 @@ export function parseDsCharacter(value: unknown): DsCharacter {
         .map((t) => RENAMED_TASTES[t] ?? t)
         .slice(0, 1)
     : [];
-  // A background stored the older ways becomes its hue, saturation and brightness: a hex picked for a day (`seed`),
-  // or a temperature over an HSL brightness (`warmth`).
+  // A background stored the older ways becomes its hue, colour and brightness, as a hex first: one picked for a day
+  // (`seed`), or one stored for a day as a photo editor's saturation and value (no `warmth` beside them).
   const num = (k: string) => (typeof raw[k] === "number" && Number.isFinite(raw[k]) ? (raw[k] as number) : null);
-  const older =
-    typeof raw.warmth === "number"
-      ? (legacyBase(raw.warmth, num("hue") ?? 40, num("colour") ?? 0, num("brightness") ?? 1) ?? "#FFFFFF")
+  const hsvDay = typeof raw.warmth !== "number" && (num("colour") !== null || num("brightness") !== null);
+  const hex = dsIsHex(raw.seed)
+    ? raw.seed
+    : hsvDay && !(num("colour") === 0 && num("brightness") === 1)
+      ? dsHsvToHex(num("hue") ?? 40, num("colour") ?? 0, num("brightness") ?? 1)
       : null;
-  const hex = dsIsHex(raw.seed) ? raw.seed : older;
-  const seed = hex ? dsHexToHsv(hex) : null;
+  const seed = hex ? dsHexToHsl(hex) : null;
   return {
     tastes: Array.isArray(raw.tastes) ? tastes : DS_DEFAULT_TASTES,
     scoped: parseScoped(raw.scoped),
     mood,
-    hue: seed && seed.s > 0 ? Math.round(seed.h) : dial("hue"),
-    colour: seed ? Math.round(seed.s * 100) / 100 : dial("colour"),
-    brightness: seed ? Math.round(seed.v * 100) / 100 : dial("brightness"),
+    ink: dial("ink"),
+    warmth: seed ? 0 : dial("warmth"),
+    hue: seed && seed[1] > 0 ? Math.round(seed[0]) : dial("hue"),
+    colour: seed ? Math.round(seed[1] * 100) / 100 : dial("colour"),
+    brightness: seed ? Math.round(seed[2] * 100) / 100 : dial("brightness"),
     contrast: dial("contrast"),
     roundness: dial("roundness"),
     depth: dial("depth"),
@@ -194,33 +220,33 @@ export const dsCharacterIsDefault = (c: DsCharacter) =>
   [...c.tastes].sort().join() === [...DS_DEFAULT_TASTES].sort().join() &&
   JSON.stringify(c.scoped) === JSON.stringify(DS_DEFAULT_CHARACTER.scoped) &&
   c.mood === 0.5 &&
-  c.colour === 0 && c.brightness === 1 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
+  c.ink === 1 && c.warmth === 0 && c.colour === 0 && c.brightness === 1 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /**
- * The light theme's background from the dials, as a photo's hue and
- * saturation are edited (Alex, 2026-10-29): the hue at its saturation and
- * brightness, so on a white, more saturation is paper, then sand, then a
- * bright orange; or null for Parabola's own white, which keeps its
- * hand-tuned greys.
+ * The light theme's background from the dials, or null for Parabola's own
+ * white, which keeps its hand-tuned greys. With no colour, the temperature
+ * tints the white toward paper (40°) or ice (210°), a little more the
+ * further it goes, so a warm white is paper, not lemon; on a colour it leans
+ * the hue toward orange (warm, 30°) or blue (cool, 220°), up to 25° at the
+ * ends, so a warm yellow stays a yellow. Brightness is a true one (Alex,
+ * 2026-10-29): 0 black, 0.5 the colour at its strongest, 1 white.
  */
 export function dsCharacterBase(c: DsCharacter): string | null {
-  if (c.colour === 0 && c.brightness === 1) return null;
-  return dsHsvToHex(c.hue, c.colour, c.brightness);
-}
-
-/** A background stored before the Saturation bar: a temperature over an HSL brightness, as a hex; null for white. */
-function legacyBase(warmth: number, hue: number, colour: number, brightness: number): string | null {
-  if (colour === 0 && brightness === 1 && warmth === 0) return null;
-  if (colour < 0.02) return dsHsvToHex(warmth > 0 ? 40 : 210, Math.abs(warmth) * 0.12, brightness);
-  const toward = warmth > 0 ? 30 : 220;
-  const gap = ((toward - hue + 540) % 360) - 180;
-  const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(warmth));
-  return dsHslToHex((hue + lean + 360) % 360, colour, brightness);
+  if (c.colour === 0 && c.brightness === 1 && c.warmth === 0) return null;
+  if (c.colour < 0.02) return dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, c.brightness);
+  if (c.warmth === 0) return dsHslToHex(c.hue, c.colour, c.brightness);
+  const toward = c.warmth > 0 ? 30 : 220;
+  const gap = ((toward - c.hue + 540) % 360) - 180;
+  const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(c.warmth));
+  return dsHslToHex((c.hue + lean + 360) % 360, c.colour, c.brightness);
 }
 
 /** What the colour derivations take from the character (colours.ts). */
 export function dsCharacterColourOptions(c: DsCharacter): DsColourOptions {
-  return { base: dsCharacterBase(c), contrast: c.contrast };
+  // The type's ink takes the hue the page shows: its own colour's, or paper's (40°) or ice's (210°) on a white.
+  const base = dsCharacterBase(c);
+  const inkHue = base && c.colour >= 0.02 ? dsHexToHsl(base)[0] : c.warmth < 0 ? 210 : 40;
+  return { base, contrast: c.contrast, ink: c.ink, inkHue };
 }
 
 /** The corners from the roundness: None, then 2 to 20px, then Large (fully round pills). */

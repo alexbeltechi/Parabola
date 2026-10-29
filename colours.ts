@@ -471,9 +471,12 @@ function hexIn(
  * What a theme's character hands the derivations (character.ts): the base the
  * light theme starts from while none is picked (null: Parabola's white); a
  * contrast, -1 (soft) to 1 (hard), that moves the quieter text, borders and
- * cards nearer to or further from the base.
+ * cards nearer to or further from the base; and the type's contrast, `ink`,
+ * 1 (full: black or white) down to 0 (soft), which takes the text toward a
+ * colour of `inkHue` rather than toward grey (Alex, 2026-10-29: "it doesn't
+ * necessarily make it grey… it could start to be more of a colour").
  */
-export type DsColourOptions = { base?: string | null; contrast?: number };
+export type DsColourOptions = { base?: string | null; contrast?: number; ink?: number; inkHue?: number };
 
 export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", options: DsColourOptions = {}): Record<string, string> {
   const base = dsIsHex(colours.text.light) || !colours.text.light ? DS_DEFAULT_BASE_COLOUR : colours.text.light;
@@ -514,6 +517,20 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
       // Toasts and tooltips in the text colour, solid.
       "surface-inverse": fg,
     });
+  }
+  // The type's contrast: below full, the text (when it's black or white, not picked) becomes a dark or light ink of
+  // the hue, more coloured and nearer the page the lower it goes, and the quieter steps follow it.
+  const ink = options.ink ?? 1;
+  const textPicked = mode === "light" ? dsIsHex(colours.text.light) : Boolean(colours.text.dark);
+  if (ink < 1 && !textPicked) {
+    const soft = 1 - ink;
+    const hue = options.inkHue ?? 40;
+    const light = dsLuminance(tokens.bg) > 0.18;
+    const inked = dsHslToHex(hue, 0.55 * soft, light ? 0.3 * soft : 1 - 0.22 * soft);
+    tokens.fg = inked;
+    tokens["fg-muted"] = dsMix(inked, tokens.bg, mode === "dark" ? 0.8 : 0.7);
+    tokens["fg-subtle"] = dsMix(inked, tokens.bg, mode === "dark" ? 0.64 : 0.52);
+    tokens["surface-inverse"] = inked;
   }
   // Type: secondary, the quieter text: its own colour (in dark, moved to read on the page), a fainter step drawn
   // from it; or the primary type mixed toward the page.

@@ -30,7 +30,7 @@
  */
 import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
 import { dsCharacterBase, type DsCharacter, type DsFontPair } from "./character";
-import { dsContrast, dsHexToHsv } from "./colours";
+import { dsContrast, dsHexToHsl } from "./colours";
 
 type Range = readonly [number, number];
 
@@ -399,8 +399,9 @@ export function dsPaletteButton(id: string, character: DsCharacter, mood: number
 export const dsMoodSaturation = (mood: number) => 0.4 + 1.2 * mood;
 
 /**
- * A palette drawn at a mood: one of its backgrounds (as the hue,
- * saturation and brightness dials, saturated by the mood), a contrast inside
+ * A palette drawn at a mood: one of its backgrounds (as the hue, colour
+ * and brightness dials, the colour stronger as the mood is livelier, the
+ * temperature neutral), a contrast inside
  * its range, and its button colour at that mood.
  */
 export function dsPaletteDraw(
@@ -408,14 +409,15 @@ export function dsPaletteDraw(
   current: DsCharacter,
   mood = current.mood,
   first = false
-): { character: Pick<DsCharacter, "hue" | "colour" | "brightness" | "contrast">; button: string | null } {
+): { character: Pick<DsCharacter, "hue" | "colour" | "brightness" | "warmth" | "contrast">; button: string | null } {
   const palette = DS_PALETTES.find((p) => p.id === id) ?? DS_PALETTES[0];
   const background = first ? palette.backgrounds[0] : pick(palette.backgrounds);
-  const hsv = background ? dsHexToHsv(background) : null;
+  const hsl = background ? dsHexToHsl(background) : null;
   const character = {
-    hue: hsv && hsv.s > 0 ? Math.round(hsv.h) : current.hue,
-    colour: hsv ? Math.round(Math.min(1, (hsv.s * dsMoodSaturation(mood)) / dsMoodSaturation(0.5)) * 100) / 100 : 0,
-    brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
+    hue: hsl && hsl[1] > 0 ? Math.round(hsl[0]) : current.hue,
+    colour: hsl ? Math.round(Math.min(1, (hsl[1] * dsMoodSaturation(mood)) / dsMoodSaturation(0.5)) * 100) / 100 : 0,
+    brightness: hsl ? Math.round(hsl[2] * 100) / 100 : 1,
+    warmth: 0,
     contrast: first ? along(palette.contrast, 0.5) : between(palette.contrast),
   };
   return { character, button: dsPaletteButton(palette.id, { ...current, ...character }, mood) };

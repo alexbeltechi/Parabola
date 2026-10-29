@@ -116,7 +116,7 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /** The dials every Auto value is worked out from: hue, saturation, brightness, contrast, roundness, depth (character.ts). */
+  /** The dials every Auto value is worked out from: hue, temperature, colour, brightness, contrast, roundness, depth (character.ts). */
   character: DsCharacter;
   /** Background, primary and secondary (the text), buttons, field and surface, each for light and dark (colours.ts). */
   colours: DsThemeColours;
@@ -557,13 +557,15 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
   ];
   const round = (n: number) => (n >= 9999 ? "fully round" : `${n}px`);
   return {
-    about: `"${name}", a website theme made with Parabola. "character" is the look as a whole, dials an agent moves rather than picking colours: hue (0 to 360), saturation ("colour"), brightness, contrast, roundness and depth, each 0 to 100 (contrast -50 to +50), plus the base colour they make and the chips picked in each section ("scoped"); every value under them is worked out from the dials unless listed in "overrides". Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
+    about: `"${name}", a website theme made with Parabola. "character" is the look as a whole, dials an agent moves rather than picking colours: hue (0 to 360), temperature ("warmth", cool -50 to warm +50), how much colour ("colour"), the type's contrast ("typeContrast", 100 full, lower an ink of the hue), brightness (0 black, 50 the colour at its strongest, 100 white), contrast, roundness and depth, each 0 to 100 (contrast -50 to +50), plus the base colour they make and the chips picked in each section ("scoped"); every value under them is worked out from the dials unless listed in "overrides". Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
     name,
     character: {
       tastes: c.tastes,
       scoped: c.scoped,
       background: dsCharacterBase(c) ?? "white",
       hue: Math.round(c.hue),
+      warmth: Math.round(c.warmth * 50),
+      typeContrast: pct(c.ink),
       colour: pct(c.colour),
       brightness: pct(c.brightness),
       contrast: Math.round(c.contrast * 50),

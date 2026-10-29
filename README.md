@@ -141,11 +141,17 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   and the voice (`dsTasteVoice`; words placed loose from Playful,
   `dsTasteTilt`).
   Parabola's own is Classic and Balanced, with Classic, Classic and Soft.
-  **Colour** is the palettes, then the background as a
-  photo is edited, hue, saturation and brightness (more saturation on a
-  white: paper, sand, a bright orange), then contrast, with the colours
-  themselves behind "Show advanced options"; roundness is with the
-  buttons. Fields is its outline, no rail. The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
+  **Colour** is the palettes, then the background as three bars: hue,
+  temperature (ice or paper on a white, the hue leaned blue or orange on a
+  colour) and a true brightness (black, the colour, white), with the
+  colours themselves behind "Show advanced options"; a palette sets how much
+  colour and the contrast, which have no bar. **Typography** has a Contrast
+  bar for the type (`character.ink`, `DsColourOptions.ink`): turned down,
+  the text becomes an ink of the page's hue, not a grey. Roundness is with
+  the buttons. Fields is its outline, no rail. A `DsScrollRow` slides its
+  picked item into view when it changes, so a rail a style changed shows
+  its new chip; a picked text button (a chip) wears the default button's
+  grey. The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
   there for any colour a form asks for.
 
 - **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they

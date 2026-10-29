@@ -41,7 +41,9 @@ import { DsLink, type DsLinkProps } from "../provider";
  * red button is the `danger` variant. There's no warning (yellow) style.
  *
  * State (props, not variants); on the default variant both are drawn in
- * `ds-button`, as primary is, on the text variant as its hover surface:
+ * `ds-button`, as primary is; on the text variant in the default button's
+ * own grey, so a picked chip and a plain button share one surface (Alex,
+ * 2026-10-29):
  * - `pressed`: a toggle that's on; sets `aria-pressed`.
  * - `current`: the link to the page you're on; sets `aria-current="page"`.
  *
@@ -127,7 +129,7 @@ export const dsButtonVariants = cva(
       {
         variant: "text",
         inverse: true,
-        className: "bg-ds-surface/40 text-ds-fg",
+        className: "bg-ds-surface/70 text-ds-on-surface ds-hover",
       },
     ],
     defaultVariants: { variant: "default", size: "default" },
