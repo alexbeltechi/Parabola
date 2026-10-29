@@ -11,7 +11,8 @@
  *   its own: moving it moves the dials below and the fonts together
  *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), the way a look is first
  *   described, and they can be fine-tuned after.
- * - seed: the colour the light theme's base starts from, or null for white.
+ * - tastes: the taste pills the look was drawn from (taste.ts), by id.
+ * - seed: the colour the light theme's background starts from, or null for white.
  * - brightness: how bright the base is, 0 (dark) to 1 (as bright as it
  *   comes: white, or the seed as picked).
  * - warmth: -1 (cold) to 1 (warm), 0 neither: a white balance over the base.
@@ -28,6 +29,7 @@ import { dsHexToHsv, dsHsvToHex, dsIsHex, dsWithWarmth, type DsColourOptions } f
 import type { DsRadius } from "./radius";
 
 export type DsCharacter = {
+  tastes: string[];
   mood: number;
   seed: string | null;
   brightness: number;
@@ -37,7 +39,7 @@ export type DsCharacter = {
   depth: number;
 };
 
-export const DS_DEFAULT_CHARACTER: DsCharacter = { mood: 0.5, seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
+export const DS_DEFAULT_CHARACTER: DsCharacter = { tastes: [], mood: 0.5, seed: null, brightness: 1, warmth: 0, contrast: 0, roundness: 1, depth: 0 };
 
 /** A font pair: a Google font for headlines over one for text. */
 export type DsFontPair = { heading: { label: string; google: string }; body: { label: string; google: string } };
@@ -116,7 +118,9 @@ export function parseDsCharacter(value: unknown): DsCharacter {
     return typeof n === "number" && Number.isFinite(n) ? clamp(n, min, max) : DS_DEFAULT_CHARACTER[id];
   };
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
+  const tastes = Array.isArray(raw.tastes) ? [...new Set((raw.tastes as unknown[]).filter((t): t is string => typeof t === "string"))] : [];
   return {
+    tastes,
     mood,
     seed: dsIsHex(raw.seed) && raw.seed.toUpperCase() !== "#FFFFFF" ? raw.seed.toUpperCase() : null,
     brightness: dial("brightness"),
@@ -128,6 +132,7 @@ export function parseDsCharacter(value: unknown): DsCharacter {
 }
 
 export const dsCharacterIsDefault = (c: DsCharacter) =>
+  c.tastes.length === 0 &&
   c.mood === 0.5 &&
   c.seed === null && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 

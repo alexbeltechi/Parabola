@@ -51,9 +51,9 @@ import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from ".
 
 /** The theme's colours on the wheel, in the order they're picked, named for what they colour (Alex, 2026-10-29). */
 const WHEEL: { kind: DsColourKind; label: string }[] = [
-  { kind: "theme", label: "Base" },
-  { kind: "text", label: "Type: primary" },
-  { kind: "muted", label: "Type: secondary" },
+  { kind: "theme", label: "Background" },
+  { kind: "text", label: "Primary" },
+  { kind: "muted", label: "Secondary" },
   { kind: "accent", label: "Button: primary" },
   { kind: "buttonSecondary", label: "Button: secondary" },
   { kind: "field", label: "Field" },
@@ -323,14 +323,14 @@ function ThemeCode({ theme, name, setTheme }: { theme: DsThemeConfig; name: stri
 /** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   theme: null,
-  // Black or white, whichever reads on the base, until it's given its own.
-  text: "base",
-  muted: "type: primary",
-  accent: "type: primary",
+  // Black or white, whichever reads on the background, until it's given its own.
+  text: "background",
+  muted: "primary",
+  accent: "primary",
   // A wash of the primary button colour on the page, until it's given its own.
   buttonSecondary: "button: primary",
-  field: "base",
-  surface: "base",
+  field: "background",
+  surface: "background",
 };
 
 /** Ilo's photos for the preview, small copies of the seed's (seed/ilo/media). */
@@ -416,36 +416,42 @@ function PreviewEmail() {
 
 /**
  * The taste feeder (taste.ts; Alex, 2026-10-29): common styles as pills,
- * Minimal, Editorial, Luxury, Tech, Warm, Bold, Playful, Wacky. Pick one or
- * several, then Shuffle: a whole look is drawn at random inside them (the
- * mood, the dials, a base, a button colour, a font pair), and Shuffle again
- * for another take; with none picked, from any. A shuffle starts the look
- * over: colours, corners and buttons given their own go back to Auto first.
- * Default puts Parabola's own back. Undo, in the top bar, takes a take back.
+ * Minimal, Editorial, Luxury, Tech, Warm, Bold, Playful, Wacky. Picking one
+ * changes the look at once, drawn at random inside it (the mood, the dials,
+ * a background, a button colour, a font pair); picking more draws inside
+ * all of them; Shuffle draws again for another take, and with none picked
+ * picks one and shows it picked. Unpicking the last brings back the look
+ * from before the first was picked. A draw starts the look over: colours,
+ * corners and buttons given their own go back to Auto. Default puts
+ * Parabola's own back. Undo, in the top bar, takes a take back.
  */
 function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void }) {
-  const [picked, setPicked] = React.useState<string[]>([]);
-  const shuffle = () => {
-    const draw = dsShuffleTaste(picked, theme.character);
-    const colours = { ...DS_DEFAULT_COLOURS, accent: { light: draw.button, dark: null } };
-    onTheme(dsThemeWithFonts({ ...theme, character: draw.character, colours, radius: null, pillRadius: null, buttons: null }, draw.fonts));
+  const picked = theme.character.tastes;
+  // The look before the first pill was picked, to come back to when the last is unpicked.
+  const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
+  const draw = (ids: string[]) => {
+    if (!before) setBefore(theme);
+    const next = dsShuffleTaste(ids, theme.character);
+    const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
+    onTheme(dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts));
+  };
+  const toggle = (id: string) => {
+    const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
+    if (ids.length) return draw(ids);
+    onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...theme.character, tastes: [] } });
+    setBefore(null);
   };
   return (
     <div className="flex flex-col gap-ds-16">
       <div className="flex flex-wrap gap-ds-4" role="group" aria-label="Tastes">
         {DS_TASTES.map((t) => (
-          <DsButton
-            key={t.id}
-            size="small"
-            pressed={picked.includes(t.id)}
-            onClick={() => setPicked((p) => (p.includes(t.id) ? p.filter((id) => id !== t.id) : [...p, t.id]))}
-          >
+          <DsButton key={t.id} size="small" pressed={picked.includes(t.id)} onClick={() => toggle(t.id)}>
             {t.label}
           </DsButton>
         ))}
       </div>
       <div className="flex items-center gap-ds-8">
-        <DsButton size="small" variant="primary" iconLeft={Shuffle} onClick={shuffle}>
+        <DsButton size="small" variant="primary" iconLeft={Shuffle} onClick={() => draw(picked)}>
           Shuffle
         </DsButton>
         <DsButton
@@ -453,8 +459,15 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
           variant="text"
           iconLeft={RotateCcw}
           onClick={() => {
-            setPicked([]);
-            onTheme({ ...dsThemeWithMood(theme, DS_DEFAULT_CHARACTER.mood), character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null });
+            setBefore(null);
+            onTheme({
+              ...dsThemeWithMood(theme, DS_DEFAULT_CHARACTER.mood),
+              character: DS_DEFAULT_CHARACTER,
+              colours: DS_DEFAULT_COLOURS,
+              radius: null,
+              pillRadius: null,
+              buttons: null,
+            });
           }}
         >
           Default
@@ -533,9 +546,9 @@ function StyleChoice({
         </div>
       </DsAccordion>
       <DsAccordion title="Appearance" inset>
-        <DsField size="small" label="Base colour">
+        <DsField size="small" label="Background colour">
           <DsColourField
-            aria-label="Base colour"
+            aria-label="Background colour"
             value={character.seed ?? "#FFFFFF"}
             // White is where it starts, so white is no seed at all.
             onChange={(hex) => set({ seed: hex === "#FFFFFF" ? null : hex })}

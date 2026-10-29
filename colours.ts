@@ -2,13 +2,13 @@
  * The six colours a theme picks (theme.ts; decisions, 2026-10-28, renamed
  * 2026-10-29), each based on another until it's given its own:
  *
- * - **base** (`theme`): the website's background, Parabola's white (and
+ * - **background** (`theme`): the website's background, Parabola's white (and
  *   charcoal in dark) by default; any colour, a bright yellow included.
- * - **type: primary** (`text`): the text, and the borders drawn from it.
- *   Parabola's own is black or white, whichever reads on the base, with
+ * - **primary** (`text`): the text, and the borders drawn from it.
+ *   Parabola's own is black or white, whichever reads on the background, with
  *   Stone's warm greys on the default page (tokens.css;
  *   `npm run check:parabola` checks).
- * - **type: secondary** (`muted`): the quieter text (`fg-muted`, and
+ * - **secondary** (`muted`): the quieter text (`fg-muted`, and
  *   `fg-subtle` a step fainter). By default the primary type mixed toward
  *   the page.
  * - **button: primary** (`accent`): the calls to action and what needs attention:
@@ -19,9 +19,9 @@
  * - **button: secondary** (`buttonSecondary`): the quiet buttons (Learn
  *   more) and the pills, `surface`. By default a wash of the primary
  *   button colour on the page, or Parabola's stone while that's its own.
- * - **field** (`field`): the fields' background. By default the base.
+ * - **field** (`field`): the fields' background. By default the background.
  * - **surface** (`surface`): cards and side panels. By default a shade of
- *   the base.
+ *   the background.
  *
  * Each is picked for the light theme (or left as Parabola's, or as what
  * it's based on, a little lighter or darker). In the dark theme each is, by

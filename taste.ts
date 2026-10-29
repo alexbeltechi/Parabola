@@ -3,9 +3,9 @@
  * Minimal, Editorial, Luxury and the rest, each a recipe of ranges, not one
  * fixed look: where on the Mood bar it sits, where the Appearance dials may
  * go, the base and button colours it reaches for, the font pairs it uses.
- * Pick one or several and Shuffle: the theme is drawn at random inside them
- * (`dsShuffleTaste`), and again for another take. With none picked, it's
- * drawn from all of them.
+ * Picking one draws a look inside it at once (`dsShuffleTaste`); picking
+ * more draws inside all of them; Shuffle draws again for another take. The
+ * pills picked are kept on the theme (`character.tastes`).
  *
  * This list is meant to grow. An agent adds a taste, a font pair or a
  * colour from what's current (font trends, a Figma file, Mobbin, an awards
@@ -136,7 +136,8 @@ const between = ([lo, hi]: Range) => Math.round((lo + Math.random() * (hi - lo))
  * one given unless a taste narrows it.
  */
 export function dsShuffleTaste(ids: string[], current: DsCharacter): DsTasteDraw {
-  const tastes = ids.length ? DS_TASTES.filter((t) => ids.includes(t.id)) : [pick(DS_TASTES)];
+  const known = DS_TASTES.filter((t) => ids.includes(t.id));
+  const tastes = known.length ? known : [pick(DS_TASTES)];
   const meet = (ranges: Range[]): Range => {
     const lo = Math.max(...ranges.map((r) => r[0]));
     const hi = Math.min(...ranges.map((r) => r[1]));
@@ -150,7 +151,7 @@ export function dsShuffleTaste(ids: string[], current: DsCharacter): DsTasteDraw
     const ranges = tastes.flatMap((t) => (t.dials?.[key] ? [t.dials[key]!] : []));
     if (ranges.length) dials[key] = between(meet(ranges));
   }
-  const character = { ...current, ...dials, mood, seed: pick(tastes.flatMap((t) => t.bases)), brightness: dials.brightness ?? 1 };
+  const character = { ...current, ...dials, tastes: tastes.map((t) => t.id), mood, seed: pick(tastes.flatMap((t) => t.bases)), brightness: dials.brightness ?? 1 };
   // A button colour that stands out from the page it lands on (a pink button on a pink page doesn't); else the text's.
   const base = dsCharacterBase(character) ?? "#FFFFFF";
   const buttons = tastes.flatMap((t) => t.buttons).filter((b) => b === null || dsContrast(b, base) >= 2);

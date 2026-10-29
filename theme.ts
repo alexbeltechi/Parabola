@@ -116,7 +116,7 @@ export type DsTextStyleConfig = {
 export type DsThemeConfig = {
   /** The dials every Auto value is worked out from: brightness, warmth, contrast, roundness, depth (character.ts). */
   character: DsCharacter;
-  /** Base, type (primary and secondary), button, field and surface, each for light and dark (colours.ts). */
+  /** Background, primary and secondary (the text), buttons, field and surface, each for light and dark (colours.ts). */
   colours: DsThemeColours;
   /** Font (text, always there) first; then Heading and any the theme added. */
   families: DsFontFamily[];
@@ -487,9 +487,9 @@ const SCOPE_DERIVED: Record<string, string> = {
 
 /** Each colour token's role, in plain words, for an export a person or an AI reads. */
 const COLOUR_ROLES: [token: string, role: string][] = [
-  ["bg", "base: the page background"],
-  ["fg", "type: primary, the text"],
-  ["fg-muted", "type: secondary, quieter text"],
+  ["bg", "background: the page"],
+  ["fg", "primary: the text"],
+  ["fg-muted", "secondary: quieter text"],
   ["fg-subtle", "faintest text (captions, placeholders)"],
   ["border", "borders and field outlines"],
   ["surface-subtle", "surface: cards and panels"],
@@ -535,7 +535,8 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
     about: `"${name}", a website theme made with Parabola. "character" is the look as a whole, dials an agent moves rather than picking colours: brightness, warmth, contrast, roundness and depth, each 0 to 100 (warmth and contrast -50 to +50), plus the base colour it starts from; every value under them is worked out from the dials unless listed in "overrides". Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
     name,
     character: {
-      base: c.seed ?? "white",
+      tastes: c.tastes,
+      background: c.seed ?? "white",
       brightness: pct(c.brightness),
       warmth: Math.round(c.warmth * 50),
       contrast: Math.round(c.contrast * 50),
