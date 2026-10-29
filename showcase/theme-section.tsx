@@ -52,7 +52,18 @@ import { dsToast } from "../primitives/toast";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsInfoCard } from "../components/info-card";
 import { dsFontOptions } from "../components/font-pairing";
-import { DS_DEFAULT_COLOURS, DS_ICON_LIBRARIES, dsColourShown, dsHexToHsl, dsNormalizeHex, dsShift, type DsColourOptions, type DsColourKind, type DsThemeColour, type DsThemeColours } from "../colours";
+import {
+  DS_DEFAULT_COLOURS,
+  DS_ICON_LIBRARIES,
+  dsColourShown,
+  dsHexToHsl,
+  dsNormalizeHex,
+  dsShift,
+  type DsColourOptions,
+  type DsColourKind,
+  type DsThemeColour,
+  type DsThemeColours,
+} from "../colours";
 import { cn } from "../cn";
 import { DsScrollRow } from "../primitives/scroll-row";
 import { DsColourWheel } from "../components/colour-wheel";
@@ -147,7 +158,8 @@ function ColourWheelChoice({
   const pick = mode === "light" ? "light" : "dark";
   const shiftKey = mode === "light" ? "lightShift" : "darkShift";
   const [selected, setSelected] = React.useState<DsColourKind>("theme");
-  const set = (kind: DsColourKind, next: Partial<DsThemeColour>) => onChange({ ...colours, [kind]: { ...colours[kind], ...next } });
+  const set = (kind: DsColourKind, next: Partial<DsThemeColour>) =>
+    onChange({ ...colours, [kind]: { ...colours[kind], ...next } });
   const basis = (kind: DsColourKind) => (mode === "dark" ? "light theme" : LIGHT_BASIS[kind]);
   const own = (kind: DsColourKind) => colours[kind][pick] !== null;
   const based = (kind: DsColourKind) => !own(kind) && basis(kind) !== null;
@@ -240,7 +252,9 @@ function ColourWheelChoice({
                   <DsDropdownContent align="end">
                     <DsDropdownItem
                       iconLeft={Copy}
-                      onSelect={() => navigator.clipboard.writeText(shown(w.kind)).then(() => dsToast.success(`${shown(w.kind)} copied`))}
+                      onSelect={() =>
+                        navigator.clipboard.writeText(shown(w.kind)).then(() => dsToast.success(`${shown(w.kind)} copied`))
+                      }
                     >
                       Copy hex
                     </DsDropdownItem>
@@ -395,10 +409,17 @@ type People = "photo" | "initials";
 /** Ilo's avatar, a circle: her photo, or "ILO" small on the button colour. */
 function PreviewAvatar({ people, className }: { people: People; className: string }) {
   if (people === "photo") {
-    return <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="" className={cn("shrink-0 rounded-full object-cover", className)} />;
+    return (
+      <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="" className={cn("shrink-0 rounded-full object-cover", className)} />
+    );
   }
   return (
-    <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-ds-button text-[9px] tracking-wider text-ds-on-button", className)}>
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-ds-button text-[9px] tracking-wider text-ds-on-button",
+        className
+      )}
+    >
       ILO
     </span>
   );
@@ -413,7 +434,17 @@ type Story = "boxed" | "plain" | "loud";
  * clone`), in the page colour, the button colour, or none at all with the
  * words in white held by a soft shadow.
  */
-function StoryText({ story, size, className, children }: { story: Story; size: "h3" | "small"; className?: string; children: React.ReactNode }) {
+function StoryText({
+  story,
+  size,
+  className,
+  children,
+}: {
+  story: Story;
+  size: "h3" | "small";
+  className?: string;
+  children: React.ReactNode;
+}) {
   const boxed = story !== "plain";
   return (
     <p className={cn("absolute leading-[1.3]", size === "h3" ? "text-h3" : "text-small", className)}>
@@ -444,7 +475,11 @@ function PreviewStory({ people, story }: { people: People; story: Story }) {
   const loose = people === "photo";
   return (
     <div className="relative aspect-[9/16] w-[220px] shrink-0 overflow-hidden rounded-ds-lg bg-ds-surface">
-      <img src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`} alt="Ilo, by the water" className="absolute inset-0 size-full object-cover" />
+      <img
+        src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`}
+        alt="Ilo, by the water"
+        className="absolute inset-0 size-full object-cover"
+      />
       <div className="absolute inset-x-3 top-3 flex flex-col gap-ds-8">
         <div className="flex gap-1">
           {[1, 0.4, 0.4].map((o, i) => (
@@ -500,7 +535,9 @@ function PreviewXPost({ people }: { people: People }) {
           <span className="truncate text-ds-fg-muted">@iloodena · 2h</span>
           <MoreHorizontal aria-hidden className="ml-auto size-4 shrink-0 text-ds-fg-muted" />
         </div>
-        <p className="text-p text-ds-fg">Make the small version first. Everything I&apos;ve finished started bigger and got smaller.</p>
+        <p className="text-p text-ds-fg">
+          Make the small version first. Everything I&apos;ve finished started bigger and got smaller.
+        </p>
         <img
           src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`}
           alt="Black sand and a line of foam"
@@ -532,13 +569,15 @@ function PreviewEmail() {
       <div className="flex flex-col gap-ds-16 rounded-ds-md bg-ds-bg p-ds-20">
         <h3 className="text-h2 text-ds-fg">Keep fewer moments</h3>
         <p className="text-prose text-ds-fg-muted">
-          This season I kept three. A dragonfly that waited, the lake at four in the morning, and a stone that holds one
-          drop of it.
+          This season I kept three. A dragonfly that waited, the lake at four in the morning, and a stone that holds one drop of
+          it.
         </p>
         <div>
           <DsButton variant="primary">Read the letter</DsButton>
         </div>
-        <p className="text-small text-ds-fg-subtle">You&apos;re getting this because you subscribed at iloodena.com. Unsubscribe.</p>
+        <p className="text-small text-ds-fg-subtle">
+          You&apos;re getting this because you subscribed at iloodena.com. Unsubscribe.
+        </p>
       </div>
     </div>
   );
@@ -566,7 +605,15 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
  * light kind (text buttons): no fill at rest, a soft one when picked, with
  * an icon each. `compact` leaves the tracks' names off, inside a section.
  */
-function TastePills({ picked, onToggle, compact = false }: { picked: string[]; onToggle: (id: string) => void; compact?: boolean }) {
+function TastePills({
+  picked,
+  onToggle,
+  compact = false,
+}: {
+  picked: string[];
+  onToggle: (id: string) => void;
+  compact?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-ds-8">
       {(["feel", "world"] as const).map((id) => (
@@ -607,13 +654,18 @@ function useTakes(theme: DsThemeConfig, onTheme: (theme: DsThemeConfig) => void)
   const drawn = (ids: string[]) => {
     const next = dsShuffleTaste(ids, theme.character);
     const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
-    const drawnTheme = dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts);
+    const drawnTheme = dsThemeWithFonts(
+      { ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null },
+      next.fonts
+    );
     return dsThemeWithExpression(drawnTheme, next.character.expression);
   };
   // A small change, not a new look: the levers and the background nudged, now and then another font pair.
   const nudged = () => {
     const next = dsNudgeTaste(theme.character.tastes, theme.character);
-    const nudgedTheme = next.fonts ? dsThemeWithFonts({ ...theme, character: next.character }, next.fonts) : { ...theme, character: next.character };
+    const nudgedTheme = next.fonts
+      ? dsThemeWithFonts({ ...theme, character: next.character }, next.fonts)
+      : { ...theme, character: next.character };
     return dsThemeWithExpression(nudgedTheme, next.character.expression);
   };
   const show = (next: DsThemeConfig) => {
@@ -630,7 +682,11 @@ function useTakes(theme: DsThemeConfig, onTheme: (theme: DsThemeConfig) => void)
     dice: () => show(drawn(dsRandomTastes(picked))),
     draw: (ids: string[]) => show(drawn(ids)),
     clear: () => {
-      onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...theme.character, tastes: [] } });
+      onTheme(
+        before
+          ? { ...before, character: { ...before.character, tastes: [] } }
+          : { ...theme, character: { ...theme.character, tastes: [] } }
+      );
       setBefore(null);
     },
     reset: () => {
@@ -666,11 +722,36 @@ function TakePlayer({ takes }: { takes: Takes }) {
     <div className="grid grid-cols-[1fr_auto_1fr] items-center">
       <span />
       <div className="flex items-center gap-ds-4">
-        <DsButton variant="text" iconLeft={ChevronLeft} aria-label="Previous variation" disabled={!takes.canBack} onClick={takes.back} />
-        <DsButton variant="text" iconLeft={Wand2} aria-label="Nudge it a little" title="Nudge it a little" onClick={takes.nudge} />
-        <DsButton variant="text" iconLeft={ChevronRight} aria-label="Next variation" title="Next variation" onClick={takes.forward} />
+        <DsButton
+          variant="text"
+          iconLeft={ChevronLeft}
+          aria-label="Previous variation"
+          disabled={!takes.canBack}
+          onClick={takes.back}
+        />
+        <DsButton
+          variant="text"
+          iconLeft={Wand2}
+          aria-label="Nudge it a little"
+          title="Nudge it a little"
+          onClick={takes.nudge}
+        />
+        <DsButton
+          variant="text"
+          iconLeft={ChevronRight}
+          aria-label="Next variation"
+          title="Next variation"
+          onClick={takes.forward}
+        />
       </div>
-      <DsButton variant="text" iconLeft={Dices} aria-label="Random look" title="Random look" className="justify-self-end" onClick={takes.dice} />
+      <DsButton
+        variant="text"
+        iconLeft={Dices}
+        aria-label="Random look"
+        title="Random look"
+        className="justify-self-end"
+        onClick={takes.dice}
+      />
     </div>
   );
 }
@@ -773,14 +854,36 @@ function ScopedTastes({
 }
 
 /**
+ * A section's fine-tuning, folded (Alex, 2026-10-29): the pills come first,
+ * and "Show advanced options" opens the sliders and fields under them.
+ */
+function AdvancedOptions({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <>
+      <DsButton
+        variant="text"
+        size="small"
+        iconRight={open ? ChevronUp : ChevronDown}
+        className="-ml-2 self-start"
+        onClick={() => setOpen((on) => !on)}
+      >
+        {open ? "Hide advanced options" : "Show advanced options"}
+      </DsButton>
+      {open && <div className="flex flex-col gap-ds-16">{children}</div>}
+    </>
+  );
+}
+
+/**
  * The theme's appearance (character.ts; Alex, 2026-10-29): the background
  * as dials, Brightness first (dark to light), then Hue (a hue dragged onto a
  * white gives it a tint; a pill or Colours sets more), then Contrast.
  * Warmth is the Temperature bar in Taste, roundness lives with the
  * buttons, and depth under Expression.
  * Each bar is drawn in what it does. Taste pills at the top draw a
- * background. "Show colour controls" slides open the colours themselves
- * (the wheel, Light and Dark), for a colour of its own over the dials.
+ * background; "Show advanced options" opens the dials and the colours
+ * themselves (Light and Dark, the wheel), for a colour of its own.
  */
 function AppearanceChoice({
   theme,
@@ -794,7 +897,6 @@ function AppearanceChoice({
   onTheme: (theme: DsThemeConfig) => void;
 }) {
   const character = theme.character;
-  const [colours, setColours] = React.useState(false);
   const set = (next: Partial<DsCharacter>) => onTheme({ ...theme, character: { ...character, ...next } });
   const at = (next: Partial<DsCharacter>) => dsCharacterBase({ ...character, ...next }) ?? "#FFFFFF";
   const tokensAt = (contrast: number) => dsThemeColourTokens({ ...theme, character: { ...character, contrast } }, mode);
@@ -818,7 +920,11 @@ function AppearanceChoice({
             ? set({ hue: Math.round(x * 360) % 360, colour: Math.max(character.colour, 0.25) })
             : set({ [id]: Math.round((min + x * (max - min)) * 100) / 100 })
         }
-        valueText={id === "hue" ? `${shown}°` : `${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`}
+        valueText={
+          id === "hue"
+            ? `${shown}°`
+            : `${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`
+        }
         track={track}
         thumb={thumb}
       />
@@ -840,39 +946,38 @@ function AppearanceChoice({
           },
         })}
       />
-      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
-      {dial(
-        "hue",
-        `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
-        at({ ...strong })
-      )}
-      {dial(
-        "contrast",
-        `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
-        tokensAt(character.contrast)["fg-muted"]
-      )}
-      <DsButton variant="text" size="small" iconRight={colours ? ChevronUp : ChevronDown} className="-ml-2 self-start" onClick={() => setColours((on) => !on)}>
-        {colours ? "Hide colour controls" : "Show colour controls"}
-      </DsButton>
-      {colours && (
-        <>
-          <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
-            {/* The preview's mode only; the UI's is the sidebar's toggle. */}
-            <DsButton size="small" iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
-              Light
-            </DsButton>
-            <DsButton size="small" iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
-              Dark
-            </DsButton>
-          </div>
-          <ColourWheelChoice
-            colours={theme.colours}
-            mode={mode}
-            options={dsCharacterColourOptions(theme.character)}
-            onChange={(c) => onTheme({ ...theme, colours: c })}
-          />
-        </>
-      )}
+      <AdvancedOptions>
+        {dial(
+          "brightness",
+          `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
+          base
+        )}
+        {dial(
+          "hue",
+          `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
+          at({ ...strong })
+        )}
+        {dial(
+          "contrast",
+          `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
+          tokensAt(character.contrast)["fg-muted"]
+        )}
+        <div className="flex items-center gap-ds-8" role="group" aria-label="Mode">
+          {/* The preview's mode only; the UI's is the sidebar's toggle. */}
+          <DsButton size="small" iconLeft={Sun} pressed={mode === "light"} onClick={() => setPreviewMode("light")}>
+            Light
+          </DsButton>
+          <DsButton size="small" iconLeft={Moon} pressed={mode === "dark"} onClick={() => setPreviewMode("dark")}>
+            Dark
+          </DsButton>
+        </div>
+        <ColourWheelChoice
+          colours={theme.colours}
+          mode={mode}
+          options={dsCharacterColourOptions(theme.character)}
+          onChange={(c) => onTheme({ ...theme, colours: c })}
+        />
+      </AdvancedOptions>
     </div>
   );
 }
@@ -998,7 +1103,13 @@ function ButtonChoice({
     <div className="flex flex-col gap-ds-16">
       <div className="flex items-center gap-ds-4" role="group" aria-label="Fill">
         {(["solid", "gradient"] as const).map((fill) => (
-          <DsButton key={fill} size="small" className="min-w-0 flex-1 px-0" pressed={style.fill === fill} onClick={() => set({ fill })}>
+          <DsButton
+            key={fill}
+            size="small"
+            className="min-w-0 flex-1 px-0"
+            pressed={style.fill === fill}
+            onClick={() => set({ fill })}
+          >
             {fill === "solid" ? "Solid" : "Gradient"}
           </DsButton>
         ))}
@@ -1011,7 +1122,9 @@ function ButtonChoice({
           readout={contrast === 0 ? "0" : `${contrast > 0 ? "+" : "−"}${Math.abs(contrast)}`}
           value={(style.contrast + 1) / 2}
           onChange={(x) => set({ contrast: Math.round((x * 2 - 1) * 50) / 50 })}
-          valueText={contrast === 0 ? "Flat" : contrast > 0 ? `${contrast}, lighter at the top` : `${-contrast}, darker at the top`}
+          valueText={
+            contrast === 0 ? "Flat" : contrast > 0 ? `${contrast}, lighter at the top` : `${-contrast}, darker at the top`
+          }
           // The top of the button across the range: darker on the left, the colour itself at 0, lighter on the right.
           track={`linear-gradient(to right, ${dsShift(button, -0.2)}, ${button}, ${dsShift(button, 0.2)})`}
           thumb={button}
@@ -1064,7 +1177,13 @@ function RadiusChoice({ label, radius, onChange }: { label: string; radius: DsRa
     <div className="flex flex-col gap-ds-8">
       <div className="flex items-center gap-ds-4" role="group" aria-label={label}>
         {DS_RADII.map((r) => (
-          <DsButton key={r.id} size="small" className="min-w-0 flex-1 px-0" pressed={radius === r.id} onClick={() => onChange(r.id)}>
+          <DsButton
+            key={r.id}
+            size="small"
+            className="min-w-0 flex-1 px-0"
+            pressed={radius === r.id}
+            onClick={() => onChange(r.id)}
+          >
             {r.label}
           </DsButton>
         ))}
@@ -1176,7 +1295,8 @@ export function ThemeSection() {
 
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({ ...theme, families: theme.families.map((f) => (f.id === familyId ? { ...f, font } : f)) });
-  const fontOptions = dsFontOptions(theme);
+  // Plain names, as any select shows them (the "Aa" previews drew twice in the closed field).
+  const fontOptions = dsFontOptions(theme).map(({ value, label }) => ({ value, label }));
   // Ilo shows as her photo in a friendly look, her initials in a branded one; her story's words boxed, plain or
   // loud (taste.ts).
   const people = dsTastePeople(theme.character.tastes, theme.character.mood);
@@ -1223,7 +1343,11 @@ export function ThemeSection() {
       </article>
 
       <figure className="flex flex-col gap-ds-8">
-        <img src={`${PREVIEW_MEDIA}/ilo-lake.jpg`} alt="A still lake at dawn" className="aspect-[3/2] w-full rounded-ds-lg object-cover" />
+        <img
+          src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
+          alt="A still lake at dawn"
+          className="aspect-[3/2] w-full rounded-ds-lg object-cover"
+        />
         <figcaption className="text-small text-ds-fg-muted">Three summers at the lake, and one drop of it kept.</figcaption>
       </figure>
 
@@ -1279,7 +1403,11 @@ export function ThemeSection() {
                 <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label={`More for ${entry.name}`} />
               </DsDropdownTrigger>
               <DsDropdownContent align="end">
-                <DsDropdownItem iconLeft={Pencil} disabled={entry.id === DS_DEFAULT_THEME_ID} onSelect={() => setNaming("rename")}>
+                <DsDropdownItem
+                  iconLeft={Pencil}
+                  disabled={entry.id === DS_DEFAULT_THEME_ID}
+                  onSelect={() => setNaming("rename")}
+                >
                   Rename
                 </DsDropdownItem>
                 <DsDropdownItem iconLeft={Copy} onSelect={() => addTheme(`${entry.name} copy`)}>
@@ -1305,7 +1433,10 @@ export function ThemeSection() {
             key={library.themes.map((t) => t.id).join()}
             // Parabola, Parabola's own, is the default every theme starts from and restores to; Add theme is the last option.
             options={[
-              ...library.themes.map((t) => ({ value: t.id, label: t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name })),
+              ...library.themes.map((t) => ({
+                value: t.id,
+                label: t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name,
+              })),
               { value: ADD_THEME, label: "Add theme", indicator: <Plus aria-hidden className="size-4" /> },
             ]}
             value={entry.id}
@@ -1327,7 +1458,14 @@ export function ThemeSection() {
                 takes.reset();
                 return dsThemeWithExpression(
                   dsThemeWithFonts(
-                    { ...t, character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null },
+                    {
+                      ...t,
+                      character: DS_DEFAULT_CHARACTER,
+                      colours: DS_DEFAULT_COLOURS,
+                      radius: null,
+                      pillRadius: null,
+                      buttons: null,
+                    },
                     null
                   ),
                   DS_DEFAULT_CHARACTER.expression
@@ -1376,19 +1514,32 @@ export function ThemeSection() {
             />
           }
         >
-          <ScopedTastes scope="type" theme={theme} onTheme={setTheme} apply={(ids, t) => dsThemeWithFonts(t, dsTasteFonts(ids))} />
-          {heading && (
-            <DsField label={heading.label}>
-              <DsSelect options={fontOptions} value={heading.font} onValueChange={(font) => setFamilyFont(heading.id, font)} />
+          <ScopedTastes
+            scope="type"
+            theme={theme}
+            onTheme={setTheme}
+            apply={(ids, t) => dsThemeWithFonts(t, dsTasteFonts(ids))}
+          />
+          <AdvancedOptions>
+            {heading && (
+              <DsField label={heading.label}>
+                <DsSelect options={fontOptions} value={heading.font} onValueChange={(font) => setFamilyFont(heading.id, font)} />
+              </DsField>
+            )}
+            <DsField label={body.label}>
+              <DsSelect options={fontOptions} value={body.font} onValueChange={(font) => setFamilyFont(body.id, font)} />
             </DsField>
-          )}
-          <DsField label={body.label}>
-            <DsSelect options={fontOptions} value={body.font} onValueChange={(font) => setFamilyFont(body.id, font)} />
-          </DsField>
-          {/* In-app, so the unpublished draft comes along. */}
-          <DsButton href="/parabola/typography/font-families" variant="text" size="small" iconRight={ChevronRight} className="-ml-2 self-start">
-            More settings
-          </DsButton>
+            {/* In-app, so the unpublished draft comes along. */}
+            <DsButton
+              href="/parabola/typography/font-families"
+              variant="text"
+              size="small"
+              iconRight={ChevronRight}
+              className="-ml-2 self-start"
+            >
+              Font families and type scale
+            </DsButton>
+          </AdvancedOptions>
         </PanelSection>
 
         <PanelSection
@@ -1411,7 +1562,11 @@ export function ThemeSection() {
               if (!ids.length) {
                 return {
                   ...t,
-                  character: { ...t.character, roundness: dsMoodDials(t.character.mood).roundness, depth: dsExpressionDials(t.character.expression).depth },
+                  character: {
+                    ...t.character,
+                    roundness: dsMoodDials(t.character.mood).roundness,
+                    depth: dsExpressionDials(t.character.expression).depth,
+                  },
                   colours: { ...t.colours, accent: { light: null, dark: null } },
                   radius: null,
                   pillRadius: null,
@@ -1429,31 +1584,38 @@ export function ThemeSection() {
               };
             }}
           />
-          {/* Roundness is the UI's, so it sits with the buttons (Alex, 2026-10-29); Custom below overrides it. */}
-          <DsColourBar
-            label="Roundness"
-            readout={String(Math.round(theme.character.roundness * 100))}
-            value={theme.character.roundness}
-            onChange={(x) => setTheme({ ...theme, character: { ...theme.character, roundness: Math.round(x * 100) / 100 } })}
-            valueText={`${Math.round(theme.character.roundness * 100)}: ${theme.character.roundness < 0.08 ? "sharp" : theme.character.roundness >= 0.92 ? "round" : "between"}`}
-            track="linear-gradient(to right, var(--ds-border), var(--ds-fg))"
-            thumb="var(--ds-fg)"
-          />
-          <ButtonChoice
-            style={dsThemeButtons(theme)}
-            button={dsThemeColourTokens(theme, mode).button}
-            radius={dsThemeRadius(theme)}
-            pillRadius={theme.pillRadius}
-            onStyle={(buttons) => setTheme({ ...theme, buttons })}
-            onRadius={(radius) => setTheme({ ...theme, radius })}
-            onPillRadius={(pillRadius) => setTheme({ ...theme, pillRadius })}
-          />
+          <AdvancedOptions>
+            {/* Roundness is the UI's, so it sits with the buttons (Alex, 2026-10-29); Custom below overrides it. */}
+            <DsColourBar
+              label="Roundness"
+              readout={String(Math.round(theme.character.roundness * 100))}
+              value={theme.character.roundness}
+              onChange={(x) => setTheme({ ...theme, character: { ...theme.character, roundness: Math.round(x * 100) / 100 } })}
+              valueText={`${Math.round(theme.character.roundness * 100)}: ${theme.character.roundness < 0.08 ? "sharp" : theme.character.roundness >= 0.92 ? "round" : "between"}`}
+              track="linear-gradient(to right, var(--ds-border), var(--ds-fg))"
+              thumb="var(--ds-fg)"
+            />
+            <ButtonChoice
+              style={dsThemeButtons(theme)}
+              button={dsThemeColourTokens(theme, mode).button}
+              radius={dsThemeRadius(theme)}
+              pillRadius={theme.pillRadius}
+              onStyle={(buttons) => setTheme({ ...theme, buttons })}
+              onRadius={(radius) => setTheme({ ...theme, radius })}
+              onPillRadius={(pillRadius) => setTheme({ ...theme, pillRadius })}
+            />
+          </AdvancedOptions>
         </PanelSection>
 
         <PanelSection
           title="Fields"
           actions={
-            <SectionRestore section="Fields" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, fields: DS_DEFAULT_FIELD_STYLE })} />
+            <SectionRestore
+              section="Fields"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => ({ ...t, fields: DS_DEFAULT_FIELD_STYLE })}
+            />
           }
         >
           <ScopedTastes
@@ -1462,19 +1624,28 @@ export function ThemeSection() {
             onTheme={setTheme}
             apply={(ids, t) => ({ ...t, fields: ids.length ? dsTasteField(ids) : DS_DEFAULT_FIELD_STYLE })}
           />
-          <OutlineChoice
-            label="Field outline"
-            on={theme.fields.outline}
-            width={theme.fields.outlineWidth}
-            opacity={theme.fields.outlineOpacity}
-            colour={dsThemeColourTokens(theme, mode)["field-border"]}
-            onChange={(next) => setTheme({ ...theme, fields: { ...theme.fields, ...next } })}
-          />
+          <AdvancedOptions>
+            <OutlineChoice
+              label="Field outline"
+              on={theme.fields.outline}
+              width={theme.fields.outlineWidth}
+              opacity={theme.fields.outlineOpacity}
+              colour={dsThemeColourTokens(theme, mode)["field-border"]}
+              onChange={(next) => setTheme({ ...theme, fields: { ...theme.fields, ...next } })}
+            />
+          </AdvancedOptions>
         </PanelSection>
 
         <PanelSection
           title="Icons"
-          actions={<SectionRestore section="Icons" theme={theme} setTheme={setTheme} restore={(t) => ({ ...t, icons: DS_DEFAULT_THEME.icons })} />}
+          actions={
+            <SectionRestore
+              section="Icons"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => ({ ...t, icons: DS_DEFAULT_THEME.icons })}
+            />
+          }
         >
           <DsField label="Icon library">
             <DsSelect
