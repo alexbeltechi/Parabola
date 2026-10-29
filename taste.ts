@@ -47,6 +47,12 @@ export type DsTaste = {
   field: DsFieldStyle;
   /** How people show (an avatar): their photo, friendly; or their initials, branded. */
   people: "photo" | "initials";
+  /**
+   * How words sit on a story's photo (as Instagram sets them, line by line):
+   * boxed in the page colour (branded), plain in white (candid), or loud on
+   * the button colour (playful).
+   */
+  story: "boxed" | "plain" | "loud";
 };
 
 const pair = (heading: string, headingAxes: string, body: string, bodyAxes: string): DsFontPair => ({
@@ -70,6 +76,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("DM Sans", AXES, "DM Sans", AXES), pair("Nunito", AXES, "Nunito", AXES), pair("Plus Jakarta Sans", AXES, "Plus Jakarta Sans", AXES)],
     field: { outline: true, outlineWidth: 2, outlineOpacity: 0.6 },
     people: "photo",
+    story: "plain",
   },
   {
     id: "restrained",
@@ -83,6 +90,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "initials",
+    story: "boxed",
   },
   {
     id: "editorial",
@@ -100,6 +108,7 @@ export const DS_TASTES: DsTaste[] = [
     ],
     field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
     people: "initials",
+    story: "boxed",
   },
   {
     id: "luxurious",
@@ -117,6 +126,7 @@ export const DS_TASTES: DsTaste[] = [
     ],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.5 },
     people: "initials",
+    story: "boxed",
   },
   {
     id: "bold",
@@ -130,6 +140,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Archivo Black", "", "Archivo", AXES), pair("Anton", "", "Inter", AXES), pair("Bricolage Grotesque", AXES, "Inter", AXES)],
     field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
     people: "initials",
+    story: "loud",
   },
   {
     id: "candid",
@@ -143,6 +154,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Work Sans", AXES, "Work Sans", AXES), pair("Karla", AXES, "Karla", AXES)],
     field: { outline: false, outlineWidth: 2, outlineOpacity: 1 },
     people: "photo",
+    story: "plain",
   },
   // World
   {
@@ -156,6 +168,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Fredoka", AXES, "Nunito", AXES), pair("Baloo 2", AXES, "Quicksand", AXES)],
     field: { outline: true, outlineWidth: 2, outlineOpacity: 1 },
     people: "photo",
+    story: "loud",
   },
   {
     id: "wacky",
@@ -168,6 +181,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Shrikhand", "", "DM Sans", AXES), pair("Bungee", "", "Work Sans", AXES), pair("Chango", "", "Nunito", AXES)],
     field: { outline: true, outlineWidth: 3, outlineOpacity: 1 },
     people: "photo",
+    story: "loud",
   },
   {
     id: "tech",
@@ -185,6 +199,7 @@ export const DS_TASTES: DsTaste[] = [
     ],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "initials",
+    story: "boxed",
   },
   {
     id: "scifi",
@@ -198,6 +213,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Orbitron", AXES, "Exo 2", AXES), pair("Michroma", "", "Rajdhani", ":wght@400;500;600;700")],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.7 },
     people: "initials",
+    story: "boxed",
   },
   {
     id: "fashion",
@@ -211,6 +227,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Bodoni Moda", ":opsz,wght@6..96,400..700", "Inter", AXES), pair("Syne", AXES, "Inter", AXES), pair("Italiana", "", "Jost", AXES)],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 1 },
     people: "photo",
+    story: "plain",
   },
   {
     id: "natural",
@@ -224,6 +241,7 @@ export const DS_TASTES: DsTaste[] = [
     fonts: [pair("Fraunces", ":opsz,wght@9..144,400..700", "Nunito Sans", AXES), pair("Lora", AXES, "Work Sans", AXES)],
     field: { outline: true, outlineWidth: 1, outlineOpacity: 0.6 },
     people: "photo",
+    story: "plain",
   },
 ];
 
@@ -332,6 +350,15 @@ export function dsTasteBackground(ids: string[], current: DsCharacter): Pick<DsC
     brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
     warmth: warmths.length ? between(meetOf(warmths)) : dsMoodDials(between(meetOf(tastes.map((t) => t.mood)))).warmth,
   };
+}
+
+/** How a story's words sit on its photo in a look: the loudest way any taste picked asks for; by mood with none. */
+export function dsTasteStory(ids: string[], mood: number): "boxed" | "plain" | "loud" {
+  const stories = tastesOf(ids).map((t) => t.story);
+  if (stories.includes("loud")) return "loud";
+  if (stories.includes("plain")) return "plain";
+  if (stories.length) return "boxed";
+  return mood >= 0.7 ? "loud" : mood >= 0.55 ? "plain" : "boxed";
 }
 
 /** How people show in a look: their photo when any taste picked is a friendly one, else their initials. */

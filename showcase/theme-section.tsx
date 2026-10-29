@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Camera,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   ChevronUp,
   ClipboardPaste,
@@ -27,8 +26,11 @@ import {
   PartyPopper,
   Pencil,
   Plus,
+  RefreshCw,
   Rocket,
   RotateCcw,
+  SkipBack,
+  SkipForward,
   Shirt,
   Shuffle,
   Smile,
@@ -81,6 +83,7 @@ import {
   dsTasteField,
   dsTasteFonts,
   dsTastePeople,
+  dsTasteStory,
   type DsTasteGroup,
 } from "../taste";
 import {
@@ -399,17 +402,43 @@ function PreviewAvatar({ people, className }: { people: People; className: strin
   );
 }
 
-/** Words laid over a photo read in white whatever the theme, held by a soft shadow. */
-const OVER_PHOTO = { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" };
+/** How a story's words sit on the photo (taste.ts): boxed in the page colour, plain in white, or loud on the button colour. */
+type Story = "boxed" | "plain" | "loud";
+
+/**
+ * Words on a story's photo, as Instagram sets them: each line in its own
+ * box, tight, the boxes following the lines (`box-decoration-break:
+ * clone`), in the page colour, the button colour, or none at all with the
+ * words in white held by a soft shadow.
+ */
+function StoryText({ story, size, className, children }: { story: Story; size: "h3" | "small"; className?: string; children: React.ReactNode }) {
+  const boxed = story !== "plain";
+  return (
+    <p className={cn("absolute leading-[1.3]", size === "h3" ? "text-h3" : "text-small", className)}>
+      <span
+        className={cn(
+          "[-webkit-box-decoration-break:clone] [box-decoration-break:clone]",
+          boxed && "rounded-ds-sm px-[0.4em] py-[0.1em]",
+          story === "boxed" && "bg-ds-bg text-ds-fg",
+          story === "loud" && "bg-ds-button text-ds-on-button"
+        )}
+        style={story === "plain" ? { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" } : undefined}
+      >
+        {children}
+      </span>
+    </p>
+  );
+}
 
 /**
  * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
  * bars and her name at the top, and three bits of text in the theme's main
- * font, a line, a small note and a sticker, walking a little narrative. A
- * branded look sets them squarely in boxes; a friendly one (her photo for
- * an avatar) lets them sit loose and tilted, as a person would place them.
+ * font, a line, a small note and a sticker, walking a little narrative,
+ * set the way the taste asks (StoryText). A branded look sets them
+ * squarely; a friendly one (her photo for an avatar) lets them sit loose and
+ * tilted, as a person would place them.
  */
-function PreviewStory({ people }: { people: People }) {
+function PreviewStory({ people, story }: { people: People; story: Story }) {
   const loose = people === "photo";
   return (
     <div className="relative aspect-[9/16] w-[220px] shrink-0 overflow-hidden rounded-ds-lg bg-ds-surface">
@@ -422,34 +451,26 @@ function PreviewStory({ people }: { people: People }) {
         </div>
         <div className="flex items-center gap-ds-8">
           <PreviewAvatar people={people} className="size-6" />
-          <span className="text-small" style={OVER_PHOTO}>
+          <span className="text-small" style={{ color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" }}>
             iloodena
           </span>
         </div>
       </div>
-      {loose ? (
-        <>
-          <p className="absolute top-[30%] left-4 max-w-[75%] -rotate-3 text-h3 leading-tight" style={OVER_PHOTO}>
-            Keep fewer moments
-          </p>
-          <p className="absolute top-[52%] right-5 max-w-[48%] rotate-2 text-small" style={OVER_PHOTO}>
-            the lake, 4am. three summers in.
-          </p>
-          <span className="absolute bottom-5 left-6 -rotate-2 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">
-            new letter →
-          </span>
-        </>
-      ) : (
-        <>
-          <p className="absolute top-[34%] left-3 max-w-[80%] rounded-ds-sm bg-ds-bg px-2 py-1 text-h3 leading-tight text-ds-fg">
-            Keep fewer moments
-          </p>
-          <p className="absolute top-[48%] left-3 max-w-[70%] rounded-ds-sm bg-ds-bg px-2 py-1 text-small text-ds-fg-muted">
-            The lake, 4am. Three summers in.
-          </p>
-          <span className="absolute bottom-4 left-3 rounded-ds-pill bg-ds-button px-3 py-1.5 text-small text-ds-on-button">New letter →</span>
-        </>
-      )}
+      <StoryText story={story} size="h3" className={cn("top-[32%] left-4 max-w-[78%]", loose && "-rotate-3")}>
+        Keep fewer moments
+      </StoryText>
+      <StoryText story={story} size="small" className={cn("top-[52%] max-w-[55%]", loose ? "right-5 rotate-2" : "left-4")}>
+        {loose ? "the lake, 4am. three summers in." : "The lake, 4am. Three summers in."}
+      </StoryText>
+      <span
+        className={cn(
+          "absolute bottom-4 left-4 rounded-ds-pill px-3 py-1.5 text-small",
+          loose && "-rotate-2",
+          story === "loud" ? "bg-ds-bg text-ds-fg" : "bg-ds-button text-ds-on-button"
+        )}
+      >
+        {loose ? "new letter →" : "New letter →"}
+      </span>
     </div>
   );
 }
@@ -567,62 +588,101 @@ function TastePills({ picked, onToggle, compact = false }: { picked: string[]; o
   );
 }
 
-/** Two tastes' colours for the bars' tracks: a serious ink and a wacky pink; a quiet stone and a loud orange. */
-const MOOD_TRACK = "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
-const EXPRESSION_TRACK = "linear-gradient(to right, #DCDCD7, var(--ds-surface), #FF4F00)";
-
 /**
- * The taste feeder (taste.ts; Alex, 2026-10-29): first two bars, Mood
- * (Serious to Wacky: warmth, roundness and the fonts) and Expression (Toned
- * down to Expressive: contrast and depth), then the style pills with icons
- * in two groups, Feel (how the brand comes across) and World (where it
- * belongs); the bars and the pills work together, a pill drawing inside its
- * ranges on both. Parabola's own is a mix of pills too (Restrained and
- * Editorial), so that's what shows picked at the start. Picking a pill
- * changes the look at once; unpicking the last brings back the look from
- * before the first. Under them, centred, like a player: Shuffle, on or off,
- * and back and forward through takes with a counter (forward draws anew,
- * from random pills with Shuffle on, from the picked ones off; back
- * returns; forward replays before drawing). A draw starts the look over:
- * colours, corners and buttons given their own go back to Auto. Restore,
- * at the section's top right, is Parabola's own again.
+ * The takes (Alex, 2026-10-29, "like Spotify"): every draw is a take,
+ * kept in order with the one showing. Back returns to the one before,
+ * forward replays an undone one or draws anew, retry draws anew from the
+ * pills picked, and with Shuffle on a draw picks one or two pills at
+ * random first. A draw starts the look over: colours, corners and buttons
+ * given their own go back to Auto. Unpicking the last pill brings back the
+ * look from before the first was picked.
  */
-function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void }) {
-  const character = theme.character;
-  const picked = character.tastes;
-  // The look before the first pill was picked, to come back to when the last is unpicked.
+function useTakes(theme: DsThemeConfig, onTheme: (theme: DsThemeConfig) => void) {
   const [before, setBefore] = React.useState<DsThemeConfig | null>(null);
   const [shuffle, setShuffle] = React.useState(false);
-  // The takes so far, and which one is showing.
   const [takes, setTakes] = React.useState<{ list: DsThemeConfig[]; at: number }>({ list: [], at: -1 });
   const drawn = (ids: string[]) => {
-    const next = dsShuffleTaste(ids, character);
+    const next = dsShuffleTaste(ids, theme.character);
     const colours = { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } };
     return dsThemeWithFonts({ ...theme, character: next.character, colours, radius: null, pillRadius: null, buttons: null }, next.fonts);
   };
   const show = (next: DsThemeConfig) => {
     if (!before) setBefore(theme);
-    // A new take drops any undone after the one showing.
     setTakes(({ list, at }) => ({ list: [...list.slice(0, at + 1), next], at: at + 1 }));
     onTheme(next);
   };
+  const picked = theme.character.tastes;
+  const fresh = () => show(drawn(shuffle || !picked.length ? dsRandomTastes(picked) : picked));
+  return {
+    shuffle,
+    setShuffle,
+    canBack: takes.at > 0,
+    draw: (ids: string[]) => show(drawn(ids)),
+    clear: () => {
+      onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...theme.character, tastes: [] } });
+      setBefore(null);
+    },
+    reset: () => {
+      setBefore(null);
+      setTakes({ list: [], at: -1 });
+    },
+    back: () => {
+      if (takes.at <= 0) return;
+      setTakes({ ...takes, at: takes.at - 1 });
+      onTheme(takes.list[takes.at - 1]);
+    },
+    forward: () => {
+      if (takes.at < takes.list.length - 1) {
+        setTakes({ ...takes, at: takes.at + 1 });
+        return onTheme(takes.list[takes.at + 1]);
+      }
+      fresh();
+    },
+    retry: fresh,
+  };
+}
+
+type Takes = ReturnType<typeof useTakes>;
+
+/**
+ * The player, at the top of the panel under the theme: back, retry (the
+ * big one in the middle) and forward as icon buttons, and Shuffle, on or
+ * off, at the end.
+ */
+function TakePlayer({ takes }: { takes: Takes }) {
+  return (
+    <div className="flex items-center justify-center gap-ds-8">
+      <DsButton variant="text" iconLeft={SkipBack} aria-label="Previous take" disabled={!takes.canBack} onClick={takes.back} />
+      <DsButton variant="primary" size="large" iconLeft={RefreshCw} aria-label="Another take" title="Another take" onClick={takes.retry} />
+      <DsButton variant="text" iconLeft={SkipForward} aria-label="Next take" onClick={takes.forward} />
+      <DsButton iconLeft={Shuffle} aria-label="Shuffle" title="Shuffle" pressed={takes.shuffle} onClick={() => takes.setShuffle((on) => !on)} />
+    </div>
+  );
+}
+
+/** Two tastes' colours for the bars' tracks: a serious ink and a wacky pink; a quiet stone and a loud orange. */
+const MOOD_TRACK = "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
+const EXPRESSION_TRACK = "linear-gradient(to right, #DCDCD7, var(--ds-surface), #FF4F00)";
+
+/**
+ * The taste feeder (taste.ts; Alex, 2026-10-29): two bars, Mood (Serious
+ * to Wacky: warmth, roundness and the fonts) and Expression (Toned down to
+ * Expressive: contrast and depth), then the style pills with icons in two
+ * groups, Feel (how the brand comes across) and World (where it belongs);
+ * the bars and the pills work together, a pill drawing inside its ranges on
+ * both. Parabola's own is a mix of pills too (Restrained and Editorial), so
+ * that's what shows picked at the start. Picking a pill changes the look at
+ * once (a take, in the player at the top); unpicking the last brings back
+ * the look from before the first. Restore, at the section's top right, is
+ * Parabola's own again.
+ */
+function TasteChoice({ theme, onTheme, takes }: { theme: DsThemeConfig; onTheme: (theme: DsThemeConfig) => void; takes: Takes }) {
+  const character = theme.character;
+  const picked = character.tastes;
   const toggle = (id: string) => {
     const ids = picked.includes(id) ? picked.filter((t) => t !== id) : [...picked, id];
-    if (ids.length) return show(drawn(ids));
-    onTheme(before ? { ...before, character: { ...before.character, tastes: [] } } : { ...theme, character: { ...character, tastes: [] } });
-    setBefore(null);
-  };
-  const forward = () => {
-    if (takes.at < takes.list.length - 1) {
-      setTakes({ ...takes, at: takes.at + 1 });
-      return onTheme(takes.list[takes.at + 1]);
-    }
-    show(drawn(shuffle || !picked.length ? dsRandomTastes(picked) : picked));
-  };
-  const back = () => {
-    if (takes.at <= 0) return;
-    setTakes({ ...takes, at: takes.at - 1 });
-    onTheme(takes.list[takes.at - 1]);
+    if (ids.length) takes.draw(ids);
+    else takes.clear();
   };
   const bar = (label: string, title: string, value: number, track: string, ends: [string, string], onChange: (x: number) => void) => (
     <div className="flex flex-col gap-ds-4">
@@ -642,16 +702,6 @@ function TasteChoice({ theme, onTheme }: { theme: DsThemeConfig; onTheme: (theme
         onTheme(dsThemeWithExpression(theme, Math.round(x * 100) / 100))
       )}
       <TastePills picked={picked} onToggle={toggle} />
-      <div className="flex items-center justify-center gap-ds-4">
-        <DsButton size="small" iconLeft={Shuffle} pressed={shuffle} onClick={() => setShuffle((on) => !on)}>
-          Shuffle
-        </DsButton>
-        <DsButton size="small" variant="text" iconLeft={ChevronLeft} aria-label="Previous take" disabled={takes.at <= 0} onClick={back} />
-        <span className="min-w-8 text-center text-small text-ds-fg-muted tabular-nums">
-          {takes.list.length ? `${takes.at + 1}/${takes.list.length}` : "–"}
-        </span>
-        <DsButton size="small" variant="text" iconLeft={ChevronRight} aria-label="Next take" onClick={forward} />
-      </div>
     </div>
   );
 }
@@ -693,12 +743,12 @@ function ScopedTastes({
 
 /**
  * The theme's appearance (character.ts; Alex, 2026-10-29): the background
- * as dials, Warmth first, then Hue, Colour (none to full) and Brightness
- * (dark to light), so light, mid-tone and dark backgrounds are a drag away;
- * then Contrast, Roundness and Depth. Each bar is drawn in what it does.
- * Taste pills at the top draw a background. "Show colour controls" slides
- * open the colours themselves (the wheel, Light and Dark), for a colour of
- * its own over the dials.
+ * as dials, Brightness first (dark to light), then Warmth and Hue (a hue
+ * dragged onto a white gives it a tint; a pill or Colours sets more), then
+ * Contrast. Roundness lives with the buttons, and depth under Expression.
+ * Each bar is drawn in what it does. Taste pills at the top draw a
+ * background. "Show colour controls" slides open the colours themselves
+ * (the wheel, Light and Dark), for a colour of its own over the dials.
  */
 function AppearanceChoice({
   theme,
@@ -730,7 +780,12 @@ function AppearanceChoice({
         label={label}
         readout={id === "hue" ? `${shown}°` : centred ? signed(shown) : String(shown)}
         value={(value - min) / (max - min)}
-        onChange={(x) => set({ [id]: id === "hue" ? Math.round(x * 360) % 360 : Math.round((min + x * (max - min)) * 100) / 100 })}
+        // A hue dragged onto a background with no colour gives it a tint, so the drag shows.
+        onChange={(x) =>
+          id === "hue"
+            ? set({ hue: Math.round(x * 360) % 360, colour: Math.max(character.colour, 0.25) })
+            : set({ [id]: Math.round((min + x * (max - min)) * 100) / 100 })
+        }
         valueText={id === "hue" ? `${shown}°` : `${shown}: ${value <= min + 0.02 ? low : value >= max - 0.02 ? high : `between ${low.toLowerCase()} and ${high.toLowerCase()}`}`}
         track={track}
         thumb={thumb}
@@ -753,21 +808,18 @@ function AppearanceChoice({
           },
         })}
       />
+      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
       {dial("warmth", `linear-gradient(to right, ${at({ warmth: -1 })}, ${at({ warmth: 0 })}, ${at({ warmth: 1 })})`, base)}
       {dial(
         "hue",
         `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
         at({ ...strong })
       )}
-      {dial("colour", `linear-gradient(to right, ${at({ colour: 0, warmth: 0 })}, ${at({ colour: 1 })})`, base)}
-      {dial("brightness", `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`, base)}
       {dial(
         "contrast",
         `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
         tokensAt(character.contrast)["fg-muted"]
       )}
-      {dial("roundness", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
-      {dial("depth", "linear-gradient(to right, var(--ds-border), var(--ds-fg))", "var(--ds-fg)")}
       <DsButton variant="text" size="small" iconRight={colours ? ChevronUp : ChevronDown} className="-ml-2 self-start" onClick={() => setColours((on) => !on)}>
         {colours ? "Hide colour controls" : "Show colour controls"}
       </DsButton>
@@ -1094,8 +1146,11 @@ export function ThemeSection() {
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({ ...theme, families: theme.families.map((f) => (f.id === familyId ? { ...f, font } : f)) });
   const fontOptions = dsFontOptions(theme);
-  // Ilo shows as her photo in a friendly look, her initials in a branded one (taste.ts).
+  // Ilo shows as her photo in a friendly look, her initials in a branded one; her story's words boxed, plain or
+  // loud (taste.ts).
   const people = dsTastePeople(theme.character.tastes, theme.character.mood);
+  const story = dsTasteStory(theme.character.tastes, theme.character.mood);
+  const takes = useTakes(theme, setTheme);
   const heading = theme.families.find((f) => f.id === DS_HEADING_FAMILY);
   const body = theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
@@ -1159,7 +1214,7 @@ export function ThemeSection() {
       <section className="flex flex-col gap-ds-20">
         <p className="text-small text-ds-fg-muted">Out in the world</p>
         <div className="flex flex-wrap items-start gap-ds-20">
-          <PreviewStory people={people} />
+          <PreviewStory people={people} story={story} />
           <PreviewXPost people={people} />
         </div>
         <PreviewEmail />
@@ -1225,6 +1280,7 @@ export function ThemeSection() {
             value={entry.id}
             onValueChange={(value) => (value === ADD_THEME ? setNaming("add") : select(value))}
           />
+          <TakePlayer takes={takes} />
         </PanelSection>
 
         {/* The taste feeder first: push the whole look somewhere, then tune it below (Alex, 2026-10-29). */}
@@ -1236,16 +1292,17 @@ export function ThemeSection() {
               theme={theme}
               setTheme={setTheme}
               // Parabola's own again: its pills, the bars at rest, its fonts, every value Auto.
-              restore={(t) =>
-                dsThemeWithFonts(
+              restore={(t) => {
+                takes.reset();
+                return dsThemeWithFonts(
                   { ...t, character: DS_DEFAULT_CHARACTER, colours: DS_DEFAULT_COLOURS, radius: null, pillRadius: null, buttons: null },
                   null
-                )
-              }
+                );
+              }}
             />
           }
         >
-          <TasteChoice theme={theme} onTheme={setTheme} />
+          <TasteChoice theme={theme} onTheme={setTheme} takes={takes} />
         </PanelSection>
 
         <PanelSection
@@ -1338,6 +1395,16 @@ export function ThemeSection() {
                 buttons: null,
               };
             }}
+          />
+          {/* Roundness is the UI's, so it sits with the buttons (Alex, 2026-10-29); Custom below overrides it. */}
+          <DsColourBar
+            label="Roundness"
+            readout={String(Math.round(theme.character.roundness * 100))}
+            value={theme.character.roundness}
+            onChange={(x) => setTheme({ ...theme, character: { ...theme.character, roundness: Math.round(x * 100) / 100 } })}
+            valueText={`${Math.round(theme.character.roundness * 100)}: ${theme.character.roundness < 0.08 ? "sharp" : theme.character.roundness >= 0.92 ? "round" : "between"}`}
+            track="linear-gradient(to right, var(--ds-border), var(--ds-fg))"
+            thumb="var(--ds-fg)"
           />
           <ButtonChoice
             style={dsThemeButtons(theme)}
