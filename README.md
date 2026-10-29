@@ -124,24 +124,21 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
-  panel opens with **Taste** (`taste.ts`): style pills in three tracks,
-  Feel, World and Era (`DS_TASTES`, `DS_TASTE_TRACKS`, `dsShuffleTaste`,
-  `dsRandomTastes`, `dsTastePeople`). Which picks stand together is a rule
-  (`dsPickTaste`, `dsTastesClash`, `DS_TASTE_EXCLUDES`): one Feel, one
-  World, eras that can meet (Retro with Futuristic, not with Modern); a
-  pair that makes a look of its own has a blend (`DS_TASTE_BLENDS`,
-  `dsTasteNames`: "Retro-futuristic"). The pills choose one chip on each
-  section's rail (`character.scoped`), the one most of them name: a
-  palette in Colour (`DS_PALETTES`, `dsPaletteDraw`), a kind of type in
-  Typography (`DS_TYPE_STYLES`, `dsTypeStyleFonts`) and a kind of button in
-  Buttons (`DS_BUTTON_LOOKS`, `dsButtonLookAt`); each can be picked by hand
-  after. The Mood bar (Serious to Playful, `dsThemeWithMood`) fine-tunes
-  that combination: where in each kind's range it sits, a sharper or
-  rounder button, a soberer or livelier font pair. Parabola's own is
-  Restrained + Editorial with Classic, Classic and Soft. Each taste also
-  has a voice, a tone and a rule (`dsTasteVoice`), so a brand's words
-  follow its look; only Playful and Wacky place words loose
-  (`dsTasteTilt`). **Colour** is the palettes, then the background as a
+  panel opens with **Taste** (`taste.ts`), aesthetics and personality:
+  the **Style** rail, one pick (`DS_TASTES`: Editorial, Tech, Fashion,
+  Natural, Sci-fi, Luxury, Retro, Sport; `dsPickTaste`, `dsShuffleTaste`,
+  `dsRandomTastes`), which chooses one chip on each section's rail
+  (`character.scoped`): a palette in Colour (`DS_PALETTES`,
+  `dsPaletteDraw`), a kind of type in Typography (`DS_TYPE_STYLES`,
+  `dsTypeStyleFonts`) and a kind of button in Buttons (`DS_BUTTON_LOOKS`,
+  `dsButtonLookAt`); each can be picked by hand after. Then the **Mood**
+  bar, the personality, Restrained to Wacky (`dsThemeWithMood`), which
+  changes the look inside the style: the kind of type's four font pairs,
+  the buttons' roundness and depth, the colour's saturation
+  (`dsMoodSaturation`) and the button colour (`dsPaletteButton`), and the
+  voice (`dsTasteVoice`; words placed loose from Playful, `dsTasteTilt`).
+  Parabola's own is Editorial and Balanced, with Classic, Classic and Soft.
+  **Colour** is the palettes, then the background as a
   photo is edited, hue, saturation and brightness (more saturation on a
   white: paper, sand, a bright orange), then contrast, with the colours
   themselves behind "Show advanced options"; roundness is with the

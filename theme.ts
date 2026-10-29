@@ -22,7 +22,7 @@ import {
   type DsCustomFont,
   type DsFont,
 } from "./fonts";
-import { dsButtonLookAt, dsTypeStyleFonts } from "./taste";
+import { dsButtonLookAt, dsMoodSaturation, dsPaletteButton, dsTypeStyleFonts } from "./taste";
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
@@ -393,20 +393,23 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
 }
 
 /**
- * The theme at a mood, serious to playful (character.ts): the combination of
- * chips fine-tuned (Alex, 2026-10-29), its kind of button's roundness and
- * depth along their range and its kind of type's soberer or livelier font
- * pair (taste.ts). Without chips (a theme from before them), roundness and
- * the fonts slide along `DS_MOODS`. Colours and anything given its own stay
- * as they are.
+ * The theme at a mood, its personality, restrained to wacky (character.ts;
+ * Alex, 2026-10-29: "if I go through the slider, I want to see the mood
+ * change"): inside the chips the style chose (taste.ts), the kind of type's
+ * font pair for that mood, the kind of button's roundness and depth, the
+ * background's saturation (quieter restrained, stronger wacky) and the
+ * palette's button colour for it. Without chips (a theme from before them),
+ * roundness and the fonts slide along `DS_MOODS`. Anything given its own
+ * apart from the button colour stays as it is.
  */
 export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConfig {
-  const { type, buttons } = theme.character.scoped;
+  const c = theme.character;
+  const { colour, type, buttons } = c.scoped;
   const look = buttons ? dsButtonLookAt(buttons, mood) : null;
-  return dsThemeWithFonts(
-    { ...theme, character: { ...theme.character, mood, ...(look ?? dsMoodDials(mood)) } },
-    type ? dsTypeStyleFonts(type, mood) : dsMoodFonts(mood)
-  );
+  const saturation = Math.round(Math.min(1, (c.colour * dsMoodSaturation(mood)) / dsMoodSaturation(c.mood)) * 100) / 100;
+  const character = { ...c, mood, ...(look ?? dsMoodDials(mood)), ...(colour ? { colour: saturation } : {}) };
+  const colours = colour ? { ...theme.colours, accent: { light: dsPaletteButton(colour, character, mood), dark: null } } : theme.colours;
+  return dsThemeWithFonts({ ...theme, character, colours }, type ? dsTypeStyleFonts(type, mood) : dsMoodFonts(mood));
 }
 
 /**

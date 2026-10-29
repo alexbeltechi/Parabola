@@ -7,15 +7,16 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: 0 (serious) to 1 (playful), 0.5 Parabola's own: fine-tunes the
- *   combination of chips the tastes chose (Alex, 2026-10-29), where in each
- *   kind's range it sits: a sharper or rounder button, the soberer or the
- *   livelier of its font pairs (`dsThemeWithMood` in theme.ts). With no
- *   chips (a theme from before them) it slides along `DS_MOODS`.
+ * - mood: the personality (Alex, 2026-10-29), 0 (restrained) through 0.5
+ *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky). It moves the
+ *   look inside the style's chips (taste.ts): the fonts, the buttons'
+ *   roundness and depth, the colour's saturation and the button colour
+ *   (`dsThemeWithMood` in theme.ts), and the voice. With no chips (a theme
+ *   from before them) it slides along `DS_MOODS`.
  * - scoped: the chip picked on each section's rail, a palette in Colour, a
  *   kind of type in Typography, a kind of button in Buttons (taste.ts), each
  *   deciding only that section's values.
- * - tastes: the taste pills the look was drawn from (taste.ts), by id.
+ * - tastes: the style the look was drawn from (taste.ts), by id; one.
  * - The background, as dials rather than a hex (a hex is Colours' job;
  *   Alex, 2026-10-29), in Colour, as a photo is edited: hue, 0 to 360
  *   (40, paper's, by default); colour, the Saturation bar, 0 (none: white,
@@ -49,11 +50,11 @@ export type DsCharacter = {
   depth: number;
 };
 
-/**
- * Parabola's own look is a taste too: restrained and editorial, writing
- * first, a little finesse (Alex, 2026-10-29), so those pills show picked.
- */
-export const DS_DEFAULT_TASTES = ["restrained", "editorial"];
+/** Parabola's own look is a style too: editorial, writing first (Alex, 2026-10-29), so that shows picked. */
+export const DS_DEFAULT_TASTES = ["editorial"];
+
+/** Ids from the Feel and Era tracks, retired the same day for one Style rail and the Mood bar (taste.ts). */
+const RETIRED_TASTES = ["restrained", "technical", "approachable", "luxurious", "bold", "candid", "playful", "wacky", "modern", "contemporary", "futuristic"];
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
@@ -103,13 +104,14 @@ export function dsMoodFonts(mood: number): DsFontPair | null {
   return near?.fonts ?? null;
 }
 
-/** A mood's word, for its bar, Serious to Playful. */
+/** A mood's word, for its bar, Restrained to Wacky. */
 export function dsMoodLabel(mood: number): string {
-  if (mood < 0.15) return "Serious";
-  if (mood < 0.38) return "Composed";
+  if (mood < 0.15) return "Restrained";
+  if (mood < 0.38) return "Calm";
   if (mood <= 0.62) return "Balanced";
-  if (mood < 0.85) return "Lively";
-  return "Playful";
+  if (mood < 0.68) return "Lively";
+  if (mood < 0.88) return "Playful";
+  return "Wacky";
 }
 
 /** The dials at a mood: sliding between the stops either side of it. */
@@ -156,7 +158,10 @@ export function parseDsCharacter(value: unknown): DsCharacter {
     return typeof n === "number" && Number.isFinite(n) ? clamp(n, min, max) : DS_DEFAULT_CHARACTER[id];
   };
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
-  const tastes = Array.isArray(raw.tastes) ? [...new Set((raw.tastes as unknown[]).filter((t): t is string => typeof t === "string"))] : [];
+  // One style: the first stored that isn't retired.
+  const tastes = Array.isArray(raw.tastes)
+    ? (raw.tastes as unknown[]).filter((t): t is string => typeof t === "string" && !RETIRED_TASTES.includes(t)).slice(0, 1)
+    : [];
   // A background stored the older ways becomes its hue, saturation and brightness: a hex picked for a day (`seed`),
   // or a temperature over an HSL brightness (`warmth`).
   const num = (k: string) => (typeof raw[k] === "number" && Number.isFinite(raw[k]) ? (raw[k] as number) : null);

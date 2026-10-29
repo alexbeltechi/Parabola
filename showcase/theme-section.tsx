@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  Camera,
   ChevronDown,
   ChevronLeft,
   Dices,
@@ -10,8 +9,6 @@ import {
   ChevronUp,
   ClipboardPaste,
   Copy,
-  Aperture,
-  Armchair,
   Archive,
   ArrowLeft,
   ArrowRight,
@@ -46,27 +43,21 @@ import {
   MoreHorizontal,
   Repeat2,
   Upload,
-  Minus,
   Moon,
   MoreVertical,
   OctagonAlert,
   Reply,
   Star,
   Newspaper,
-  PartyPopper,
   Pencil,
   Plus,
   Rocket,
-  Ruler,
   Send,
   RotateCcw,
   Shirt,
-  Smile,
-  Sparkles,
   Sun,
   Terminal,
   Trash2,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { DsAccordion } from "../primitives/accordion";
@@ -131,7 +122,6 @@ import {
 import {
   DS_BUTTON_LOOKS,
   DS_PALETTES,
-  DS_TASTE_TRACKS,
   DS_TASTES,
   DS_TYPE_STYLES,
   dsButtonLookAt,
@@ -1166,30 +1156,21 @@ function PreviewBrand({
 
 /** Each taste's icon, by id (taste.ts holds the data, the panel the pictures). */
 const TASTE_ICONS: Record<string, LucideIcon> = {
-  approachable: Smile,
-  restrained: Minus,
-  technical: Ruler,
+  // Style's rail (and its namesakes on the others).
   editorial: Newspaper,
-  luxurious: Gem,
-  bold: Zap,
-  candid: Camera,
-  playful: PartyPopper,
-  wacky: Sparkles,
   tech: Terminal,
-  scifi: Rocket,
   fashion: Shirt,
   natural: Leaf,
+  scifi: Rocket,
+  luxury: Gem,
   retro: CassetteTape,
-  modern: Armchair,
-  contemporary: Aperture,
-  futuristic: Orbit,
+  sport: Trophy,
   // Colour's rail.
   classic: Circle,
   neutral: Contrast,
   earthy: Mountain,
   pastel: Cloud,
   vibrant: Flame,
-  sport: Trophy,
   rich: Crown,
   vintage: Film,
   neon: Lightbulb,
@@ -1242,41 +1223,11 @@ function PillRow({
 }
 
 /**
- * The taste pills in their tracks, Feel, World and Era, each a named row.
- * Which picks can stand together is taste.ts's rule (`dsPickTaste`): one
- * Feel, one World, and eras that can meet (Retro with Futuristic, not with
- * Modern).
- */
-function TastePills({
-  picked,
-  onToggle,
-}: {
-  picked: string[];
-  onToggle: (id: string) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-ds-8">
-      {DS_TASTE_TRACKS.map((track) => (
-        <div key={track.id} className="flex flex-col gap-ds-4">
-          <span className="text-small text-ds-fg-muted">{track.label}</span>
-          <PillRow
-            label={track.label}
-            options={DS_TASTES.filter((t) => t.group === track.id)}
-            picked={picked}
-            onToggle={onToggle}
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
  * The takes (Alex, 2026-10-29): every draw is a take, kept in order with
  * the one showing. Back returns to the one before; forward replays an
- * undone one, or draws a new variation inside the pills picked (the same
- * Feel and World, another place in their ranges); the dice picks new pills
- * at random and draws wide. A draw starts the look over: colours, corners and buttons
+ * undone one, or draws a new variation inside the style picked (its other
+ * chips and colours, at the same mood); the dice picks another style and a
+ * mood at random and draws wide. A draw starts the look over: colours, corners and buttons
  * given their own go back to Auto. Unpicking the last pill brings back the
  * look from before the first was picked.
  */
@@ -1399,22 +1350,20 @@ function TakeControls({ takes }: { takes: Takes }) {
   );
 }
 
-/** The Mood bar's track: a serious ink to a playful pink. */
+/** The Mood bar's track: a restrained ink to a wacky pink. */
 const MOOD_TRACK =
   "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
 
 /**
- * The taste feeder (taste.ts; Alex, 2026-10-29): the style pills first, with
- * icons, in three tracks, Feel (how the brand comes across), World (where it
- * belongs) and Era (when it's from), which choose a chip in Colour,
- * Typography and Buttons; then the Mood bar, which fine-tunes that
- * combination from serious to playful (a sharper or rounder button, a
- * soberer or livelier font pair).
- * Parabola's own is a mix of pills too (Restrained and Editorial), so
- * that's what shows picked at the start. Picking a pill changes the look at
- * once (a take, in the player at the top); unpicking the last brings back
- * the look from before the first. Restore, at the section's top right, is
- * Parabola's own again.
+ * Taste (taste.ts; Alex, 2026-10-29: "aesthetics and personality"): the
+ * Style rail, one pick (Editorial, Tech, Fashion, Natural, Sci-fi…), which
+ * chooses a chip in Colour, Typography and Buttons; then the Mood bar, the
+ * personality, Restrained to Wacky, which changes the look you can see
+ * inside that style (its fonts, its buttons, its colour, its voice).
+ * Parabola's own is Editorial and Balanced. Picking a style changes the look
+ * at once (a take, in the player at the top); unpicking it brings back the
+ * look from before. Restore, at the section's top right, is Parabola's own
+ * again.
  */
 function TasteChoice({
   theme,
@@ -1434,7 +1383,15 @@ function TasteChoice({
   };
   return (
     <div className="flex flex-col gap-ds-16">
-      <TastePills picked={picked} onToggle={toggle} />
+      <div className="flex flex-col gap-ds-4">
+        <span className="text-small text-ds-fg-muted">Style</span>
+        <PillRow
+          label="Style"
+          options={DS_TASTES}
+          picked={picked}
+          onToggle={toggle}
+        />
+      </div>
       <DsColourBar
         label="Mood"
         readout={dsMoodLabel(character.mood)}
@@ -1444,7 +1401,7 @@ function TasteChoice({
         }
         valueText={dsMoodLabel(character.mood)}
         track={MOOD_TRACK}
-        ends={["Serious", "Playful"]}
+        ends={["Restrained", "Wacky"]}
       />
     </div>
   );
@@ -2281,7 +2238,7 @@ export function ThemeSection() {
               section="Taste"
               theme={theme}
               setTheme={setTheme}
-              // Parabola's own again: its pills, the bars at rest, its fonts, every value Auto.
+              // Parabola's own again: its style, the mood at rest, its fonts, every value Auto.
               restore={(t) => {
                 takes.reset();
                 return dsThemeWithFonts(
