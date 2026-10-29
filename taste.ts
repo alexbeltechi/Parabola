@@ -226,6 +226,13 @@ export type DsTaste = {
   palettes: readonly string[];
   types: readonly string[];
   buttons: readonly string[];
+  /**
+   * The type's contrast it sits in (character.ts `ink`; Alex, 2026-10-29:
+   * "different styles have different contrast levels"): 1 full, lower an
+   * ink of the page's hue. Its own look takes the middle; Shuffle and the
+   * dice draw inside it.
+   */
+  ink: Range;
   /** How people show (an avatar): their photo, friendly; or their initials, branded. */
   people: "photo" | "initials";
   /**
@@ -245,6 +252,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "classic",
     label: "Classic",
+    ink: [1, 1],
     // Parabola's own first (its white, its fonts, its round buttons), then an editorial paper, serif and square.
     palettes: ["classic", "earthy"],
     types: ["classic", "editorial"],
@@ -256,6 +264,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "minimal",
     label: "Minimal",
+    ink: [0.9, 1],
     // As little as it takes: white or grey, one grotesque, square buttons (Text is there to pick by hand).
     palettes: ["classic", "neutral"],
     types: ["startup"],
@@ -267,6 +276,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "elegant",
     label: "Elegant",
+    ink: [0.55, 0.85],
     // A refined serif, rich colour, square buttons (it was Fashion for a day; Alex: "most definitely not fashion").
     palettes: ["rich", "classic"],
     types: ["elegant"],
@@ -278,6 +288,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "tech",
     label: "Tech",
+    ink: [0.9, 1],
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
     types: ["startup", "startup", "futurist"],
@@ -290,6 +301,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "natural",
     label: "Natural",
+    ink: [0.45, 0.75],
     palettes: ["earthy"],
     types: ["editorial", "friendly"],
     buttons: ["soft"],
@@ -300,6 +312,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "retro",
     label: "Retro",
+    ink: [0.4, 0.7],
     // Seventies print and old packaging.
     palettes: ["vintage"],
     types: ["retro"],
@@ -311,6 +324,7 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "sport",
     label: "Sport",
+    ink: [1, 1],
     // Vibrant, athletic: volt, black, electric blue; neon on dark now and then.
     palettes: ["sport", "sport", "neon", "vibrant"],
     types: ["funky"],
@@ -426,7 +440,9 @@ export function dsPaletteDraw(
 /**
  * A look drawn inside the style picked (one at random with none), at the
  * mood set: `first`, the style's own look, the first of each of its lists
- * (Classic at Balanced is Parabola's own); `vary` (›), any of them; `wide`
+ * and the middle of its type contrast (Classic at Balanced is Parabola's
+ * own); `vary` (Shuffle, Next), any of them, a type contrast inside its
+ * range; `wide`
  * (the dice), a mood too, and past the style's own palette and type
  * half the time, so a random look is plainly different.
  */
@@ -445,6 +461,7 @@ export function dsShuffleTaste(ids: string[], current: DsCharacter, how: "first"
       ...current,
       ...drawn.character,
       ...dsButtonLookAt(buttons, mood),
+      ink: first ? along(style.ink, 0.5) : between(style.ink),
       tastes: [style.id],
       scoped: { colour, type, buttons },
       mood,
