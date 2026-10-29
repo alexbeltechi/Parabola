@@ -87,6 +87,7 @@ import {
   DS_DEFAULT_COLOURS,
   DS_ICON_LIBRARIES,
   dsColourShown,
+  dsContrast,
   dsHexToHsl,
   dsNormalizeHex,
   dsShift,
@@ -990,11 +991,35 @@ function PreviewXPost({
  * layout close… it's in Gmail"), right after the subscribe box: Gmail's own
  * white, inks and font (PLATFORM), its toolbar, the subject with its Inbox
  * label, the sender's row (avatar, name and address, "to me", the time,
- * star and reply), then the letter itself in the theme: short and whole
- * (Alex, 2026-10-29: no fade), its masthead and issue, the title, a
+ * star and reply), then the letter itself: short and whole (Alex,
+ * 2026-10-29: no fade), in the theme's fonts on white (the theme's own
+ * colours only far up Playful), its masthead and issue, the title, a
  * greeting, a few lines in the taste's voice, a link on and her name.
  */
-function PreviewEmail({ people, copy }: { people: People; copy: PreviewCopy }) {
+function PreviewEmail({
+  theme,
+  people,
+  copy,
+}: {
+  theme: DsThemeConfig;
+  people: People;
+  copy: PreviewCopy;
+}) {
+  // White, as letters mostly are, in Gmail's inks, unless the mood is far up Playful (Alex, 2026-10-29: "only like
+  // funky stuff would do that"); the link in the button colour where it reads on white.
+  const coloured = theme.character.mood >= 0.85;
+  const white = dsThemeColourTokens(DS_DEFAULT_THEME, "light").bg;
+  const button = dsThemeColourTokens(theme, "light").highlight;
+  const letter: React.CSSProperties | undefined = coloured
+    ? undefined
+    : ({
+        "--ds-bg": white,
+        "--ds-fg": PLATFORM.gmailInk,
+        "--ds-fg-muted": PLATFORM.gmailMuted,
+        "--ds-border": PLATFORM.faint,
+        "--ds-highlight":
+          dsContrast(button, white) >= 3 ? button : PLATFORM.gmailInk,
+      } as React.CSSProperties);
   const tool = (Icon: LucideIcon, label: string) => (
     <Icon aria-label={label} className="size-4" />
   );
@@ -1066,7 +1091,7 @@ function PreviewEmail({ people, copy }: { people: People; copy: PreviewCopy }) {
         </div>
       </div>
       {/* The letter: hers, so in the theme, its column centred as a newsletter's is. */}
-      <div className="ml-[52px] bg-ds-bg p-ds-20">
+      <div className="ml-[52px] bg-ds-bg p-ds-20" style={letter}>
         <div className="mx-auto flex max-w-[480px] flex-col gap-ds-20">
           <div className="flex items-baseline justify-between gap-ds-16">
             <span className="text-h3 text-ds-fg">Ilo Odena</span>
@@ -1306,10 +1331,11 @@ function useTakes(
 type Takes = ReturnType<typeof useTakes>;
 
 /**
- * Back, forward and the dice, at the Theme section's top right beside its
- * menu (Alex, 2026-10-29): back and forward step through variations of the
- * look locked in (the pills picked), forward drawing a new one at the end;
- * the dice starts over with other pills. A variation worth keeping is saved
+ * Back, forward and the dice, at the Taste section's top right beside its
+ * Restore (Alex, 2026-10-29: "so that I can cycle there"): back and forward
+ * step through variations of the style picked (another Elegant, say),
+ * forward drawing a new one at the end; the dice starts over with another
+ * style and mood. A variation worth keeping is saved
  * as a new theme, at the panel's foot.
  */
 function TakeControls({ takes }: { takes: Takes }) {
@@ -1385,7 +1411,8 @@ function TasteChoice({
           onToggle={toggle}
         />
       </div>
-      {/* Mood as a slider again (Alex, 2026-10-29), its track a 1px line rather than a colour: Serious to Playful. */}
+      {/* Mood as a slider again (Alex, 2026-10-29), its track a 1px line rather than a colour, Serious to Playful; no
+          labels under it, the word above says where it is. */}
       <DsColourBar
         label="Mood"
         readout={dsMoodLabel(character.mood)}
@@ -1395,7 +1422,6 @@ function TasteChoice({
         }
         valueText={dsMoodLabel(character.mood)}
         track={MOOD_LINE}
-        ends={["Serious", "Playful"]}
       />
     </div>
   );
@@ -2092,7 +2118,7 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="Email">
-        <PreviewEmail people={people} copy={copy} />
+        <PreviewEmail theme={theme} people={people} copy={copy} />
       </PreviewPart>
 
       <PreviewPart title="Social">
@@ -2154,7 +2180,6 @@ export function ThemeSection() {
           title="Theme"
           actions={
             <div className="flex items-center gap-ds-4">
-              <TakeControls takes={takes} />
               <DsDropdown>
                 <DsDropdownTrigger asChild>
                   <DsButton
@@ -2252,27 +2277,30 @@ export function ThemeSection() {
         <PanelSection
           title="Taste"
           actions={
-            <SectionRestore
-              section="Taste"
-              theme={theme}
-              setTheme={setTheme}
-              // Parabola's own again: its style, the mood at rest, its fonts, every value Auto.
-              restore={(t) => {
-                takes.reset();
-                return dsThemeWithFonts(
-                  {
-                    ...t,
-                    character: DS_DEFAULT_CHARACTER,
-                    colours: DS_DEFAULT_COLOURS,
-                    type: DS_DEFAULT_THEME.type,
-                    radius: null,
-                    pillRadius: null,
-                    buttons: null,
-                  },
-                  null,
-                );
-              }}
-            />
+            <div className="flex items-center gap-ds-4">
+              <TakeControls takes={takes} />
+              <SectionRestore
+                section="Taste"
+                theme={theme}
+                setTheme={setTheme}
+                // Parabola's own again: its style, the mood at rest, its fonts, every value Auto.
+                restore={(t) => {
+                  takes.reset();
+                  return dsThemeWithFonts(
+                    {
+                      ...t,
+                      character: DS_DEFAULT_CHARACTER,
+                      colours: DS_DEFAULT_COLOURS,
+                      type: DS_DEFAULT_THEME.type,
+                      radius: null,
+                      pillRadius: null,
+                      buttons: null,
+                    },
+                    null,
+                  );
+                }}
+              />
+            </div>
           }
         >
           <TasteChoice theme={theme} onTheme={setTheme} takes={takes} />

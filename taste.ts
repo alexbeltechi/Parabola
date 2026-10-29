@@ -94,8 +94,11 @@ export const DS_PALETTES: readonly DsPalette[] = [
 
 /**
  * Typography's chips: a kind of type, its four font pairs from the most
- * serious to the wackiest. Classic's balanced one is Parabola's own (null),
- * its others keep Parabola's text face under another headline.
+ * serious to the wackiest: the playful one plainly playful, the wacky one a
+ * retro display face (Alex, 2026-10-29). Classic's balanced one is
+ * Parabola's own (null), its others keep Parabola's text face under another
+ * headline. Elegant has no Didones (Bodoni, Playfair): Garamonds and a
+ * flared roman.
  */
 export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readonly (DsFontPair | null)[] }[] = [
   {
@@ -104,8 +107,8 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     fonts: [
       pair("Newsreader", AXES, "Instrument Sans", AXES),
       null,
-      pair("Fraunces", ":opsz,wght@9..144,400..700", "Instrument Sans", AXES),
-      pair("Abril Fatface", "", "Instrument Sans", AXES),
+      pair("Bricolage Grotesque", AXES, "Instrument Sans", AXES),
+      pair("Shrikhand", "", "Instrument Sans", AXES),
     ],
   },
   {
@@ -114,8 +117,8 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     fonts: [
       pair("Newsreader", AXES, "Inter", AXES),
       pair("Instrument Serif", "", "Instrument Sans", AXES),
-      pair("Fraunces", ":opsz,wght@9..144,400..700", "Source Sans 3", AXES),
-      pair("Abril Fatface", "", "Work Sans", AXES),
+      pair("Young Serif", "", "Work Sans", AXES),
+      pair("Alfa Slab One", "", "Work Sans", AXES),
     ],
   },
   {
@@ -124,18 +127,18 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     fonts: [
       pair("Inter Tight", AXES, "Inter", AXES),
       pair("Geist", AXES, "Geist", AXES),
-      pair("Plus Jakarta Sans", AXES, "Plus Jakarta Sans", AXES),
       pair("Bricolage Grotesque", AXES, "Inter", AXES),
+      pair("Righteous", "", "Inter", AXES),
     ],
   },
   {
     id: "elegant",
     label: "Elegant",
     fonts: [
-      pair("Bodoni Moda", ":opsz,wght@6..96,400..700", "Montserrat", AXES),
+      pair("EB Garamond", AXES, "Inter", AXES),
       pair("Cormorant Garamond", AXES, "Jost", AXES),
-      pair("Playfair Display", AXES, "Lato", ":wght@400;700"),
-      pair("Italiana", "", "Jost", AXES),
+      pair("Marcellus", "", "Jost", AXES),
+      pair("Cinzel Decorative", ":wght@400;700", "Jost", AXES),
     ],
   },
   {
@@ -144,8 +147,8 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     fonts: [
       pair("Work Sans", AXES, "Work Sans", AXES),
       pair("DM Sans", AXES, "DM Sans", AXES),
-      pair("Nunito", AXES, "Nunito", AXES),
       pair("Fredoka", AXES, "Nunito", AXES),
+      pair("Bagel Fat One", "", "Nunito", AXES),
     ],
   },
   {
@@ -245,7 +248,7 @@ export const DS_TASTES: DsTaste[] = [
     // Parabola's own first (its white, its fonts, its round buttons), then an editorial paper, serif and square.
     palettes: ["classic", "earthy"],
     types: ["classic", "editorial"],
-    buttons: ["soft", "sharp"],
+    buttons: ["soft", "product"],
     people: "initials",
     story: "boxed",
     voice: { tone: "considered", rule: "A point of view, argued: essay-like, specific, unhurried." },
@@ -253,10 +256,10 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "minimal",
     label: "Minimal",
-    // As little as it takes: white or grey, one grotesque, buttons that are barely there.
+    // As little as it takes: white or grey, one grotesque, square buttons (Text is there to pick by hand).
     palettes: ["classic", "neutral"],
     types: ["startup"],
-    buttons: ["text", "outline", "sharp"],
+    buttons: ["sharp", "outline"],
     people: "initials",
     story: "boxed",
     voice: { tone: "calm", rule: "As few words as it takes; let the space speak." },
@@ -278,7 +281,8 @@ export const DS_TASTES: DsTaste[] = [
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
     types: ["startup", "startup", "futurist"],
-    buttons: ["product", "sharp"],
+    // Fully round, now and then a product's small radius (Alex, 2026-10-29: square is Minimal's).
+    buttons: ["soft", "soft", "product"],
     people: "initials",
     story: "boxed",
     voice: { tone: "precise", rule: "Say what it does, how, and stop. No hype." },
