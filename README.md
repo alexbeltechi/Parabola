@@ -126,7 +126,7 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   selected states and the highlight; the typography's by default) and the
   quaternary (`field`: the fields' background; the page's by default). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one unless a dark
-  colour is picked for it: the page and cards the same hue, about 90% dark
+  colour is picked for it: the page and cards the same hue, about 87% dark
   (`dsCounterpart`, not a flip), text, buttons and the accent moved just
   far enough to read on it (`dsInkCounterpart`). A
   colour based on another can be shifted lighter or darker (`lightShift`,

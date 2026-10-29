@@ -385,15 +385,15 @@ function fromHsl(h: number, s: number, l: number): string {
   return toHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]);
 }
 
-/** How bright a page's dark version is at most: about 90% dark, as Parabola's own charcoal (#121110). */
-const DARK_PAGE = 0.08;
+/** How bright a page's dark version is at most: about 87% dark, dark enough to read as dark, light enough that its colour shows (Alex, 2026-10-29). */
+const DARK_PAGE = 0.13;
 /** A card's dark version is a step brighter than the page's, so cards still show. */
-const DARK_CARD = 0.115;
+const DARK_CARD = 0.165;
 
 /**
  * A page's or a card's version for the dark theme: the same hue and as
  * colourful as it reads, dark. Not a flip: however light or dark the light theme's page
- * is, the dark one is about 90% dark (brightness `most`, 8% for a page), and
+ * is, the dark one is about 87% dark (brightness `most`, 13% for a page), and
  * a light page that's already darker than that stays as it is. Paper stays
  * nearly neutral, a strong colour stays a colour; a yellow or a green, which
  * look brighter than they are, are taken down until they look as dark. Text,
@@ -401,12 +401,12 @@ const DARK_CARD = 0.115;
  */
 export function dsCounterpart(hex: string, most = DARK_PAGE): string {
   const { h, s: own, v } = dsHexToHsv(hex);
-  // Dark, a hue needs more colour to show: paper's faint warmth becomes a warm charcoal rather than grey.
-  const s = Math.sqrt(own);
+  // Dark, a hue needs more colour to show: paper's faint warmth becomes a warm charcoal, a pale green a green.
+  const s = Math.min(0.92, Math.sqrt(own) * 1.35);
   const look = dsLuminance(dsHsvToHex(h, 0, most));
   let value = Math.min(v, most);
   let out = dsHsvToHex(h, s, value);
-  while (dsLuminance(out) > look * 1.3 && value > 0.02) {
+  while (dsLuminance(out) > look * 1.8 && value > 0.02) {
     value -= 0.005;
     out = dsHsvToHex(h, s, value);
   }
@@ -416,8 +416,8 @@ export function dsCounterpart(hex: string, most = DARK_PAGE): string {
 /**
  * Text, a button or the accent in the other theme: the same hue, as rich,
  * moved from its own lightness only as far as it needs to read on `page`
- * (`contrast`: 4.5:1 for text and the accent; 2:1 for a button's fill, whose
- * label is black or white on it, so it can stay closer to itself), so a
+ * (`contrast`: 7:1 for text, so its quieter steps still read; 4.5:1 for
+ * the accent, the default), so a
  * red stays a red, a navy a blue, instead of going to near white the way a
  * page's counterpart does (`dsCounterpart`, for pages and cards).
  */
@@ -470,7 +470,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     colours.text,
     mode,
     () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE),
-    (hex) => dsInkCounterpart(hex, page ?? tokens.bg)
+    // Text in dark reads well clear of the page (7:1), so its quieter steps, mixed toward the page, still read.
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7)
   );
   if (page || text) {
     const bg = page ?? tokens.bg;
@@ -483,8 +484,9 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark"):
     Object.assign(tokens, {
       bg,
       fg,
-      "fg-muted": dsMix(fg, bg, 0.7),
-      "fg-subtle": dsMix(fg, bg, 0.52),
+      // The quieter text: in dark a little closer to the strong text, where it reads fainter (Alex, 2026-10-29).
+      "fg-muted": dsMix(fg, bg, mode === "dark" ? 0.8 : 0.7),
+      "fg-subtle": dsMix(fg, bg, mode === "dark" ? 0.64 : 0.52),
       border: dsMix(fg, bg, 0.12),
       "surface-subtle": card,
       // Fields are the page itself, solid: a place to type that shows on a card.
