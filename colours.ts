@@ -46,14 +46,14 @@ export const DS_BASE_COLOURS: DsBaseColour[] = [
     id: "stone",
     label: "Stone",
     swatch: "#78716C",
-    // The page is paper, a warm off-white (Alex, 2026-10-28), its cards a step darker so they show.
+    // A white page, its cards a warm off-white the same step darker (−4) a picked primary colour's are.
     light: {
-      bg: "#FAF7EF",
+      bg: "#FFFFFF",
       "fg-muted": "#595959",
       "fg-subtle": "#78716C",
-      border: "#DCD9D2",
-      "surface-subtle": "#EFECE4",
-      field: "#FAF7EF",
+      border: "#D6D3D1",
+      "surface-subtle": "#F7F5F2",
+      field: "#FFFFFF",
       surface: "#E2DFD9",
       "surface-inverse": "rgb(48 46 44 / 0.7)",
     },

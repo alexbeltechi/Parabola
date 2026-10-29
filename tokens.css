@@ -260,17 +260,17 @@
        field            the fill inside fields: the page colour, solid, so a
                         field reads as a place to type on a card
        surface          buttons (at 70%, so the blur reads) and image
-                        placeholders; on paper a 70% button lands on #E9E6E0
+                        placeholders; on white a 70% button lands on #EBE9E4
        surface-inverse  selected buttons; translucency baked in
        error            invalid field outline and its message
        highlight        the tag/pill accent: its text, on its own solid tint */
-  --ds-bg: #FAF7EF; /* paper, a warm off-white */
+  --ds-bg: #FFFFFF;
   --ds-fg: #000000;
   --ds-fg-muted: #595959;
   --ds-fg-subtle: #78716C;
-  --ds-border: #DCD9D2;
-  --ds-surface-subtle: #EFECE4;
-  --ds-field: #FAF7EF;
+  --ds-border: #D6D3D1;
+  --ds-surface-subtle: #F7F5F2; /* warm off-white cards, 4 darker than the page */
+  --ds-field: #FFFFFF;
   --ds-surface: #E2DFD9;
   --ds-surface-inverse: rgb(48 46 44 / 0.7); /* the dark theme's surface, #302E2C */
   /* Solid buttons and selected states, and what's on them: the text and the
@@ -291,7 +291,7 @@
   /* The highlight pill's background: solid (the highlight at 14% on the
      page), not a translucent tint, so it holds its colour on any surface,
      including a selected (inverse) list row. */
-  --ds-highlight-tint: #D7D4CE;
+  --ds-highlight-tint: #DBDBDB;
 
   /* Accents (not UI colours): what content wears, e.g. a category's tile
      and dot. Nine shadcn/Tailwind 500 shades, which all carry white text,
