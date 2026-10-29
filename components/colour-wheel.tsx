@@ -105,7 +105,7 @@ function drag(onMove: (p: { deg: number; dist: number }) => void, slop = 0) {
  * blue. A point's angle is its hue and its distance from the centre its
  * saturation (white, black and greys at the middle, full colour at the
  * ring). Every point is the same size: the chosen one filled with its
- * colour, the others only a black and white ring. Where they share a spot they
+ * colour, the others only a thin black ring. Where they share a spot they
  * stack in the order given, the first on top (the primary, at the centre
  * by default), the chosen one above them all. Choose a colour (`selected`,
  * from a list beside the wheel, or press its point), then drag its point
@@ -283,12 +283,9 @@ export function DsColourWheel({
                 ...pct(at(h.h, toRadius(h.s))),
                 zIndex: chosen ? points.length + 1 : points.length - i,
                 // The chosen point is filled with its colour, ringed white with a line in the text colour outside;
-                // the others are only a ring, white between two thin black lines, so they show on any colour and
-                // the chosen one stands out (Alex, 2026-10-29).
+                // the others are only a thin black ring, so the chosen one stands out (Alex, 2026-10-29).
                 backgroundColor: chosen ? p.colour : "transparent",
-                boxShadow: chosen
-                  ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)"
-                  : "inset 0 0 0 1px black, inset 0 0 0 3px white, 0 0 0 1px black",
+                boxShadow: chosen ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)" : "inset 0 0 0 1px black",
               }}
               onPointerDown={(event) => {
                 // Pressing it focuses it (in drag), so Delete and the arrow keys reach it after a click.

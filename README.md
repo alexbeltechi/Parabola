@@ -134,8 +134,8 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   `darkShift`, `dsShift`). `dsColourTokens` turns the six into every
   colour token; `DsColourWheel` shows them all as points on one wheel (hue
   round it, saturation out from the centre, saturation and brightness on
-  the arcs; one size, the chosen one filled, the others a ring; choose one
-  and drag its point, Delete to remove it), and `DsColourPicker` picks a single colour inline, with
+  the arcs; one size, the chosen one filled, the others a thin ring; choose one
+  and drag its point, Delete to restore it), and `DsColourPicker` picks a single colour inline, with
   `DsColourBar` its hue and brightness bars.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.

@@ -43,15 +43,16 @@ const WHEEL: { kind: DsColourKind; label: string }[] = [
 /**
  * The theme's six colours on one wheel, for the light or the dark theme
  * (whichever the preview is in): each a point of one size, the chosen one
- * filled with its colour, the others a ring. In the list, a colour of its
- * own has a solid dot, one based on another an outline (the
- * primary type, the field and the surface on the base; the secondary type
- * and the button on the primary type; in dark, each on the light one).
- * Pick one in the list under the wheel (or press its point), then drag its
- * point to move it; clicking the wheel itself changes nothing. The list: the six as nav items, each with a ⋮ to
- * copy or paste its hex (to give two the same colour) and delete it (back
- * to what it's based on) or, for the base, restore Parabola's. Delete or
- * Backspace on the chosen point does the same.
+ * filled with its colour, the others a thin ring. Each is based on another
+ * until given its own (the primary type, the field and the surface on the
+ * base; the secondary type and the button on the primary type; in dark,
+ * each on the light one). Pick one in the list under the wheel (or press
+ * its point), then drag its point to move it; clicking the wheel itself
+ * changes nothing. The list: the six as nav items, each a solid dot of its
+ * colour, its hex or what it's based on, and a ⋮ to copy or paste its hex
+ * (to give two the same colour) and restore it (back to what it's based
+ * on; the base to Parabola's). Delete or Backspace on the chosen point
+ * does the same.
  */
 function ColourWheelChoice({
   colours,
@@ -75,7 +76,7 @@ function ColourWheelChoice({
     if (!own(kind)) return;
     const before = colours;
     set(kind, { [pick]: null, [shiftKey]: undefined });
-    dsToast(basis(kind) ? `${label(kind)} deleted` : `${label(kind)} restored`, {
+    dsToast(`${label(kind)} restored`, {
       action: { label: "Undo", onClick: () => onChange(before) },
     });
   };
@@ -120,14 +121,11 @@ function ColourWheelChoice({
             selected={selected === w.kind}
             onClick={() => setSelected(w.kind)}
             leading={
-              // As on the wheel: solid when it's its own colour, an outline while it's based on another.
+              // The colour as it is, solid, with a faint see-through edge so a white or pale one still shows.
               <span
                 aria-hidden
-                className="size-4 shrink-0 rounded-full"
-                style={{
-                  backgroundColor: based(w.kind) ? "transparent" : shown(w.kind),
-                  boxShadow: `inset 0 0 0 ${based(w.kind) ? 3 : 1}px ${based(w.kind) ? shown(w.kind) : "var(--ds-border)"}`,
-                }}
+                className="size-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ds-fg)_18%,transparent)]"
+                style={{ backgroundColor: shown(w.kind) }}
               />
             }
             meta={own(w.kind) || !basis(w.kind) ? shown(w.kind) : `Based on ${basis(w.kind)}`}
@@ -156,15 +154,10 @@ function ColourWheelChoice({
                     Paste hex
                   </DsDropdownItem>
                   <DsDropdownSeparator />
-                  {basis(w.kind) ? (
-                    <DsDropdownItem tone="danger" iconLeft={Trash2} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
-                      Delete
-                    </DsDropdownItem>
-                  ) : (
-                    <DsDropdownItem iconLeft={RotateCcw} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
-                      Restore
-                    </DsDropdownItem>
-                  )}
+                  {/* Back to what it's based on (the base back to Parabola's); there's nothing to restore while it is. */}
+                  <DsDropdownItem iconLeft={RotateCcw} disabled={!own(w.kind)} onSelect={() => remove(w.kind)}>
+                    Restore
+                  </DsDropdownItem>
                 </DsDropdownContent>
               </DsDropdown>
             }
