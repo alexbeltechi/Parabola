@@ -22,6 +22,7 @@ import {
   type DsCustomFont,
   type DsFont,
 } from "./fonts";
+import { dsButtonLookAt, dsTypeStyleFonts } from "./taste";
 import { DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusPx, type DsRadius } from "./radius";
 import {
   DS_DEFAULT_CHARACTER,
@@ -115,7 +116,7 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /** The dials every Auto value is worked out from: brightness, warmth, contrast, roundness, depth (character.ts). */
+  /** The dials every Auto value is worked out from: hue, saturation, brightness, contrast, roundness, depth (character.ts). */
   character: DsCharacter;
   /** Background, primary and secondary (the text), buttons, field and surface, each for light and dark (colours.ts). */
   colours: DsThemeColours;
@@ -359,10 +360,20 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const storedRadius = parseRadius(raw.radius);
   const radius = older && storedRadius === "large" ? null : storedRadius;
   const pillRadius = parseRadius(raw.pillRadius);
-  const character = parseDsCharacter(raw.character);
+  const storedButtons = raw.buttons && typeof raw.buttons === "object" ? parseDsButtonStyle(raw.buttons) : null;
+  const parsed = parseDsCharacter(raw.character);
+  // A theme stored before the chips shows the ones it still matches: Parabola's colours, fonts and buttons.
+  const stored = raw.character && typeof raw.character === "object" ? (raw.character as Record<string, unknown>).scoped : undefined;
+  const chips = { ...parsed.scoped };
+  if (!stored || typeof stored !== "object" || Array.isArray(stored) || Object.values(stored).every(Array.isArray)) {
+    const c = parsed;
+    if (!chips.colour && c.colour === 0 && c.brightness === 1 && c.contrast === 0 && Object.values(colours).every((v) => !v.light && !v.dark)) chips.colour = "classic";
+    if (!chips.type && families.find((f) => f.id === DS_BODY_FAMILY)?.font === DS_DEFAULT_FONT && families.find((f) => f.id === DS_HEADING_FAMILY)?.font === DS_DEFAULT_HEADING_FONT) chips.type = "classic";
+    if (!chips.buttons && c.roundness === 1 && c.depth === 0 && radius === null && !storedButtons) chips.buttons = "soft";
+  }
+  const character = { ...parsed, scoped: chips };
   const icons = DS_ICON_LIBRARIES.some((l) => l.id === raw.icons && l.ready) ? (raw.icons as string) : "lucide";
 
-  const storedButtons = raw.buttons && typeof raw.buttons === "object" ? parseDsButtonStyle(raw.buttons) : null;
   const buttonStyle =
     older && storedButtons && JSON.stringify(storedButtons) === JSON.stringify(DS_DEFAULT_BUTTON_STYLE) ? null : storedButtons;
 
@@ -382,14 +393,20 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
 }
 
 /**
- * The theme at a mood (character.ts, DS_MOODS): its warmth, contrast,
- * roundness and depth slid to the mood's, and its Font and Heading set in
- * the mood's faces toward either end (added to its fonts if they're not
- * there), Parabola's in the middle. Colours, the base and anything given its
- * own stay as they are.
+ * The theme at a mood, serious to playful (character.ts): the combination of
+ * chips fine-tuned (Alex, 2026-10-29), its kind of button's roundness and
+ * depth along their range and its kind of type's soberer or livelier font
+ * pair (taste.ts). Without chips (a theme from before them), roundness and
+ * the fonts slide along `DS_MOODS`. Colours and anything given its own stay
+ * as they are.
  */
 export function dsThemeWithMood(theme: DsThemeConfig, mood: number): DsThemeConfig {
-  return dsThemeWithFonts({ ...theme, character: { ...theme.character, mood, ...dsMoodDials(mood) } }, dsMoodFonts(mood));
+  const { type, buttons } = theme.character.scoped;
+  const look = buttons ? dsButtonLookAt(buttons, mood) : null;
+  return dsThemeWithFonts(
+    { ...theme, character: { ...theme.character, mood, ...(look ?? dsMoodDials(mood)) } },
+    type ? dsTypeStyleFonts(type, mood) : dsMoodFonts(mood)
+  );
 }
 
 /**
@@ -533,15 +550,15 @@ export function dsThemeExport(theme: DsThemeConfig, name = "Parabola theme") {
   ];
   const round = (n: number) => (n >= 9999 ? "fully round" : `${n}px`);
   return {
-    about: `"${name}", a website theme made with Parabola. "character" is the look as a whole, dials an agent moves rather than picking colours: brightness, warmth, contrast, roundness and depth, each 0 to 100 (warmth and contrast -50 to +50), plus the base colour it starts from; every value under them is worked out from the dials unless listed in "overrides". Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
+    about: `"${name}", a website theme made with Parabola. "character" is the look as a whole, dials an agent moves rather than picking colours: hue (0 to 360), saturation ("colour"), brightness, contrast, roundness and depth, each 0 to 100 (contrast -50 to +50), plus the base colour they make and the chips picked in each section ("scoped"); every value under them is worked out from the dials unless listed in "overrides". Colours are given for a light and a dark mode, each by what it's for; fonts by name, with a Google Fonts link; type styles by name, largest first; corners in pixels. Use it to build or restyle a website in this look. "settings" is the theme itself, for Parabola to read back.`,
     name,
     character: {
       tastes: c.tastes,
+      scoped: c.scoped,
       background: dsCharacterBase(c) ?? "white",
       hue: Math.round(c.hue),
       colour: pct(c.colour),
       brightness: pct(c.brightness),
-      warmth: Math.round(c.warmth * 50),
       contrast: Math.round(c.contrast * 50),
       roundness: pct(c.roundness),
       depth: pct(c.depth),

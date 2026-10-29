@@ -16,6 +16,16 @@ import {
   BadgeCheck,
   Box,
   CassetteTape,
+  Circle,
+  Cloud,
+  Contrast,
+  Crown,
+  Film,
+  Flame,
+  Hand,
+  Lightbulb,
+  Mountain,
+  Trophy,
   Disc3,
   Feather,
   Laptop,
@@ -110,15 +120,17 @@ import {
   dsCharacterColourOptions,
   dsMoodDials,
   dsMoodLabel,
-  dsTemperatureLabel,
   type DsCharacter,
   type DsTasteScope,
 } from "../character";
 import {
   DS_BUTTON_LOOKS,
+  DS_PALETTES,
   DS_TASTE_TRACKS,
   DS_TASTES,
   DS_TYPE_STYLES,
+  dsButtonLookAt,
+  dsPaletteDraw,
   dsPickTaste,
   dsRandomTastes,
   dsShuffleTaste,
@@ -1033,8 +1045,8 @@ function PreviewPart({
 
 /**
  * The brand in words (Alex, 2026-10-29, "taste rules, brand rules"): a
- * style statement from the pills and the bars (the tastes, then the mood
- * and the temperature, and the fonts it's set in), then the
+ * style statement from the pills and the chips (the tastes, then the mood,
+ * the palette and the fonts it's set in), then the
  * voice, a rule from each taste picked. What the preview's words follow,
  * and what an agent writing for the brand would read.
  */
@@ -1050,9 +1062,8 @@ function PreviewBrand({
   const named = tastes.length
     ? `${tastes.slice(0, -1).join(", ")}${tastes.length > 1 ? " and " : ""}${tastes.at(-1)}. `
     : "";
-  const feel = [dsMoodLabel(c.mood), dsTemperatureLabel(c.warmth)].map((w) =>
-    w.toLowerCase(),
-  );
+  const palette = DS_PALETTES.find((p) => p.id === c.scoped.colour);
+  const mood = dsMoodLabel(c.mood);
   const names = new Map(dsFontOptions(theme).map((o) => [o.value, o.label]));
   const fonts = [
     ...new Set(theme.families.map((f) => names.get(f.font) ?? f.font)),
@@ -1061,7 +1072,7 @@ function PreviewBrand({
     <PreviewPart title="Brand">
       <p className="text-h3 text-ds-fg">
         {named}
-        {`${feel[0][0].toUpperCase()}${feel[0].slice(1)} and ${feel[1]}, set in ${fonts.join(" and ")}.`}
+        {`${mood}${palette ? `, in ${palette.label.toLowerCase()} colours` : ""}, set in ${fonts.join(" and ")}.`}
       </p>
       <div className="flex flex-col gap-ds-8">
         <span className="text-p text-ds-fg">Voice</span>
@@ -1097,7 +1108,19 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   modern: Armchair,
   contemporary: Aperture,
   futuristic: Orbit,
+  // Colour's rail.
+  classic: Circle,
+  neutral: Contrast,
+  earthy: Mountain,
+  pastel: Cloud,
+  vibrant: Flame,
+  sport: Trophy,
+  rich: Crown,
+  vintage: Film,
+  neon: Lightbulb,
   // Typography's rail.
+  friendly: Hand,
+  futurist: Orbit,
   startup: Laptop,
   elegant: Feather,
   funky: Disc3,
@@ -1205,22 +1228,16 @@ function useTakes(
       ...DS_DEFAULT_COLOURS,
       accent: { light: next.button, dark: null },
     };
-    // A kind of type or button picked in its section stays: the draw sets everything else.
-    const { type, buttons } = next.character.scoped;
-    const look = DS_BUTTON_LOOKS.find((l) => l.id === buttons);
     return dsThemeWithFonts(
       {
         ...theme,
-        character: {
-          ...next.character,
-          ...(look && { roundness: look.roundness, depth: look.depth }),
-        },
+        character: next.character,
         colours,
         radius: null,
         pillRadius: null,
         buttons: null,
       },
-      type ? dsTypeStyleFonts(type) : next.fonts,
+      next.fonts,
     );
   };
   const show = (next: DsThemeConfig) => {
@@ -1307,17 +1324,17 @@ function TakeControls({ takes }: { takes: Takes }) {
   );
 }
 
-/** The bars' tracks: a serious ink to a wacky pink (Mood); ice to paper (Temperature). */
+/** The Mood bar's track: a serious ink to a playful pink. */
 const MOOD_TRACK =
   "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
-const TEMPERATURE_TRACK =
-  "linear-gradient(to right, #DCEBFF, var(--ds-surface), #FFE2B8)";
 
 /**
  * The taste feeder (taste.ts; Alex, 2026-10-29): the style pills first, with
  * icons, in three tracks, Feel (how the brand comes across), World (where it
- * belongs) and Era (when it's from), then the Mood bar (Serious to Wacky:
- * roundness and the fonts), which a pill draws inside its range on.
+ * belongs) and Era (when it's from), which choose a chip in Colour,
+ * Typography and Buttons; then the Mood bar, which fine-tunes that
+ * combination from serious to playful (a sharper or rounder button, a
+ * soberer or livelier font pair).
  * Parabola's own is a mix of pills too (Restrained and Editorial), so
  * that's what shows picked at the start. Picking a pill changes the look at
  * once (a take, in the player at the top); unpicking the last brings back
@@ -1352,15 +1369,16 @@ function TasteChoice({
         }
         valueText={dsMoodLabel(character.mood)}
         track={MOOD_TRACK}
-        ends={["Serious", "Wacky"]}
+        ends={["Serious", "Playful"]}
       />
     </div>
   );
 }
 
 /**
- * A section's one rail (Alex, 2026-10-29): in Typography a kind of type, in
- * Buttons a kind of button, nothing else; picking one decides only that
+ * A section's one rail (Alex, 2026-10-29): in Colour a palette, in
+ * Typography a kind of type, in Buttons a kind of button, nothing else. The
+ * tastes pick one on each; picking another by hand decides only that
  * section's values, picking it again leaves them as Parabola's own. Kept on
  * the theme (`character.scoped`).
  */
@@ -1422,16 +1440,16 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * The theme's appearance (character.ts; Alex, 2026-10-29): the background
- * as dials, Brightness first (dark to light), then Hue (a hue dragged onto a
- * white gives it a tint; Colours sets more), Temperature (Cool to Warm: the
- * background's warmth and the greys from it), then Contrast. No pills: the
- * dials say it. Roundness lives with the buttons; depth comes with the
- * tastes. Each bar is drawn in what it does. "Show advanced options" opens
+ * The theme's colour (character.ts, taste.ts; Alex, 2026-10-29): first the
+ * palettes, colour chips (Classic is Parabola's own, Neutral a startup's,
+ * Vibrant, Sport…), each a background, a button colour and a contrast; then
+ * the background as a photo is edited, Hue (paper's by default), Saturation
+ * (more of it on a white: paper, sand, a bright orange), Brightness, then
+ * Contrast. Each bar is drawn in what it does. "Show advanced options" opens
  * the colours themselves (the wheel, for the mode picked under the theme),
  * for a colour of its own.
  */
-function AppearanceChoice({
+function ColourChoice({
   theme,
   mode,
   onTheme,
@@ -1501,29 +1519,48 @@ function AppearanceChoice({
   const strong = {
     colour: Math.max(character.colour, 0.6),
     brightness: Math.max(character.brightness, 0.7),
-    warmth: 0,
   };
   return (
     <div className="flex flex-col gap-ds-16">
-      {dial(
-        "brightness",
-        `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
-        base,
-      )}
+      <SectionRail
+        scope="colour"
+        label="Palette"
+        options={DS_PALETTES}
+        theme={theme}
+        onTheme={onTheme}
+        apply={(id, t) => {
+          const drawn = id
+            ? dsPaletteDraw(id, t.character)
+            : {
+                character: { hue: 40, colour: 0, brightness: 1, contrast: 0 },
+                button: null,
+              };
+          return {
+            ...t,
+            character: { ...t.character, ...drawn.character },
+            colours: {
+              ...t.colours,
+              theme: { light: null, dark: null },
+              accent: { light: drawn.button, dark: null },
+            },
+          };
+        }}
+      />
       {dial(
         "hue",
         `linear-gradient(to right, ${[0, 60, 120, 180, 240, 300, 360].map((h) => at({ ...strong, hue: h % 360 })).join(", ")})`,
         at({ ...strong }),
       )}
-      <DsColourBar
-        label="Temperature"
-        readout={dsTemperatureLabel(character.warmth)}
-        value={(character.warmth + 1) / 2}
-        onChange={(x) => set({ warmth: Math.round((x * 2 - 1) * 100) / 100 })}
-        valueText={dsTemperatureLabel(character.warmth)}
-        track={TEMPERATURE_TRACK}
-        ends={["Cool", "Warm"]}
-      />
+      {dial(
+        "colour",
+        `linear-gradient(to right, ${at({ colour: 0, brightness: Math.max(character.brightness, 0.7) })}, ${at({ colour: 1, brightness: Math.max(character.brightness, 0.7) })})`,
+        base,
+      )}
+      {dial(
+        "brightness",
+        `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
+        base,
+      )}
       {dial(
         "contrast",
         `linear-gradient(to right, ${tokensAt(-1)["fg-muted"]}, ${tokensAt(0)["fg-muted"]}, ${tokensAt(1)["fg-muted"]})`,
@@ -2192,18 +2229,18 @@ export function ThemeSection() {
         </PanelSection>
 
         <PanelSection
-          title="Appearance"
+          title="Colour"
           actions={
             <SectionRestore
-              section="Appearance"
+              section="Colour"
               theme={theme}
               setTheme={setTheme}
-              // The dials back to Parabola's, every colour Auto.
+              // Parabola's palette: the dials back to its own, every colour Auto.
               restore={(t) => ({
                 ...t,
                 character: {
                   ...t.character,
-                  warmth: 0,
+                  scoped: { ...t.character.scoped, colour: "classic" },
                   hue: 40,
                   colour: 0,
                   brightness: 1,
@@ -2214,7 +2251,7 @@ export function ThemeSection() {
             />
           }
         >
-          <AppearanceChoice theme={theme} mode={mode} onTheme={setTheme} />
+          <ColourChoice theme={theme} mode={mode} onTheme={setTheme} />
         </PanelSection>
 
         <PanelSection
@@ -2229,7 +2266,7 @@ export function ThemeSection() {
                   ...t,
                   character: {
                     ...t.character,
-                    scoped: { ...t.character.scoped, type: undefined },
+                    scoped: { ...t.character.scoped, type: "classic" },
                   },
                   families: DS_DEFAULT_THEME.families,
                   hiddenFonts: [],
@@ -2245,7 +2282,10 @@ export function ThemeSection() {
             theme={theme}
             onTheme={setTheme}
             apply={(id, t) =>
-              dsThemeWithFonts(t, id ? dsTypeStyleFonts(id) : null)
+              dsThemeWithFonts(
+                t,
+                id ? dsTypeStyleFonts(id, t.character.mood) : null,
+              )
             }
           />
           <AdvancedOptions>
@@ -2290,7 +2330,7 @@ export function ThemeSection() {
                 ...t,
                 character: {
                   ...t.character,
-                  scoped: { ...t.character.scoped, buttons: undefined },
+                  scoped: { ...t.character.scoped, buttons: "soft" },
                 },
                 radius: null,
                 pillRadius: null,
@@ -2306,7 +2346,7 @@ export function ThemeSection() {
             theme={theme}
             onTheme={setTheme}
             apply={(id, t) => {
-              const look = DS_BUTTON_LOOKS.find((l) => l.id === id);
+              const look = id ? dsButtonLookAt(id, t.character.mood) : null;
               return {
                 ...t,
                 character: {

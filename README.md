@@ -119,29 +119,32 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
 - **Character** (`character.ts`, `DsCharacter`): the look as a whole, dials
   every Auto value is worked out from: a base colour to start from (null:
-  white), brightness, warmth, contrast, roundness and depth. A value given
+  white), hue, saturation, brightness, contrast, roundness and depth. A value given
   its own (a colour, `radius`, `buttons`) stays when a dial moves; `null`
   means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
   panel opens with **Taste** (`taste.ts`): style pills in three tracks,
   Feel, World and Era (`DS_TASTES`, `DS_TASTE_TRACKS`, `dsShuffleTaste`,
-  `dsRandomTastes`, `dsTastePeople`), whose ranges a draw takes a whole
-  look from; which picks stand together is a rule (`dsPickTaste`,
-  `dsTastesClash`, `DS_TASTE_EXCLUDES`): one Feel, one World, eras that can
-  meet (Retro with Futuristic, not with Modern), and a pair that makes a
-  look of its own draws from its blend (`DS_TASTE_BLENDS`,
-  `dsTasteNames`: "Retro-futuristic"). Parabola's own is Restrained +
-  Editorial (`DS_DEFAULT_TASTES`). Under the pills, the Mood bar (Serious
-  to Wacky, `DS_MOODS`, `dsThemeWithMood`: roundness, fonts). Each taste
-  also has a voice, a tone and a rule (`dsTasteVoice`), so a brand's words
+  `dsRandomTastes`, `dsTastePeople`). Which picks stand together is a rule
+  (`dsPickTaste`, `dsTastesClash`, `DS_TASTE_EXCLUDES`): one Feel, one
+  World, eras that can meet (Retro with Futuristic, not with Modern); a
+  pair that makes a look of its own has a blend (`DS_TASTE_BLENDS`,
+  `dsTasteNames`: "Retro-futuristic"). The pills choose one chip on each
+  section's rail (`character.scoped`), the one most of them name: a
+  palette in Colour (`DS_PALETTES`, `dsPaletteDraw`), a kind of type in
+  Typography (`DS_TYPE_STYLES`, `dsTypeStyleFonts`) and a kind of button in
+  Buttons (`DS_BUTTON_LOOKS`, `dsButtonLookAt`); each can be picked by hand
+  after. The Mood bar (Serious to Playful, `dsThemeWithMood`) fine-tunes
+  that combination: where in each kind's range it sits, a sharper or
+  rounder button, a soberer or livelier font pair. Parabola's own is
+  Restrained + Editorial with Classic, Classic and Soft. Each taste also
+  has a voice, a tone and a rule (`dsTasteVoice`), so a brand's words
   follow its look; only Playful and Wacky place words loose
-  (`dsTasteTilt`). Typography and Buttons each have one rail of their own
-  (`character.scoped`): a kind of type (`DS_TYPE_STYLES`,
-  `dsTypeStyleFonts`) and a kind of button (`DS_BUTTON_LOOKS`: a roundness
-  and a depth), kept when a taste draws. **Appearance** is the background
-  as dials, brightness, hue, temperature (warmth), then contrast, with the
-  colours themselves behind "Show advanced options"; roundness is with the
+  (`dsTasteTilt`). **Colour** is the palettes, then the background as a
+  photo is edited, hue, saturation and brightness (more saturation on a
+  white: paper, sand, a bright orange), then contrast, with the colours
+  themselves behind "Show advanced options"; roundness is with the
   buttons. Fields is its outline, no rail. The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
   there for any colour a form asks for.
 

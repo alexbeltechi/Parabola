@@ -7,21 +7,21 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: the
- *   lever a taste starts from, the way people first describe a brand. Not a
- *   value of its own: moving it moves roundness and the fonts together
- *   (`DS_MOODS`, `dsThemeWithMood` in theme.ts), and they can be fine-tuned
- *   after. (An Expression bar, how boldly colour spread, sat beside it for a
- *   day; Alex, 2026-10-29: the mood does it better.)
- * - scoped: the pick on the one rail inside Typography (a kind of type) and
- *   inside Buttons (a kind of button), each deciding only that section's
- *   values (taste.ts, `DS_TYPE_STYLES`, `DS_BUTTON_LOOKS`).
+ * - mood: 0 (serious) to 1 (playful), 0.5 Parabola's own: fine-tunes the
+ *   combination of chips the tastes chose (Alex, 2026-10-29), where in each
+ *   kind's range it sits: a sharper or rounder button, the soberer or the
+ *   livelier of its font pairs (`dsThemeWithMood` in theme.ts). With no
+ *   chips (a theme from before them) it slides along `DS_MOODS`.
+ * - scoped: the chip picked on each section's rail, a palette in Colour, a
+ *   kind of type in Typography, a kind of button in Buttons (taste.ts), each
+ *   deciding only that section's values.
  * - tastes: the taste pills the look was drawn from (taste.ts), by id.
  * - The background, as dials rather than a hex (a hex is Colours' job;
- *   Alex, 2026-10-29), in Appearance: warmth, the Temperature bar, -1 (cool)
- *   to 1 (warm), a white balance over it and the greys drawn from it; hue, 0 to 360; colour, 0 (none: white, greys, black) to 1 (the hue
- *   at full strength), so a strong teal or a mid green is as reachable as
- *   paper; brightness, 0 (black) to 1 (as light as it goes).
+ *   Alex, 2026-10-29), in Colour, as a photo is edited: hue, 0 to 360
+ *   (40, paper's, by default); colour, the Saturation bar, 0 (none: white,
+ *   greys, black) to 1 (the hue at full strength), so raising it on a white
+ *   goes paper, then sand, then a bright orange; brightness, 0 (black) to 1
+ *   (as light as it goes). It replaced a Temperature bar (warmth).
  * - contrast: -1 (soft) to 1 (hard), 0 Parabola's: how far the quieter
  *   text, the borders and the cards sit from the base.
  * - roundness: 0 (sharp) to 1 (round): every corner, None to Large.
@@ -31,17 +31,16 @@
  * Pure data and functions, so the server and the browser share them.
  */
 import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
-import { dsHexToHsl, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
+import { dsHexToHsv, dsHslToHex, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
 /** The panel sections with a rail of their own, each deciding only its own values. */
-export type DsTasteScope = "type" | "buttons";
+export type DsTasteScope = "colour" | "type" | "buttons";
 
 export type DsCharacter = {
   tastes: string[];
   scoped: Partial<Record<DsTasteScope, string>>;
   mood: number;
-  warmth: number;
   hue: number;
   colour: number;
   brightness: number;
@@ -58,9 +57,9 @@ export const DS_DEFAULT_TASTES = ["restrained", "editorial"];
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
-  scoped: {},
+  // Parabola's own chips: its colours, its fonts, its round buttons.
+  scoped: { colour: "classic", type: "classic", buttons: "soft" },
   mood: 0.5,
-  warmth: 0,
   hue: 40,
   colour: 0,
   brightness: 1,
@@ -104,14 +103,13 @@ export function dsMoodFonts(mood: number): DsFontPair | null {
   return near?.fonts ?? null;
 }
 
-/** A mood's word, for its bar. */
+/** A mood's word, for its bar, Serious to Playful. */
 export function dsMoodLabel(mood: number): string {
   if (mood < 0.15) return "Serious";
   if (mood < 0.38) return "Composed";
-  if (mood <= 0.6) return "Balanced";
-  if (mood < 0.68) return "Lively";
-  if (mood < 0.88) return "Playful";
-  return "Wacky";
+  if (mood <= 0.62) return "Balanced";
+  if (mood < 0.85) return "Lively";
+  return "Playful";
 }
 
 /** The dials at a mood: sliding between the stops either side of it. */
@@ -124,21 +122,10 @@ export function dsMoodDials(mood: number): Pick<DsCharacter, "roundness"> {
   return { roundness: mix("roundness") };
 }
 
-/** A temperature's word, for its bar. */
-export function dsTemperatureLabel(warmth: number): string {
-  if (warmth < -0.6) return "Cool";
-  if (warmth < -0.2) return "Crisp";
-  if (warmth <= 0.2) return "Neutral";
-  if (warmth <= 0.6) return "Warm";
-  return "Cosy";
-}
-
-
 /** The dials, each with its range and what its ends mean, for a panel or an agent. */
 export const DS_CHARACTER_DIALS = [
-  { id: "warmth", label: "Warmth", min: -1, max: 1, low: "Cold", high: "Warm" },
   { id: "hue", label: "Hue", min: 0, max: 360, low: "Red", high: "Red" },
-  { id: "colour", label: "Colour", min: 0, max: 1, low: "None", high: "Full" },
+  { id: "colour", label: "Saturation", min: 0, max: 1, low: "None", high: "Full" },
   { id: "brightness", label: "Brightness", min: 0, max: 1, low: "Dark", high: "Light" },
   { id: "contrast", label: "Contrast", min: -1, max: 1, low: "Soft", high: "Hard" },
   { id: "roundness", label: "Roundness", min: 0, max: 1, low: "Sharp", high: "Round" },
@@ -153,7 +140,7 @@ const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(mi
 function parseScoped(value: unknown): Partial<Record<DsTasteScope, string>> {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
   const out: Partial<Record<DsTasteScope, string>> = {};
-  for (const scope of ["type", "buttons"] as const) {
+  for (const scope of ["colour", "type", "buttons"] as const) {
     const id = Array.isArray(raw[scope]) ? (raw[scope] as unknown[])[0] : raw[scope];
     if (typeof id === "string") out[scope] = id;
   }
@@ -170,14 +157,19 @@ export function parseDsCharacter(value: unknown): DsCharacter {
   };
   const mood = typeof raw.mood === "number" && Number.isFinite(raw.mood) ? clamp(raw.mood, 0, 1) : DS_DEFAULT_CHARACTER.mood;
   const tastes = Array.isArray(raw.tastes) ? [...new Set((raw.tastes as unknown[]).filter((t): t is string => typeof t === "string"))] : [];
-  // A background picked as a hex for a day (`seed`) becomes its hue, colour and brightness.
-  const hsl = dsIsHex(raw.seed) ? dsHexToHsl(raw.seed) : null;
-  const seed = hsl ? { h: hsl[0], s: hsl[1], v: hsl[2] } : null;
+  // A background stored the older ways becomes its hue, saturation and brightness: a hex picked for a day (`seed`),
+  // or a temperature over an HSL brightness (`warmth`).
+  const num = (k: string) => (typeof raw[k] === "number" && Number.isFinite(raw[k]) ? (raw[k] as number) : null);
+  const older =
+    typeof raw.warmth === "number"
+      ? (legacyBase(raw.warmth, num("hue") ?? 40, num("colour") ?? 0, num("brightness") ?? 1) ?? "#FFFFFF")
+      : null;
+  const hex = dsIsHex(raw.seed) ? raw.seed : older;
+  const seed = hex ? dsHexToHsv(hex) : null;
   return {
     tastes: Array.isArray(raw.tastes) ? tastes : DS_DEFAULT_TASTES,
     scoped: parseScoped(raw.scoped),
     mood,
-    warmth: dial("warmth"),
     hue: seed && seed.s > 0 ? Math.round(seed.h) : dial("hue"),
     colour: seed ? Math.round(seed.s * 100) / 100 : dial("colour"),
     brightness: seed ? Math.round(seed.v * 100) / 100 : dial("brightness"),
@@ -189,32 +181,30 @@ export function parseDsCharacter(value: unknown): DsCharacter {
 
 export const dsCharacterIsDefault = (c: DsCharacter) =>
   [...c.tastes].sort().join() === [...DS_DEFAULT_TASTES].sort().join() &&
-  Object.keys(c.scoped).length === 0 &&
+  JSON.stringify(c.scoped) === JSON.stringify(DS_DEFAULT_CHARACTER.scoped) &&
   c.mood === 0.5 &&
-  c.colour === 0 && c.brightness === 1 && c.warmth === 0 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
+  c.colour === 0 && c.brightness === 1 && c.contrast === 0 && c.roundness === 1 && c.depth === 0;
 
 /**
- * The light theme's background from the dials: the hue at its colour and
- * brightness, warmed or cooled; or null for Parabola's own white, which keeps
- * its hand-tuned greys.
+ * The light theme's background from the dials, as a photo's hue and
+ * saturation are edited (Alex, 2026-10-29): the hue at its saturation and
+ * brightness, so on a white, more saturation is paper, then sand, then a
+ * bright orange; or null for Parabola's own white, which keeps its
+ * hand-tuned greys.
  */
 export function dsCharacterBase(c: DsCharacter): string | null {
-  if (c.colour === 0 && c.brightness === 1 && c.warmth === 0) return null;
-  // With no colour, warmth tints toward paper (40°) or ice (210°), a little more the further it goes, so a warm
-  // white is paper, not lemon; a colour is warmed or cooled as a photo's white balance is.
-  if (c.colour < 0.02) {
-    return c.warmth === 0
-      ? dsHsvToHex(0, 0, c.brightness)
-      : dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, c.brightness);
-  }
-  // On a colour, temperature leans its hue toward orange (warm, 30°) or blue (cool, 220°), up to 25° at the
-  // ends, so a warm yellow stays a yellow; a white balance would pull it to green.
-  // A true brightness on a colour (Alex, 2026-10-29): 0 black, 0.5 the colour at its strongest, 1 white.
-  if (c.warmth === 0) return dsHslToHex(c.hue, c.colour, c.brightness);
-  const toward = c.warmth > 0 ? 30 : 220;
-  const gap = ((toward - c.hue + 540) % 360) - 180;
-  const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(c.warmth));
-  return dsHslToHex((c.hue + lean + 360) % 360, c.colour, c.brightness);
+  if (c.colour === 0 && c.brightness === 1) return null;
+  return dsHsvToHex(c.hue, c.colour, c.brightness);
+}
+
+/** A background stored before the Saturation bar: a temperature over an HSL brightness, as a hex; null for white. */
+function legacyBase(warmth: number, hue: number, colour: number, brightness: number): string | null {
+  if (colour === 0 && brightness === 1 && warmth === 0) return null;
+  if (colour < 0.02) return dsHsvToHex(warmth > 0 ? 40 : 210, Math.abs(warmth) * 0.12, brightness);
+  const toward = warmth > 0 ? 30 : 220;
+  const gap = ((toward - hue + 540) % 360) - 180;
+  const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(warmth));
+  return dsHslToHex((hue + lean + 360) % 360, colour, brightness);
 }
 
 /** What the colour derivations take from the character (colours.ts). */

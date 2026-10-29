@@ -187,13 +187,12 @@ export { DsColourBar, DsColourPicker } from "./components/colour-picker";
 export { DsSlider } from "./primitives/slider";
 export { DsScrollRow } from "./primitives/scroll-row";
 export { DsColourField } from "./components/colour-field";
-export { DS_BUTTON_LOOKS, DS_TASTE_BLENDS, DS_TASTE_EXCLUDES, DS_TASTE_TRACKS, DS_TASTES, DS_TYPE_STYLES, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteBlend, dsTasteNames, dsTastePeople, dsTastesClash, dsTasteStory, dsTasteTilt, dsTasteVoice, dsTypeStyleFonts, type DsTaste, type DsTasteDraw, type DsTasteGroup, type DsTone } from "./taste";
+export { DS_BUTTON_LOOKS, DS_PALETTES, DS_TASTE_BLENDS, DS_TASTE_EXCLUDES, DS_TASTE_TRACKS, DS_TASTES, DS_TYPE_STYLES, dsButtonLookAt, dsPaletteDraw, dsPickTaste, dsRandomTastes, dsShuffleTaste, dsTasteBlend, dsTasteNames, dsTastePeople, dsTastesClash, dsTasteStory, dsTasteTilt, dsTasteVoice, dsTypeStyleFonts, type DsPalette, type DsTaste, type DsTasteDraw, type DsTasteGroup, type DsTone } from "./taste";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,
   DS_MOODS,
   dsMoodDials,
-  dsTemperatureLabel,
   DS_DEFAULT_TASTES,
   type DsTasteScope,
   dsMoodFonts,
