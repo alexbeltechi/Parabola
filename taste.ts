@@ -348,8 +348,37 @@ export function dsTasteBackground(ids: string[], current: DsCharacter): Pick<DsC
     hue: hsv && hsv.s > 0 ? Math.round(hsv.h) : current.hue,
     colour: hsv ? Math.round(hsv.s * 100) / 100 : 0,
     brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
-    warmth: warmths.length ? between(meetOf(warmths)) : dsMoodDials(between(meetOf(tastes.map((t) => t.mood)))).warmth,
+    warmth: warmths.length ? between(meetOf(warmths)) : current.warmth,
   };
+}
+
+/**
+ * A small change to a look, not a new one (the wand; Alex, 2026-10-29):
+ * the three levers and the background nudged a little, inside the tastes
+ * picked where they say, and now and then another of their font pairs.
+ */
+export function dsNudgeTaste(ids: string[], current: DsCharacter): DsTasteDraw {
+  const tastes = tastesOf(ids);
+  const step = (n: number, lo: number, hi: number, by = 0.08) => Math.round(Math.min(hi, Math.max(lo, n + (Math.random() * 2 - 1) * by)) * 100) / 100;
+  const inside = (n: number, ranges: Range[], lo: number, hi: number, by?: number) => {
+    const [a, b] = ranges.length ? meetOf(ranges) : [lo, hi];
+    return step(n, a, b, by);
+  };
+  const mood = inside(current.mood, tastes.map((t) => t.mood), 0, 1);
+  const expression = inside(current.expression, tastes.map((t) => t.expression), 0, 1);
+  const warmth = inside(current.warmth, tastes.flatMap((t) => (t.dials?.warmth ? [t.dials.warmth] : [])), -1, 1, 0.12);
+  const character: DsCharacter = {
+    ...current,
+    ...dsMoodDials(mood),
+    ...dsExpressionDials(expression),
+    mood,
+    expression,
+    warmth,
+    hue: (current.hue + Math.round((Math.random() * 2 - 1) * 12) + 360) % 360,
+    brightness: step(current.brightness, 0, 1, 0.06),
+  };
+  const fonts = tastes.flatMap((t) => t.fonts);
+  return { character, fonts: fonts.length && Math.random() < 0.3 ? pick(fonts) : null, button: null };
 }
 
 /** How a story's words sit on its photo in a look: the loudest way any taste picked asks for; by mood with none. */

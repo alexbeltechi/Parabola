@@ -184,9 +184,10 @@ export { DsEmptyState } from "./components/empty-state";
 export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
-export { DsColourPicker } from "./components/colour-picker";
+export { DsColourBar, DsColourPicker } from "./components/colour-picker";
+export { DsSlider } from "./primitives/slider";
 export { DsColourField } from "./components/colour-field";
-export { DS_TASTES, dsRandomTastes, dsShuffleTaste, dsTasteBackground, dsTasteButtons, dsTasteField, dsTasteFonts, dsTastePeople, dsTasteStory, type DsTaste, type DsTasteDraw, type DsTasteGroup } from "./taste";
+export { DS_TASTES, dsNudgeTaste, dsRandomTastes, dsShuffleTaste, dsTasteBackground, dsTasteButtons, dsTasteField, dsTasteFonts, dsTastePeople, dsTasteStory, type DsTaste, type DsTasteDraw, type DsTasteGroup } from "./taste";
 export {
   DS_CHARACTER_DIALS,
   DS_DEFAULT_CHARACTER,
@@ -194,6 +195,8 @@ export {
   dsMoodDials,
   dsExpressionDials,
   dsExpressionLabel,
+  dsExpressionWeight,
+  dsTemperatureLabel,
   DS_DEFAULT_TASTES,
   type DsTasteScope,
   dsMoodFonts,

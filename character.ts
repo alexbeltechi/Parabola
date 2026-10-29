@@ -7,11 +7,18 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: how
- *   playful the brand is, moving warmth, roundness and the fonts.
- * - expression: 0 (toned down) to 1 (expressive), 0.25 Parabola's own: how
- *   loud it is, moving contrast and depth. The two are levers, not values
- *   of their own (Alex, 2026-10-29: two bars, not one).
+ * Three levers define a taste before any pill (Alex, 2026-10-29: the
+ * foundation of the taste engine; the way people describe a brand, how
+ * formal, how loud, how warm):
+ * - mood: 0 (serious) to 1 (wacky), 0.5 Parabola's own, 0.75 playful: the
+ *   tone, moving roundness and the fonts' character.
+ * - expression: 0 (quiet) to 1 (loud), 0.25 Parabola's own: how much it
+ *   shouts, moving contrast, the headlines' weight and the buttons' depth
+ *   (theme.ts, `dsThemeWithExpression`).
+ * - warmth, the Temperature bar: -1 (cool) to 1 (warm): the human-or-
+ *   technical feel, a white balance over the background and the greys drawn
+ *   from it.
+ * Each is a lever, not a value of its own: moving one moves what's under it.
  * - scoped: taste pills picked inside one section (Typography, Buttons,
  *   Fields, Appearance), which decide only that section's values. Not a value of
  *   its own: moving it moves the dials below and the fonts together
@@ -32,7 +39,7 @@
  * Pure data and functions, so the server and the browser share them.
  */
 import { DS_DEFAULT_BUTTON_STYLE, type DsButtonStyle } from "./button-style";
-import { dsHexToHsv, dsHsvToHex, dsIsHex, dsWithWarmth, type DsColourOptions } from "./colours";
+import { dsHexToHsv, dsHsvToHex, dsIsHex, type DsColourOptions } from "./colours";
 import type { DsRadius } from "./radius";
 
 /** The panel sections taste pills can be picked in, each deciding only its own values. */
@@ -95,10 +102,10 @@ const pair = (heading: string, headingAxes: string, body: string, bodyAxes: stri
  *   loud display face.
  */
 export const DS_MOODS = [
-  { at: 0, label: "Serious", dials: { warmth: -0.1, roundness: 0.12 }, fonts: pair("Newsreader", ":wght@400..700", "IBM Plex Sans", ":wght@400;500;600;700"), reach: 0.2 },
-  { at: 0.5, label: "Balanced", dials: { warmth: 0, roundness: 1 }, fonts: null, reach: 0 },
-  { at: 0.75, label: "Playful", dials: { warmth: 0.4, roundness: 1 }, fonts: pair("Fredoka", ":wght@400..700", "Nunito", ":wght@400..700"), reach: 0.13 },
-  { at: 1, label: "Wacky", dials: { warmth: 0.6, roundness: 1 }, fonts: pair("Shrikhand", "", "DM Sans", ":wght@400..700"), reach: 0.12 },
+  { at: 0, label: "Serious", dials: { roundness: 0.12 }, fonts: pair("Newsreader", ":wght@400..700", "IBM Plex Sans", ":wght@400;500;600;700"), reach: 0.2 },
+  { at: 0.5, label: "Balanced", dials: { roundness: 1 }, fonts: null, reach: 0 },
+  { at: 0.75, label: "Playful", dials: { roundness: 1 }, fonts: pair("Fredoka", ":wght@400..700", "Nunito", ":wght@400..700"), reach: 0.13 },
+  { at: 1, label: "Wacky", dials: { roundness: 1 }, fonts: pair("Shrikhand", "", "DM Sans", ":wght@400..700"), reach: 0.12 },
 ] as const;
 
 /** The fonts at a mood: the nearest stop's within its reach, or null for Parabola's own. */
@@ -118,23 +125,35 @@ export function dsMoodLabel(mood: number): string {
 }
 
 /** The dials at a mood: sliding between the stops either side of it. */
-export function dsMoodDials(mood: number): Pick<DsCharacter, "warmth" | "roundness"> {
+export function dsMoodDials(mood: number): Pick<DsCharacter, "roundness"> {
   const i = Math.max(0, DS_MOODS.findIndex((m) => m.at >= mood) - 1);
   const lo = DS_MOODS[i];
   const hi = DS_MOODS[Math.min(DS_MOODS.length - 1, i + 1)];
   const t = hi.at === lo.at ? 0 : (mood - lo.at) / (hi.at - lo.at);
   const mix = (k: keyof typeof lo.dials) => Math.round((lo.dials[k] + (hi.dials[k] - lo.dials[k]) * t) * 100) / 100;
-  return { warmth: mix("warmth"), roundness: mix("roundness") };
+  return { roundness: mix("roundness") };
 }
 
 /** An expression's word, for its bar. */
 export function dsExpressionLabel(expression: number): string {
   if (expression < 0.15) return "Quiet";
-  if (expression < 0.4) return "Toned down";
+  if (expression < 0.4) return "Calm";
   if (expression < 0.65) return "Lively";
   if (expression < 0.85) return "Expressive";
   return "Loud";
 }
+
+/** A temperature's word, for its bar. */
+export function dsTemperatureLabel(warmth: number): string {
+  if (warmth < -0.6) return "Cool";
+  if (warmth < -0.2) return "Crisp";
+  if (warmth <= 0.2) return "Neutral";
+  if (warmth <= 0.6) return "Warm";
+  return "Cosy";
+}
+
+/** The headlines' weight at an expression: regular when quiet, bold when loud (Display, H1, H2). */
+export const dsExpressionWeight = (expression: number) => (expression < 0.35 ? 400 : expression < 0.6 ? 500 : expression < 0.85 ? 600 : 700);
 
 /** The dials at an expression: contrast from soft to hard, depth from flat to deep; Parabola's at 0.25. */
 export function dsExpressionDials(expression: number): Pick<DsCharacter, "contrast" | "depth"> {
@@ -216,8 +235,13 @@ export function dsCharacterBase(c: DsCharacter): string | null {
       ? dsHsvToHex(0, 0, c.brightness)
       : dsHsvToHex(c.warmth > 0 ? 40 : 210, Math.abs(c.warmth) * 0.12, c.brightness);
   }
-  const base = dsHsvToHex(c.hue, c.colour, c.brightness);
-  return c.warmth === 0 ? base : dsWithWarmth(base, 0.5 + c.warmth * 0.35);
+  // On a colour, temperature leans its hue toward orange (warm, 30°) or blue (cool, 220°), up to 25° at the
+  // ends, so a warm yellow stays a yellow; a white balance would pull it to green.
+  if (c.warmth === 0) return dsHsvToHex(c.hue, c.colour, c.brightness);
+  const toward = c.warmth > 0 ? 30 : 220;
+  const gap = ((toward - c.hue + 540) % 360) - 180;
+  const lean = Math.sign(gap) * Math.min(Math.abs(gap), 25 * Math.abs(c.warmth));
+  return dsHsvToHex((c.hue + lean + 360) % 360, c.colour, c.brightness);
 }
 
 /** What the colour derivations take from the character (colours.ts). */

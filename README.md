@@ -124,18 +124,19 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
-  panel opens with **Taste** (`taste.ts`): two bars, Mood (Serious to
-  Wacky, `DS_MOODS`, `dsThemeWithMood`: warmth, roundness, fonts) and
-  Expression (Toned down to Expressive, `dsThemeWithExpression`: contrast,
-  depth), then style pills in two groups, Feel and World (`DS_TASTES`,
+  panel opens with **Taste** (`taste.ts`): three bars, the levers a taste
+  is defined by, Mood (Serious to Wacky, `DS_MOODS`, `dsThemeWithMood`:
+  roundness, fonts), Expression (Quiet to Loud, `dsThemeWithExpression`:
+  contrast, headline weight, depth) and Temperature (Cool to Warm:
+  warmth), all `DsSlider`; then style pills in two groups, Feel and World (`DS_TASTES`,
   `dsShuffleTaste`, `dsRandomTastes`, `dsTastePeople`), whose ranges a
   draw takes a whole look from; Parabola's own is Restrained + Editorial
   (`DS_DEFAULT_TASTES`). The same pills sit inside Typography, Buttons,
   Fields and Appearance (`character.scoped`; `dsTasteFonts`,
   `dsTasteButtons`, `dsTasteField`, `dsTasteBackground`), deciding only
   that section. **Appearance** is the background as dials (warmth, hue,
-  colour, brightness), then contrast, roundness, depth, with the colours
-  themselves behind "Show colour controls". The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
+  brightness, hue), then contrast, with the colours themselves behind "Show
+  colour controls"; roundness is with the buttons. The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
   there for any colour a form asks for.
 
 - **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
