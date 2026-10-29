@@ -63,35 +63,39 @@ function polar(el: Element, e: { clientX: number; clientY: number }) {
   };
 }
 
-/** A drag that reports where the pointer is on the wheel, from the press until it's let go. */
 // How far a press on a point moves before it's a drag: a click only picks the point.
 const SLOP = 3;
 
+/** A drag that reports where the pointer is on the wheel, from the press until it's let go. */
 function drag(onMove: (p: { deg: number; dist: number }) => void, slop = 0) {
   return (event: React.PointerEvent<Element>) => {
     const el = event.currentTarget;
     const box = el.closest(FRAME);
     if (!box) return;
     event.preventDefault();
-    try {
-      el.setPointerCapture(event.pointerId);
-    } catch {}
-    // With `slop`, only once the pointer has moved that far (screen pixels), so a click doesn't move what it picks.
+    // What's pressed takes the focus (a hex field being typed in lets go of it, so it shows the new colour).
+    (el as HTMLElement | SVGElement).focus({ preventScroll: true });
+    // The moves are followed on the window, not just over what was pressed, so the drag holds wherever the
+    // pointer goes (a thin arc is easy to slip off, and not every browser captures the pointer for SVG).
+    const id = event.pointerId;
     const start = { x: event.clientX, y: event.clientY };
     let moving = slop === 0;
     if (moving) onMove(polar(box, event));
-    const move = (e: Event) => {
-      const p = e as PointerEvent;
-      if (!moving && Math.hypot(p.clientX - start.x, p.clientY - start.y) < slop) return;
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      if (!moving && Math.hypot(e.clientX - start.x, e.clientY - start.y) < slop) return;
       moving = true;
-      onMove(polar(box, p));
+      onMove(polar(box, e));
     };
-    const up = () => {
-      el.removeEventListener("pointermove", move);
-      el.removeEventListener("pointerup", up);
+    const up = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
     };
-    el.addEventListener("pointermove", move);
-    el.addEventListener("pointerup", up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
   };
 }
 
@@ -287,8 +291,7 @@ export function DsColourWheel({
                   : "inset 0 0 0 1px black, inset 0 0 0 3px white, 0 0 0 1px black",
               }}
               onPointerDown={(event) => {
-                // Focused, so Delete and the arrow keys reach it after a click.
-                event.currentTarget.focus();
+                // Pressing it focuses it (in drag), so Delete and the arrow keys reach it after a click.
                 onSelect(p.id);
                 drag(({ deg, dist }) => set(p, { h: deg, s: toSaturation(dist), v: Math.max(h.v, p.floor ?? 0) }), SLOP)(event);
               }}
