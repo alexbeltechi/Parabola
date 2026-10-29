@@ -3,7 +3,7 @@
 import * as React from "react";
 import { cn } from "../cn";
 import { dsHexToHsv, dsHsvToHex } from "../colours";
-import { DsField, DsInput } from "../primitives/field";
+import { DsField, DsNumberInput } from "../primitives/field";
 
 type Hsv = { h: number; s: number; v: number };
 
@@ -382,7 +382,7 @@ export function DsColourWheel({
           label="Hue"
           value={Math.round(hsv.h) % 360}
           max={359}
-          unit="°"
+          wrap
           onCommit={(n) => set(current, { ...hsv, h: n })}
         />
         <NumberField
@@ -396,43 +396,23 @@ export function DsColourWheel({
   );
 }
 
-/**
- * One of the chosen colour's numbers, a small labelled field: what it is while left alone; while typed in, what's
- * typed, applied as soon as it's a whole number in range.
- */
+/** One of the chosen colour's numbers: a small labelled number field (arrows step it, Shift by 10). */
 function NumberField({
   label,
   value,
   max,
-  unit,
+  wrap,
   onCommit,
 }: {
   label: string;
   value: number;
   max: number;
-  unit?: string;
+  wrap?: boolean;
   onCommit: (n: number) => void;
 }) {
-  const [text, setText] = React.useState<string | null>(null);
   return (
     <DsField size="small" label={label} className="w-full">
-      <DsInput
-        size="small"
-        inputMode="numeric"
-        className="tabular-nums"
-        value={text ?? String(value)}
-        meta={unit}
-        onFocus={(e) => {
-          setText(String(value));
-          e.currentTarget.select();
-        }}
-        onBlur={() => setText(null)}
-        onChange={(e) => {
-          setText(e.target.value);
-          const n = Number.parseInt(e.target.value, 10);
-          if (Number.isFinite(n) && n >= 0 && n <= max) onCommit(n);
-        }}
-      />
+      <DsNumberInput size="small" value={value} max={max} wrap={wrap} onValueChange={onCommit} />
     </DsField>
   );
 }

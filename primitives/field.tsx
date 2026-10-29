@@ -220,6 +220,68 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
 }
 
 /**
+ * Parabola number field: a DsInput for a whole number, as fields with numbers
+ * behave everywhere: the up and down arrows step it (Shift for steps of 10),
+ * kept between `min` and `max` (or, with `wrap`, round past them, as an angle
+ * does); typing shows what's typed and applies it as soon as it's a whole
+ * number in range; leaving it shows the value again. Controlled: `value`,
+ * and `onValueChange` with the new number.
+ */
+export function DsNumberInput({
+  value,
+  onValueChange,
+  min = 0,
+  max,
+  step = 1,
+  wrap = false,
+  className,
+  ...props
+}: Omit<DsInputProps, "value" | "onChange" | "type" | "inputMode"> & {
+  value: number;
+  onValueChange: (value: number) => void;
+  min?: number;
+  max: number;
+  step?: number;
+  /** Past `max` comes round to `min` and back, as degrees do. */
+  wrap?: boolean;
+}) {
+  const [text, setText] = React.useState<string | null>(null);
+  const fit = (n: number) =>
+    wrap ? ((((n - min) % (max - min + 1)) + (max - min + 1)) % (max - min + 1)) + min : Math.min(max, Math.max(min, n));
+  return (
+    <DsInput
+      {...props}
+      inputMode="numeric"
+      className={cn("tabular-nums", className)}
+      value={text ?? String(value)}
+      onFocus={(e) => {
+        setText(String(value));
+        e.currentTarget.select();
+        props.onFocus?.(e);
+      }}
+      onBlur={(e) => {
+        setText(null);
+        props.onBlur?.(e);
+      }}
+      onKeyDown={(e) => {
+        props.onKeyDown?.(e);
+        const delta = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : 0;
+        if (!delta || e.defaultPrevented) return;
+        e.preventDefault();
+        const next = fit(value + delta * step * (e.shiftKey ? 10 : 1));
+        setText(String(next));
+        onValueChange(next);
+      }}
+      onChange={(e) => {
+        setText(e.target.value);
+        const n = Number.parseInt(e.target.value, 10);
+        if (Number.isFinite(n) && n >= min && n <= max) onValueChange(n);
+      }}
+    />
+  );
+}
+
+/**
  * Search field: leading glass and a clear button while you type. Pass
  * `value` and `onValueChange` to control it, or leave them out and read the
  * query some other way (`defaultValue`, a form).

@@ -128,6 +128,7 @@ export {
 export {
   DsField,
   DsInput,
+  DsNumberInput,
   DsSearch,
   DsTextarea,
   useDsField,
