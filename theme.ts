@@ -29,8 +29,9 @@ import { DS_DEFAULT_RADIUS, DS_RADII, DS_RADIUS_MAX, DS_RADIUS_TOKENS, dsRadiusP
  * 2026-10-28; BEL-109), much as shadcn's create page sets a style:
  *
  * - colours: the theme colour (the website's background), fonts and UI (the
- *   text and the greys drawn from it) and the tertiary colour (the
- *   accent: calls to action and highlights), each Parabola's or a hex picked for the light theme, and in
+ *   text and the greys drawn from it), the tertiary colour (the
+ *   accent: buttons, calls to action and highlights), the surface (cards)
+ *   and the quaternary (fields), each Parabola's or a hex picked for the light theme, and in
  *   dark based on the light one (its counterpart) or picked apart (colours.ts);
  * - font families: Font (text) and Heading (headlines) to start, and any a
  *   theme adds, each a name and a font, the font one of Parabola's (fonts.ts)
@@ -88,7 +89,7 @@ export type DsTextStyleConfig = {
 };
 
 export type DsThemeConfig = {
-  /** The theme colour, fonts and UI, and the accent colour, each for light and dark (colours.ts). */
+  /** The primary, secondary, tertiary and quaternary colours and the surface, each for light and dark (colours.ts). */
   colours: DsThemeColours;
   /** Font (text, always there) first; then Heading and any the theme added. */
   families: DsFontFamily[];
@@ -217,6 +218,10 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     coloursRaw.background && typeof coloursRaw.background === "object"
       ? (coloursRaw.background as Record<string, unknown>).light
       : coloursRaw.background;
+  // Buttons were a colour of their own until 2026-10-29; now they're the tertiary (accent), so a theme's buttons
+  // colour becomes its tertiary when it had none.
+  const accent = colour(coloursRaw.accent, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR);
+  const buttons = colour(coloursRaw.button);
   const colours: DsThemeColours =
     coloursRaw.theme || coloursRaw.text || coloursRaw.ui
       ? {
@@ -224,15 +229,15 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
           surface: colour(coloursRaw.surface),
           // Typography was "fonts and UI" for a day.
           text: colour(coloursRaw.text ?? coloursRaw.ui, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR),
-          button: colour(coloursRaw.button),
-          accent: colour(coloursRaw.accent, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR),
+          accent: accent.light === null && buttons.light ? buttons : accent,
+          field: colour(coloursRaw.field),
         }
       : {
           theme: { light: hex(legacyBackground), dark: null },
           surface: { light: null, dark: null },
           text: { light: lightPick(coloursRaw.base, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR), dark: null },
-          button: { light: null, dark: null },
           accent: { light: lightPick(coloursRaw.accent ?? coloursRaw.secondary, DS_ACCENT_COLOURS, DS_DEFAULT_ACCENT_COLOUR), dark: null },
+          field: { light: null, dark: null },
         };
 
   // Families: the list, or an older pair.
@@ -369,7 +374,7 @@ const COLOUR_ROLES: [token: string, role: string][] = [
   ["fg-subtle", "quiet text (captions, placeholders)"],
   ["border", "borders and field outlines"],
   ["surface-subtle", "cards and panels"],
-  ["field", "input fields"],
+  ["field", "quaternary colour, input fields"],
   ["surface", "secondary buttons and image placeholders"],
   ["surface-inverse", "toasts and tooltips"],
   ["highlight", "tertiary colour, the accent (calls to action, highlight pills, what needs attention)"],

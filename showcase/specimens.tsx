@@ -740,11 +740,11 @@ export function Accordion() {
           <DsAccordion title="Colours" actions={more}>
             {o.nested ? (
               <>
-                <DsAccordion title="Theme colour" inset>
+                <DsAccordion title="Primary colour" inset>
                   <p className="text-small text-ds-fg-muted">The page, and what&apos;s on it.</p>
                 </DsAccordion>
                 <DsAccordion title="Surface" inset defaultOpen={false}>
-                  <p className="text-small text-ds-fg-muted">Cards, panels and fields.</p>
+                  <p className="text-small text-ds-fg-muted">Cards and panels.</p>
                 </DsAccordion>
               </>
             ) : (

@@ -119,12 +119,12 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
 
 - **Colours** (`colours.ts`, `DsThemeColours`): the theme colour (the
   website's background; Parabola's is white, its cards a warm off-white #F7F5F2; `dsWithWarmth` makes
-  one warmer or colder), the surface (cards, panels and fields; a shade of
+  one warmer or colder), the surface (cards and panels; a shade of
   the theme colour by default), typography (the text, and the quiet text, borders and shades drawn
   from it; Parabola's is black or white, whichever reads on the page),
-  the tertiary colour (`accent`: calls to action and the highlight; the
-  typography's by default) and buttons (`ds-button` and `ds-on-button`:
-  solid buttons and selected states; the tertiary colour's by default). Each is Parabola's own (null) or a
+  the tertiary colour (`accent`: buttons, `ds-button` and `ds-on-button`,
+  selected states and the highlight; the typography's by default) and the
+  quaternary (`field`: the fields' background; the page's by default). Each is Parabola's own (null) or a
   hex, picked for light; in dark it's based on the light one unless a dark
   colour is picked for it: the page and cards the same hue, about 90% dark
   (`dsCounterpart`, not a flip), text, buttons and the accent moved just

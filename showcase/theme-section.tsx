@@ -31,22 +31,23 @@ import {
 import { InPanel, InPanelFooter, PanelSection, RESTORE, useThemeEditor } from "./theme-editor";
 
 /** The theme's colours on the wheel, in the order they're picked. */
-// The tertiary colour (calls to action, pills) comes right after the text: it's the one picked next, before
-// the surface or buttons of their own (Alex, 2026-10-29).
+// The tertiary (buttons, calls to action, pills) comes right after the text: it's the one picked next; the
+// quaternary (fields) and the surface are optional (Alex, 2026-10-29).
 const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Primary" },
   { kind: "text", label: "Secondary" },
   { kind: "accent", label: "Tertiary" },
+  { kind: "field", label: "Quaternary" },
   { kind: "surface", label: "Surface" },
-  { kind: "button", label: "Buttons" },
 ];
 
 /**
  * The theme's five colours on one wheel, for the light or the dark theme
  * (whichever the preview is in): each a point of one size, solid when it
  * has a colour of its own, an outline while it's based on another (the
- * secondary and the surface on the primary, the tertiary on the secondary,
- * buttons on the tertiary; in dark, each on the light one). Pick one in
+ * secondary, the quaternary (fields) and the surface on the primary, the
+ * tertiary (buttons, pills) on the secondary; in dark, each on the light
+ * one). Pick one in
  * the list under the wheel, then click or drag anywhere on the wheel to
  * put it there. The list: the five as nav items, each with a ⋮ to copy or
  * paste its hex (to give two the same colour) and delete it (back to what
@@ -90,8 +91,8 @@ function ColourWheelChoice({
           label: w.label,
           colour: shown(w.kind),
           based: based(w.kind),
-          // Pages and cards keep their brightness; text, buttons and the tertiary come out as a colour, not black.
-          floor: w.kind === "theme" || w.kind === "surface" ? 0 : w.kind === "text" ? 0.45 : 0.7,
+          // Pages, cards and fields keep their brightness; text and the tertiary come out as a colour, not black.
+          floor: w.kind === "text" ? 0.45 : w.kind === "accent" ? 0.7 : 0,
         }))}
         selected={selected}
         onChange={(id, hex) => set(id as DsColourKind, { [pick]: hex })}
@@ -285,8 +286,8 @@ const LIGHT_BASIS: Record<DsColourKind, string | null> = {
   surface: "primary colour",
   // Black or white, whichever reads on the primary colour, until it's given its own.
   text: "primary colour",
-  button: "tertiary colour",
   accent: "secondary colour",
+  field: "primary colour",
 };
 
 /**
