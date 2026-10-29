@@ -7,8 +7,9 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: the personality (Alex, 2026-10-29), 0 (restrained) through 0.5
- *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky). It moves the
+ * - mood: the personality (Alex, 2026-10-29), 0 (serious) through 0.5
+ *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky), stepped an
+ *   eighth at a time with + Serious and + Playful. It moves the
  *   look inside the style's chips (taste.ts): the fonts, the buttons'
  *   roundness and depth, the colour's saturation and the button colour
  *   (`dsThemeWithMood` in theme.ts), and the voice. With no chips (a theme
@@ -50,14 +51,14 @@ export type DsCharacter = {
   depth: number;
 };
 
-/** Parabola's own look is a style too, Default, so that shows picked. */
-export const DS_DEFAULT_TASTES = ["default"];
+/** Parabola's own look is a style too, Classic, so that shows picked. */
+export const DS_DEFAULT_TASTES = ["classic"];
 
 /** Ids from the Feel and Era tracks, retired the same day for one Style rail and the Mood bar (taste.ts). */
 const RETIRED_TASTES = ["restrained", "technical", "approachable", "luxurious", "bold", "candid", "playful", "wacky", "modern", "contemporary", "futuristic"];
 
-/** Styles renamed or folded into another, the same day: Fashion and Luxury are Elegant, Sci-fi is Tech. */
-const RENAMED_TASTES: Record<string, string> = { fashion: "elegant", luxury: "elegant", scifi: "tech" };
+/** Styles renamed or folded into another, the same day: Fashion and Luxury are Elegant, Sci-fi is Tech, Default and Editorial are Classic. */
+const RENAMED_TASTES: Record<string, string> = { fashion: "elegant", luxury: "elegant", scifi: "tech", default: "classic", editorial: "classic" };
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
@@ -107,13 +108,13 @@ export function dsMoodFonts(mood: number): DsFontPair | null {
   return near?.fonts ?? null;
 }
 
-/** A mood's word, for its bar, Restrained to Wacky. */
+/** A mood's word, Serious to Wacky, for where its steps have got to. */
 export function dsMoodLabel(mood: number): string {
-  if (mood < 0.15) return "Restrained";
-  if (mood < 0.38) return "Calm";
-  if (mood <= 0.62) return "Balanced";
-  if (mood < 0.68) return "Lively";
-  if (mood < 0.88) return "Playful";
+  if (mood < 0.2) return "Serious";
+  if (mood < 0.45) return "Composed";
+  if (mood < 0.55) return "Balanced";
+  if (mood < 0.7) return "Lively";
+  if (mood < 0.95) return "Playful";
   return "Wacky";
 }
 

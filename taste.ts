@@ -3,13 +3,14 @@
  * its aesthetics and its personality.
  *
  * - **Style**, the aesthetics: one rail, one pick, as tabs are, never none
- *   (Default, Minimal, Editorial, Elegant, Tech, Natural, Retro, Sport;
- *   `DS_TASTES`). A style chooses a chip on each section's rail: a palette
- *   in Colour (`DS_PALETTES`), a kind of type in Typography
- *   (`DS_TYPE_STYLES`), a kind of button in Buttons (`DS_BUTTON_LOOKS`).
- *   Parabola's own is Default.
- * - **Mood**, the personality: a bar from Restrained through Balanced and
- *   Playful to Wacky (character.ts). Moving it changes the look you can see
+ *   (Classic, Minimal, Elegant, Tech, Natural, Retro, Sport; `DS_TASTES`).
+ *   A style chooses a chip on each section's rail: a palette in Colour
+ *   (`DS_PALETTES`), a kind of type in Typography (`DS_TYPE_STYLES`), a kind
+ *   of button in Buttons (`DS_BUTTON_LOOKS`). Its first pick of each is its
+ *   own look; › draws variations from the rest. Parabola's own is Classic.
+ * - **Mood**, the personality: stepped with two buttons, + Serious and
+ *   + Playful, from Serious through Balanced to Wacky (character.ts,
+ *   `DS_MOOD_STEP`). Each step changes the look you can see
  *   inside the style: the soberer or the wilder of the type's fonts, flatter
  *   or rounder and deeper buttons, quieter or more saturated colour and a
  *   livelier button colour (`dsThemeWithMood`), and how it speaks (a calm
@@ -20,7 +21,8 @@
  * picked by hand after. (A Feel track, a World track and an Era with rules
  * between its picks came first, the same day; Alex: "too much going on".
  * Fashion became Elegant, which Luxury and Sci-fi were too close to: Luxury
- * went into it, Sci-fi into Tech.)
+ * went into it, Sci-fi into Tech. Default and Editorial became Classic.
+ * Gradients stay off every style; Tactile is there to pick by hand.)
  *
  * These lists are meant to grow. An agent adds a style, a chip, a font pair
  * or a colour from what's current (font trends, a Figma file, Mobbin, an
@@ -78,15 +80,35 @@ export const DS_PALETTES: readonly DsPalette[] = [
   { id: "pastel", label: "Pastel", backgrounds: ["#FFF4E8", "#F2F0FF", "#EEF6F1", "#FDEFF4"], buttons: ["#2F6FEB", "#00A37A", "#7C5CFF", "#FF7A59"], contrast: [-0.25, 0] },
   { id: "vibrant", label: "Vibrant", backgrounds: ["#FFE600", "#FF4F00", "#0F766E", "#FF3EA5", "#3D5AFE"], buttons: ["#111111", "#2F2BFF", "#FFFFFF"], contrast: [0.3, 0.7] },
   // A team's: white or black, one loud primary, hard contrast.
-  { id: "sport", label: "Sport", backgrounds: [null, "#111111", "#F2F2F2"], buttons: ["#111111", "#0057FF", "#E10600", "#C6FF3D"], contrast: [0.4, 0.8] },
+  // A team's and a track's: volt, black, electric blue, blaze orange, a court green; one loud colour on it.
+  {
+    id: "sport",
+    label: "Sport",
+    backgrounds: ["#C6FF3D", "#0B0B0B", "#1F3BFF", "#FF5A1F", "#00C46A", "#FF2E63", null],
+    buttons: ["#0B0B0B", "#FFFFFF", "#C6FF3D", "#FF5A1F", "#1F3BFF"],
+    contrast: [0.4, 0.8],
+  },
   { id: "rich", label: "Rich", backgrounds: ["#F5F1EA", "#121212", "#1E2A24", "#3B2F2A", "#7A1F2B"], buttons: ["#111111", "#8C6A43", "#C9A96E"], contrast: [0.1, 0.4] },
   { id: "vintage", label: "Vintage", backgrounds: ["#F4E9D8", "#F2D7A6", "#E9C46A", "#3B2A20"], buttons: ["#3B2A20", "#2A9D8F", "#D1495B", "#E76F51"], contrast: [-0.1, 0.25] },
   { id: "neon", label: "Neon", backgrounds: ["#05070D", "#0E1A2B", "#2A1B4D", "#1B1035"], buttons: ["#00E5FF", "#B388FF", "#39FF88", "#FF5F1F"], contrast: [0.3, 0.7] },
 ];
 
-/** Typography's chips: a kind of type, its font pairs from the most restrained to the wackiest; Classic is Parabola's own. */
-export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readonly DsFontPair[] }[] = [
-  { id: "classic", label: "Classic", fonts: [] },
+/**
+ * Typography's chips: a kind of type, its four font pairs from the most
+ * serious to the wackiest. Classic's balanced one is Parabola's own (null),
+ * its others keep Parabola's text face under another headline.
+ */
+export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readonly (DsFontPair | null)[] }[] = [
+  {
+    id: "classic",
+    label: "Classic",
+    fonts: [
+      pair("Newsreader", AXES, "Instrument Sans", AXES),
+      null,
+      pair("Fraunces", ":opsz,wght@9..144,400..700", "Instrument Sans", AXES),
+      pair("Abril Fatface", "", "Instrument Sans", AXES),
+    ],
+  },
   {
     id: "editorial",
     label: "Editorial",
@@ -170,21 +192,23 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
 ];
 
 /**
- * Buttons' chips: a kind of button, its roundness and depth (gradient,
- * outline, shadowed label) from restrained to wacky; Outline and Text have
- * no fill, the label in the button colour (`style`).
+ * Buttons' chips: a kind of button, its roundness (and Tactile's depth:
+ * gradient, outline, shadowed label) from serious to wacky; Outline and Text
+ * have no fill, the label in the button colour, Chunky a thick edge
+ * (`style`).
  */
 export const DS_BUTTON_LOOKS: readonly { id: string; label: string; roundness: Range; depth: Range; style?: Partial<DsButtonStyle> }[] = [
   // A product's, as shadcn's are: a small radius, flat.
-  { id: "product", label: "Product", roundness: [0.15, 0.5], depth: [0, 0.2] },
+  { id: "product", label: "Product", roundness: [0.15, 0.5], depth: [0, 0] },
   // Parabola's own: fully round, flat.
-  { id: "soft", label: "Soft", roundness: [1, 1], depth: [0, 0.3] },
-  { id: "sharp", label: "Sharp", roundness: [0, 0.1], depth: [0, 0.3] },
+  { id: "soft", label: "Soft", roundness: [1, 1], depth: [0, 0] },
+  { id: "sharp", label: "Sharp", roundness: [0, 0.1], depth: [0, 0] },
   { id: "outline", label: "Outline", roundness: [0, 1], depth: [0, 0], style: { fill: "none", outline: true, outlineWidth: 1 } },
   { id: "text", label: "Text", roundness: [0.5, 1], depth: [0, 0], style: { fill: "none" } },
-  // Something to press.
+  // Something to press: the one with a gradient, to pick by hand (Alex, 2026-10-29: no gradients in the styles).
   { id: "tactile", label: "Tactile", roundness: [0.3, 0.7], depth: [0.5, 0.95] },
-  { id: "chunky", label: "Chunky", roundness: [0.45, 0.9], depth: [0.3, 0.8] },
+  // Solid with a thick edge, no gradient.
+  { id: "chunky", label: "Chunky", roundness: [0.45, 0.9], depth: [0, 0], style: { outline: true, outlineWidth: 2 } },
 ];
 
 /** A kind of button's own look where it has one (no fill), else null: the depth decides (character.ts). */
@@ -217,15 +241,15 @@ export type DsTaste = {
 
 export const DS_TASTES: DsTaste[] = [
   {
-    id: "default",
-    label: "Default",
-    // Parabola's own: its white, its fonts, its round buttons.
-    palettes: ["classic"],
-    types: ["classic"],
-    buttons: ["soft"],
+    id: "classic",
+    label: "Classic",
+    // Parabola's own first (its white, its fonts, its round buttons), then an editorial paper, serif and square.
+    palettes: ["classic", "earthy"],
+    types: ["classic", "editorial"],
+    buttons: ["soft", "sharp"],
     people: "initials",
     story: "boxed",
-    voice: { tone: "calm", rule: "Plain words and short sentences; nothing shouted." },
+    voice: { tone: "considered", rule: "A point of view, argued: essay-like, specific, unhurried." },
   },
   {
     id: "minimal",
@@ -237,16 +261,6 @@ export const DS_TASTES: DsTaste[] = [
     people: "initials",
     story: "boxed",
     voice: { tone: "calm", rule: "As few words as it takes; let the space speak." },
-  },
-  {
-    id: "editorial",
-    label: "Editorial",
-    palettes: ["classic", "earthy"],
-    types: ["editorial"],
-    buttons: ["sharp", "soft"],
-    people: "initials",
-    story: "boxed",
-    voice: { tone: "considered", rule: "A point of view, argued: essay-like, specific, unhurried." },
   },
   {
     id: "elegant",
@@ -265,7 +279,7 @@ export const DS_TASTES: DsTaste[] = [
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
     types: ["startup", "startup", "futurist"],
-    buttons: ["product", "tactile"],
+    buttons: ["product", "sharp"],
     people: "initials",
     story: "boxed",
     voice: { tone: "precise", rule: "Say what it does, how, and stop. No hype." },
@@ -286,7 +300,7 @@ export const DS_TASTES: DsTaste[] = [
     // Seventies print and old packaging.
     palettes: ["vintage"],
     types: ["retro"],
-    buttons: ["tactile", "chunky"],
+    buttons: ["chunky", "soft"],
     people: "photo",
     story: "plain",
     voice: { tone: "warm", rule: "Nostalgic and a bit of a showman, like an old ad that means it." },
@@ -294,9 +308,10 @@ export const DS_TASTES: DsTaste[] = [
   {
     id: "sport",
     label: "Sport",
-    palettes: ["sport", "vibrant"],
+    // Vibrant, athletic: volt, black, electric blue; neon on dark now and then.
+    palettes: ["sport", "sport", "neon", "vibrant"],
     types: ["funky"],
-    buttons: ["chunky", "sharp"],
+    buttons: ["sharp", "chunky"],
     people: "initials",
     story: "loud",
     voice: { tone: "loud", rule: "Short, strong statements, verbs first." },
@@ -346,13 +361,20 @@ export function dsTasteNames(ids: string[]): string[] {
 /** Where on the Mood bar each of a kind of type's four font pairs takes over: restrained, balanced, playful, wacky. */
 const FONT_STOPS = [0, 0.38, 0.68, 0.88];
 
-/** A font pair of a kind of type at a mood; null for Classic (Parabola's own). */
+/** A font pair of a kind of type at a mood; null for Parabola's own. */
 export function dsTypeStyleFonts(id: string, mood: number): DsFontPair | null {
   const fonts = DS_TYPE_STYLES.find((s) => s.id === id)?.fonts ?? [];
   if (!fonts.length) return null;
   const stop = FONT_STOPS.filter((s) => mood >= s).length - 1;
   return fonts[Math.min(fonts.length - 1, Math.max(0, stop))];
 }
+
+/** How far + Serious or + Playful moves the mood: eight steps from one end to the other, Balanced in the middle. */
+export const DS_MOOD_STEP = 0.125;
+
+/** The mood a step toward Serious (-1) or Playful (+1) lands on, on the steps' grid. */
+export const dsMoodStep = (mood: number, by: -1 | 1) =>
+  Math.min(1, Math.max(0, Math.round(mood / DS_MOOD_STEP + by) * DS_MOOD_STEP));
 
 /**
  * A kind of button at a mood: its roundness along its range, the restrained
@@ -388,33 +410,38 @@ export const dsMoodSaturation = (mood: number) => 0.4 + 1.2 * mood;
 export function dsPaletteDraw(
   id: string,
   current: DsCharacter,
-  mood = current.mood
+  mood = current.mood,
+  first = false
 ): { character: Pick<DsCharacter, "hue" | "colour" | "brightness" | "contrast">; button: string | null } {
   const palette = DS_PALETTES.find((p) => p.id === id) ?? DS_PALETTES[0];
-  const background = pick(palette.backgrounds);
+  const background = first ? palette.backgrounds[0] : pick(palette.backgrounds);
   const hsv = background ? dsHexToHsv(background) : null;
   const character = {
     hue: hsv && hsv.s > 0 ? Math.round(hsv.h) : current.hue,
     colour: hsv ? Math.round(Math.min(1, (hsv.s * dsMoodSaturation(mood)) / dsMoodSaturation(0.5)) * 100) / 100 : 0,
     brightness: hsv ? Math.round(hsv.v * 100) / 100 : 1,
-    contrast: between(palette.contrast),
+    contrast: first ? along(palette.contrast, 0.5) : between(palette.contrast),
   };
   return { character, button: dsPaletteButton(palette.id, { ...current, ...character }, mood) };
 }
 
 /**
- * A look drawn inside the style picked (one at random with none): a chip
- * for each section from its lists, and that combination at the mood set.
- * `wide` (the dice) draws a mood too, and reaches past the style's own
- * palette and type half the time, so a random look is plainly different.
+ * A look drawn inside the style picked (one at random with none), at the
+ * mood set: `first`, the style's own look, the first of each of its lists
+ * (Classic at Balanced is Parabola's own); `vary` (›), any of them; `wide`
+ * (the dice), a mood step too, and past the style's own palette and type
+ * half the time, so a random look is plainly different.
  */
-export function dsShuffleTaste(ids: string[], current: DsCharacter, wide = false): DsTasteDraw {
+export function dsShuffleTaste(ids: string[], current: DsCharacter, how: "first" | "vary" | "wide" = "vary"): DsTasteDraw {
   const style = styleOf(ids) ?? pick(DS_TASTES);
-  const mood = wide ? between([0.1, 0.95]) : current.mood;
-  const colour = wide && Math.random() < 0.5 ? pick(DS_PALETTES).id : pick(style.palettes);
-  const type = wide && Math.random() < 0.5 ? pick(DS_TYPE_STYLES).id : pick(style.types);
-  const buttons = pick(style.buttons);
-  const drawn = dsPaletteDraw(colour, current, mood);
+  const first = how === "first";
+  const wide = how === "wide";
+  const choose = <T>(list: readonly T[]) => (first ? list[0] : pick(list));
+  const mood = wide ? Math.round(between([0, 1]) / DS_MOOD_STEP) * DS_MOOD_STEP : current.mood;
+  const colour = wide && Math.random() < 0.5 ? pick(DS_PALETTES).id : choose(style.palettes);
+  const type = wide && Math.random() < 0.5 ? pick(DS_TYPE_STYLES).id : choose(style.types);
+  const buttons = choose(style.buttons);
+  const drawn = dsPaletteDraw(colour, current, mood, first);
   return {
     character: {
       ...current,

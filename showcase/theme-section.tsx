@@ -124,8 +124,10 @@ import {
   DS_PALETTES,
   DS_TASTES,
   DS_TYPE_STYLES,
+  DS_MOOD_STEP,
   dsButtonLookAt,
   dsButtonLookStyle,
+  dsMoodStep,
   dsPaletteDraw,
   dsPickTaste,
   dsRandomTastes,
@@ -1135,7 +1137,6 @@ function PreviewBrand({
 /** Each taste's icon, by id (taste.ts holds the data, the panel the pictures). */
 const TASTE_ICONS: Record<string, LucideIcon> = {
   // Style's rail (and its namesakes on the others).
-  default: Circle,
   minimal: Minus,
   editorial: Newspaper,
   tech: Terminal,
@@ -1225,8 +1226,8 @@ function useTakes(
     list: DsThemeConfig[];
     at: number;
   }>({ list: [], at: -1 });
-  const drawn = (ids: string[], wide = false) => {
-    const next = dsShuffleTaste(ids, theme.character, wide);
+  const drawn = (ids: string[], how: "first" | "vary" | "wide") => {
+    const next = dsShuffleTaste(ids, theme.character, how);
     const colours = {
       ...DS_DEFAULT_COLOURS,
       accent: { light: next.button, dark: null },
@@ -1252,11 +1253,14 @@ function useTakes(
   };
   const picked = theme.character.tastes;
   // Another variation of the look locked in: the style picked (one at random with none).
-  const fresh = () => show(drawn(picked.length ? picked : dsRandomTastes()));
+  const fresh = () =>
+    show(drawn(picked.length ? picked : dsRandomTastes(), "vary"));
   return {
     canBack: takes.at > 0,
-    dice: () => show(drawn(dsRandomTastes(picked), true)),
-    draw: (ids: string[]) => show(seen.current.get(keyOf(ids)) ?? drawn(ids)),
+    dice: () => show(drawn(dsRandomTastes(picked), "wide")),
+    // A style's own look the first time; the one last seen with it after that.
+    draw: (ids: string[]) =>
+      show(seen.current.get(keyOf(ids)) ?? drawn(ids, "first")),
     reset: () => {
       seen.current.clear();
       setTakes({ list: [], at: -1 });
@@ -1317,17 +1321,14 @@ function TakeControls({ takes }: { takes: Takes }) {
   );
 }
 
-/** The Mood bar's track: a restrained ink to a wacky pink. */
-const MOOD_TRACK =
-  "linear-gradient(to right, #1C1B19, var(--ds-surface), #FF3EA5)";
-
 /**
  * Taste (taste.ts; Alex, 2026-10-29: "aesthetics and personality"): the
- * Style rail, one pick at a time as tabs are (Default, Minimal, Editorial,
- * Elegant, Tech…), which chooses a chip in Colour, Typography and Buttons;
- * then the Mood bar, the personality, Restrained to Wacky, which changes the
- * look you can see inside that style (its fonts, its buttons, its colour,
- * its voice). Parabola's own is Default and Balanced. Picking a style
+ * Style rail, one pick at a time as tabs are (Classic, Minimal, Elegant,
+ * Tech, Natural, Retro, Sport), which chooses a chip in Colour, Typography
+ * and Buttons; then the mood, the personality, stepped with + Serious and
+ * + Playful, which changes the look you can see inside that style (its
+ * fonts, its buttons, its colour, its voice). Parabola's own is Classic and
+ * Balanced. Picking a style
  * changes the look at once (a take, in the player at the top). Restore, at
  * the section's top right, is Parabola's own again.
  */
@@ -1357,17 +1358,55 @@ function TasteChoice({
           onToggle={toggle}
         />
       </div>
-      <DsColourBar
-        label="Mood"
-        readout={dsMoodLabel(character.mood)}
-        value={character.mood}
-        onChange={(x) =>
-          onTheme(dsThemeWithMood(theme, Math.round(x * 100) / 100))
-        }
-        valueText={dsMoodLabel(character.mood)}
-        track={MOOD_TRACK}
-        ends={["Restrained", "Wacky"]}
-      />
+      {/* Mood in steps (Alex, 2026-10-29: two buttons, "plus, plus, plus, minus, minus"), where it's got to above
+          them, the word and a dot for each step. */}
+      <div className="flex flex-col gap-ds-8">
+        <div className="flex items-center justify-between gap-ds-16">
+          <span className="text-p text-ds-fg">Mood</span>
+          <span className="text-p text-ds-fg">
+            {dsMoodLabel(character.mood)}
+          </span>
+        </div>
+        <div
+          className="flex items-center justify-between"
+          role="img"
+          aria-label={`Mood: ${dsMoodLabel(character.mood)}`}
+        >
+          {Array.from({ length: 1 / DS_MOOD_STEP + 1 }, (_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "size-1.5 rounded-full",
+                Math.round(character.mood / DS_MOOD_STEP) === i
+                  ? "bg-ds-fg"
+                  : "bg-ds-border",
+              )}
+            />
+          ))}
+        </div>
+        <div className="flex gap-ds-8">
+          <DsButton
+            iconLeft={Plus}
+            className="flex-1"
+            disabled={character.mood <= 0}
+            onClick={() =>
+              onTheme(dsThemeWithMood(theme, dsMoodStep(character.mood, -1)))
+            }
+          >
+            Serious
+          </DsButton>
+          <DsButton
+            iconLeft={Plus}
+            className="flex-1"
+            disabled={character.mood >= 1}
+            onClick={() =>
+              onTheme(dsThemeWithMood(theme, dsMoodStep(character.mood, 1)))
+            }
+          >
+            Playful
+          </DsButton>
+        </div>
+      </div>
     </div>
   );
 }
