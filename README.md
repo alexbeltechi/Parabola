@@ -135,7 +135,7 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   primary button's fill "none"; Chunky a thick edge; only Tactile has a
   gradient); each can be picked by hand after, one at a time. A style's own
   look is the first of each of its lists; › draws from the rest. Then the **Mood**, the personality, a slider from Serious to Playful
-  (on to Wacky at its end; its track a 1px line, no labels under it; `dsThemeWithMood`); ‹ › and the dice beside Taste's Restore cycle a style's variations, which changes the look inside the style:
+  (on to Wacky at its end; its track a 1px line, no labels under it; `dsThemeWithMood`); Previous and Next under it step through a style's variations, the dice beside Taste's Restore starts over, which changes the look inside the style:
   the kind of type's four font pairs, the buttons' roundness, the colour's
   saturation (`dsMoodSaturation`) and the button colour (`dsPaletteButton`),
   and the voice (`dsTasteVoice`; words placed loose from Playful,

@@ -1331,42 +1331,52 @@ function useTakes(
 type Takes = ReturnType<typeof useTakes>;
 
 /**
- * Back, forward and the dice, at the Taste section's top right beside its
- * Restore (Alex, 2026-10-29: "so that I can cycle there"): back and forward
- * step through variations of the style picked (another Elegant, say),
- * forward drawing a new one at the end; the dice starts over with another
- * style and mood. A variation worth keeping is saved
- * as a new theme, at the panel's foot.
+ * The dice, at the Taste section's top right beside its Restore: starts over
+ * with another style and mood. A look worth keeping is saved as a new theme,
+ * at the panel's foot.
  */
-function TakeControls({ takes }: { takes: Takes }) {
+function DiceControl({ takes }: { takes: Takes }) {
   return (
-    <>
+    <DsButton
+      size="small"
+      variant="text"
+      iconLeft={Dices}
+      aria-label="Random look"
+      title="Random look"
+      onClick={takes.dice}
+    />
+  );
+}
+
+/**
+ * Previous and Next, under the mood (Alex, 2026-10-29), Previous at the left
+ * with its chevron on the left, Next at the right with its chevron on the
+ * right: they step through variations of the style picked (another Elegant,
+ * say), Next drawing a new one at the end.
+ */
+function VariationControls({ takes }: { takes: Takes }) {
+  return (
+    <div className="flex items-center justify-between gap-ds-8">
       <DsButton
         size="small"
         variant="text"
         iconLeft={ChevronLeft}
-        aria-label="Previous variation"
-        title="Previous variation"
+        className="-ml-2"
         disabled={!takes.canBack}
         onClick={takes.back}
-      />
+      >
+        Previous
+      </DsButton>
       <DsButton
         size="small"
         variant="text"
-        iconLeft={ChevronRight}
-        aria-label="Next variation"
-        title="Next variation"
+        iconRight={ChevronRight}
+        className="-mr-2"
         onClick={takes.forward}
-      />
-      <DsButton
-        size="small"
-        variant="text"
-        iconLeft={Dices}
-        aria-label="Random look"
-        title="Random look"
-        onClick={takes.dice}
-      />
-    </>
+      >
+        Next
+      </DsButton>
+    </div>
   );
 }
 
@@ -1381,9 +1391,9 @@ const MOOD_LINE =
  * and Buttons; then the Mood slider, the personality, Serious to Playful
  * (on to Wacky at its end), which changes the look you can see inside that style (its
  * fonts, its buttons, its colour, its voice). Parabola's own is Classic and
- * Balanced. Picking a style
- * changes the look at once (a take, in the player at the top). Restore, at
- * the section's top right, is Parabola's own again.
+ * Balanced. Picking a style changes the look at once (a take); Previous and
+ * Next under the mood step through its variations, the dice at the top
+ * right starts over. Restore, beside the dice, is Parabola's own again.
  */
 function TasteChoice({
   theme,
@@ -1423,6 +1433,7 @@ function TasteChoice({
         valueText={dsMoodLabel(character.mood)}
         track={MOOD_LINE}
       />
+      <VariationControls takes={takes} />
     </div>
   );
 }
@@ -2278,7 +2289,7 @@ export function ThemeSection() {
           title="Taste"
           actions={
             <div className="flex items-center gap-ds-4">
-              <TakeControls takes={takes} />
+              <DiceControl takes={takes} />
               <SectionRestore
                 section="Taste"
                 theme={theme}
