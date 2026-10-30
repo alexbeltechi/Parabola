@@ -447,7 +447,7 @@ export function Radio() {
   );
 }
 
-/** A long prompt for the long and scrolling versions of the textarea and copy field. */
+/** A long prompt for the long versions of the textarea and copy field. */
 const LONG_PROMPT = Array.from(
   { length: 6 },
   (_, i) =>
@@ -455,7 +455,7 @@ const LONG_PROMPT = Array.from(
 ).join("\n");
 
 export function TextareaField() {
-  const [o, setO] = useState({ label: false, description: false, error: false, focus: false, fill: false, copyable: false, scroll: false });
+  const [o, setO] = useState({ label: false, description: false, error: false, focus: false, fill: false, copyable: false, showMore: false });
   return (
     <Specimen
       wide={o.fill}
@@ -470,16 +470,16 @@ export function TextareaField() {
             placeholder="Write something…"
             showFocus={o.focus}
             copyable={o.copyable}
-            scroll={o.scroll}
-            defaultValue={o.scroll ? LONG_PROMPT : undefined}
-            key={o.scroll ? "long" : "short"}
+            collapsible={o.showMore}
+            defaultValue={o.showMore ? LONG_PROMPT : undefined}
+            key={o.showMore ? "long" : "short"}
           />
         </DsField>
       }
       controls={
         <Controls
           options={o}
-          labels={{ label: "Label", description: "Description", error: "Error", focus: "Focus", fill: "Fill the row", copyable: "Copy", scroll: "Scroll" }}
+          labels={{ label: "Label", description: "Description", error: "Error", focus: "Focus", fill: "Fill the row", copyable: "Copy", showMore: "Show more" }}
           onChange={(next) => setO(exclusiveNote(o, next))}
         />
       }
@@ -1193,10 +1193,10 @@ export function InfoCard() {
   );
 }
 
-/** Fields › Copy: a read-only value with a copy button inside, on one cut-short line, wrapped, or scrolling. */
+/** Fields › Copy: a read-only value with a copy button inside, on one cut-short line, wrapped, or six lines and Show more. */
 export function CopyField() {
-  const [o, setO] = useState({ wrap: false, scroll: false, mono: false, label: true });
-  const long = o.wrap || o.scroll;
+  const [o, setO] = useState({ wrap: false, showMore: false, mono: false, label: true });
+  const long = o.wrap || o.showMore;
   return (
     <Specimen
       wide={long}
@@ -1204,7 +1204,7 @@ export function CopyField() {
         <DsField label={o.label && "Prompt"} className={long ? "w-full" : undefined}>
           <DsCopyField
             wrap={o.wrap}
-            scroll={o.scroll}
+            collapsible={o.showMore}
             mono={o.mono}
             value={long ? LONG_PROMPT : "Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do."}
           />
@@ -1213,8 +1213,8 @@ export function CopyField() {
       controls={
         <Controls
           options={o}
-          labels={{ wrap: "Wrap", scroll: "Scroll", mono: "Monospace", label: "Label" }}
-          onChange={(next) => setO({ ...next, ...(next.scroll && !o.scroll ? { wrap: false } : {}), ...(next.wrap && !o.wrap ? { scroll: false } : {}) })}
+          labels={{ wrap: "Wrap", showMore: "Show more", mono: "Monospace", label: "Label" }}
+          onChange={(next) => setO({ ...next, ...(next.showMore && !o.showMore ? { wrap: false } : {}), ...(next.wrap && !o.wrap ? { showMore: false } : {}) })}
         />
       }
     />

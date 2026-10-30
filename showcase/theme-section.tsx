@@ -62,7 +62,7 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt } from "../brand-kit";
+import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste } from "../brand-kit";
 import { DsAccordion } from "../primitives/accordion";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsButton } from "../primitives/button";
@@ -155,7 +155,6 @@ import {
   dsThemeWithFonts,
   dsThemeWithMood,
   parseDsThemeConfig,
-  parseDsThemeExport,
   type DsThemeConfig,
 } from "../theme";
 import { dsZip } from "../zip";
@@ -478,17 +477,17 @@ function ThemeShare({
             </>
           }
         >
-          <DsCopyField scroll mono value={prompt} aria-label="Your design system, to paste" />
+          <DsCopyField collapsible mono value={prompt} aria-label="Your design system, to paste" />
         </DsField>
         <DsField
           label="Parabola code"
           className="w-full"
-          description="This theme as Parabola reads it. Paste one in to open it here."
-          error={invalid ? "That isn't a Parabola theme." : undefined}
+          description="This theme as Parabola reads it. Paste one in to open it here: Parabola code, or a design system made from Parabola, back from Claude."
+          error={invalid ? "That isn't from Parabola. A design system made elsewhere needs your agent to turn it into a theme." : undefined}
         >
           <DsTextarea
             copyable
-            scroll
+            collapsible
             className="font-mono [&_textarea]:text-small"
             spellCheck={false}
             value={text}
@@ -502,12 +501,9 @@ function ThemeShare({
             }}
             onChange={(e) => {
               setText(e.target.value);
-              try {
-                setTheme(parseDsThemeExport(JSON.parse(e.target.value)));
-                setInvalid(false);
-              } catch {
-                setInvalid(true);
-              }
+              const pasted = dsThemeFromPaste(e.target.value);
+              if (pasted) setTheme(pasted);
+              setInvalid(!pasted);
             }}
           />
         </DsField>

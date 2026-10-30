@@ -180,6 +180,13 @@
   }
 }
 
+/* Show more, closed (primitives/show-more.tsx): the last lines fade out, so
+   the text reads as going on. */
+@utility ds-show-more-fade {
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+
 /* Parabola hover: lays the hover wash over the control's own background, so
    one rule works for every surface and theme (tokens: --ds-hover,
    --ds-hover-inverse). */
