@@ -9,6 +9,8 @@ import {
   ChevronUp,
   ClipboardPaste,
   Copy,
+  Download,
+  ExternalLink,
   Archive,
   ArrowLeft,
   ArrowRight,
@@ -61,6 +63,7 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
+import { dsBrandKit, dsBrandKitClaudePrompt, dsBrandKitFiles } from "../brand-kit";
 import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import {
@@ -148,7 +151,6 @@ import {
   DS_HEADING_FAMILY,
   dsThemeButtons,
   dsThemeColourTokens,
-  dsThemeExport,
   dsThemeRadius,
   dsThemeWithFonts,
   dsThemeWithMood,
@@ -156,6 +158,7 @@ import {
   parseDsThemeExport,
   type DsThemeConfig,
 } from "../theme";
+import { dsZip } from "../zip";
 import {
   InPanel,
   InPanelFooter,
@@ -397,15 +400,55 @@ function SectionRestore({
 /** The theme dropdown's last option, which adds a theme rather than opening one. */
 const ADD_THEME = "__add-theme";
 
+/** A read-only text to copy: a few lines high, the rest a scroll away inside it. */
+function ShareText({ label, text }: { label: string; text: string }) {
+  return (
+    <pre
+      aria-label={label}
+      tabIndex={0}
+      className="max-h-[180px] w-full overflow-auto whitespace-pre-wrap break-words rounded-ds-md border border-ds-field-border bg-ds-field px-3 py-2 font-mono text-small text-ds-fg"
+    >
+      {text}
+    </pre>
+  );
+}
+
+/** One way out of the panel: its name, a line on what it's for, what to press, then what it hands over. */
+function ShareWay({
+  title,
+  description,
+  actions,
+  children,
+}: {
+  title: string;
+  description: string;
+  actions: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-ds-8">
+      <div className="flex flex-col gap-ds-4">
+        <span className="text-p text-ds-fg">{title}</span>
+        <span className="text-small text-ds-fg-muted">{description}</span>
+      </div>
+      <div className="flex flex-wrap gap-ds-8">{actions}</div>
+      {children}
+    </div>
+  );
+}
+
+function copy(text: string, done: string) {
+  navigator.clipboard.writeText(text).then(() => dsToast.success(done));
+}
+
 /**
- * The open theme as code, folded at the panel's foot: a full export
- * (`dsThemeExport`) a person or an AI can build from as it is (every colour
- * by its role in light and dark, the fonts, the type scale, the corners) and
- * Parabola can read back. It shows its first lines; a click in selects it
- * all. Copy it to keep it, share it or hand it to a prompt; paste one in
- * (or just its settings) and it's applied at once.
+ * Share, folded at the panel's foot: the open theme as a brand kit
+ * (brand-kit.ts), every way out from one source. The kit to download (the
+ * guide, Claude's tokens, the CSS and the theme), the guide to paste into
+ * any agent, a design system in Claude, and Parabola's own code, which a
+ * paste reads back and applies at once. Nothing goes anywhere on its own.
  */
-function ThemeCode({
+function ThemeShare({
   theme,
   name,
   setTheme,
@@ -414,10 +457,8 @@ function ThemeCode({
   name: string;
   setTheme: (theme: DsThemeConfig) => void;
 }) {
-  const code = React.useMemo(
-    () => JSON.stringify(dsThemeExport(theme, name), null, 2),
-    [theme, name],
-  );
+  const kit = React.useMemo(() => dsBrandKit(theme, name), [theme, name]);
+  const code = React.useMemo(() => JSON.stringify(kit.theme, null, 2), [kit]);
   const [text, setText] = React.useState(code);
   const [invalid, setInvalid] = React.useState(false);
   // A click in selects it all (copy takes the whole theme, a paste replaces it); the mouse coming up keeps that.
@@ -429,49 +470,98 @@ function ThemeCode({
     setText(code);
     setInvalid(false);
   }
+  const download = () => {
+    const files = Object.fromEntries(
+      Object.entries(dsBrandKitFiles(kit)).map(([path, body]) => [`brand-kit/${path}`, body])
+    );
+    const url = URL.createObjectURL(new Blob([dsZip(files)], { type: "application/zip" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name} brand kit.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   return (
-    <DsAccordion
-      title="Code"
-      defaultOpen={false}
-      actions={
-        <DsButton
-          size="small"
-          variant="text"
-          iconLeft={Copy}
-          aria-label="Copy the theme as code"
-          onClick={() =>
-            navigator.clipboard
-              .writeText(code)
-              .then(() => dsToast.success("Theme copied"))
+    <DsAccordion title="Share" defaultOpen={false}>
+      <div className="flex flex-col gap-ds-20">
+        <ShareWay
+          title="Brand kit"
+          description="Your brand as files: the guide (README.md), tokens for Claude and code, the CSS, and this theme. Put them wherever you work."
+          actions={
+            <DsButton size="small" iconLeft={Download} onClick={download}>
+              Download
+            </DsButton>
           }
         />
-      }
-    >
-      {/* The first ten lines or so, the rest a scroll away, fading out at the foot. */}
-      <DsTextarea
-        aria-label="The theme as code"
-        className="relative w-full font-mono after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-10 after:rounded-b-ds-lg after:bg-gradient-to-t after:from-ds-field after:to-transparent [&_textarea]:max-h-[180px] [&_textarea]:overflow-y-auto [&_textarea]:text-small"
-        spellCheck={false}
-        value={text}
-        invalid={invalid}
-        onFocus={(e) => {
-          e.currentTarget.select();
-          justFocused.current = true;
-        }}
-        onMouseUp={(e) => {
-          if (justFocused.current) e.preventDefault();
-          justFocused.current = false;
-        }}
-        onChange={(e) => {
-          setText(e.target.value);
-          try {
-            setTheme(parseDsThemeExport(JSON.parse(e.target.value)));
-            setInvalid(false);
-          } catch {
-            setInvalid(true);
+        <ShareWay
+          title="For your agent"
+          description="Paste this into any AI before it makes something for you: a page, a deck, a post, an email."
+          actions={
+            <DsButton size="small" iconLeft={Copy} onClick={() => copy(kit.readme, "Brand guide copied")}>
+              Copy
+            </DsButton>
           }
-        }}
-      />
+        >
+          <ShareText label="The brand guide" text={kit.readme} />
+        </ShareWay>
+        <ShareWay
+          title="Claude Design"
+          description="Makes your brand a design system in Claude, so the designs and decks it makes use it. Copy, open Claude, paste."
+          actions={
+            <>
+              <DsButton
+                size="small"
+                iconLeft={Copy}
+                onClick={() => copy(dsBrandKitClaudePrompt(kit), "Copied for Claude: paste it into a new chat")}
+              >
+                Copy for Claude
+              </DsButton>
+              <DsButton
+                size="small"
+                variant="text"
+                iconRight={ExternalLink}
+                onClick={() => window.open("https://claude.ai/new", "_blank", "noopener")}
+              >
+                Open Claude
+              </DsButton>
+            </>
+          }
+        />
+        <ShareWay
+          title="Parabola code"
+          description="This theme as Parabola reads it. Paste one in to open it here."
+          actions={
+            <DsButton size="small" iconLeft={Copy} onClick={() => copy(code, "Theme copied")}>
+              Copy
+            </DsButton>
+          }
+        >
+          <DsTextarea
+            aria-label="The theme as code"
+            className="w-full font-mono [&_textarea]:max-h-[180px] [&_textarea]:overflow-y-auto [&_textarea]:text-small"
+            spellCheck={false}
+            value={text}
+            invalid={invalid}
+            onFocus={(e) => {
+              e.currentTarget.select();
+              justFocused.current = true;
+            }}
+            onMouseUp={(e) => {
+              if (justFocused.current) e.preventDefault();
+              justFocused.current = false;
+            }}
+            onChange={(e) => {
+              setText(e.target.value);
+              try {
+                setTheme(parseDsThemeExport(JSON.parse(e.target.value)));
+                setInvalid(false);
+              } catch {
+                setInvalid(true);
+              }
+            }}
+          />
+        </ShareWay>
+      </div>
     </DsAccordion>
   );
 }
@@ -2587,7 +2677,7 @@ export function ThemeSection() {
           </DsField>
         </PanelSection>
 
-        <ThemeCode theme={theme} name={entry.name} setTheme={setTheme} />
+        <ThemeShare theme={theme} name={entry.name} setTheme={setTheme} />
       </InPanel>
 
       {/* At the panel's foot while Custom, the working copy, is open (a variation, say): save it as a theme of its own. */}

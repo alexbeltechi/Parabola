@@ -226,6 +226,27 @@ An app that hosts Parabola's fonts (the CMS does, with next/font) sets
 library and a saver to `DsProvider` (`themeLibrary`, `onThemeLibraryChange`)
 and `/parabola` publishes too.
 
+## Sharing a theme
+
+**Share**, at the foot of the theme panel, hands the open theme over as a
+**brand kit** (`brand-kit.ts`), one source with four ways out. Nothing goes
+anywhere on its own; the maker puts it where they work.
+
+- **Brand kit**: a zip (`zip.ts`, no dependency) with `README.md` (the brand
+  guide), `tokens.json`, `tokens.css` and `parabola-theme.json`.
+- **For your agent**: the guide to paste into any AI before it makes a page,
+  a document, a deck, a post or an email. `dsBrandKit(theme, name).readme`.
+- **Claude Design**: a prompt (`dsBrandKitClaudePrompt`) that makes the kit a
+  Design System in Claude, so its designs and decks use the brand. The
+  `tokens.json` is in the shape that type reads: each family a list of
+  `{ name, value, usage }`, colours with light and dark themes.
+- **Parabola code**: the theme as `dsThemeExport` writes it; paste one in to
+  open it.
+
+Every value in the kit comes from the theme (colours, fonts, type styles,
+spacing, corners, buttons, the voice from `dsTasteVoice`); the guide adds
+only the rules for using them.
+
 ## Using it
 
 ```tsx
