@@ -236,19 +236,26 @@ anywhere on its own; the maker puts it where they work.
   guide), `tokens.json`, `tokens.css` and `parabola-theme.json`.
 - **Design system**: one text (`dsBrandKitPrompt`) for Claude Design or any
   agent to build the design system from: the guide and the tokens, in a
-  scrolling copy field. Its hint's "Claude Design" copies it and opens
+  copy field with Show more. Its hint's "Claude Design" copies it and opens
   Claude. `tokens.json` is in the shape Claude's Design System reads: each
   family a list of `{ name, value, usage }`, colours with light and dark.
 - **Parabola code**: the theme as `dsThemeExport` writes it, in a textarea
-  with copy and scroll on; paste one in to open it.
+  with copy and Show more on. Paste one in to open it: Parabola code, a
+  kit's `tokens.json`, or the whole design-system text back from Claude
+  (`dsThemeFromPaste`). The kit's `tokens.json` carries the theme under
+  `meta.parabola`, so a design system made from Parabola comes back exactly.
+  One made elsewhere is refused: turning it into a theme is an agent's job.
 
 Every value in the kit comes from the theme (colours, fonts, type styles,
 spacing, corners, buttons, the voice from `dsTasteVoice`); the guide adds
 only the rules for using them.
 
 Copy inside a field is one button, `DsCopyButton`: DsCopyField always has
-it, a DsTextarea takes it with `copyable`. Both take `scroll`: about ten
-lines high, the rest scrolling inside.
+it, a DsTextarea takes it with `copyable`. Over several lines it floats in
+the top right corner on the default button's grey, the text running under
+it. Both take `collapsible` (`show-more.tsx`): six lines fading out and
+Show more, then the whole text in the page. Never a scroll inside a scroll:
+it's hard to work on a phone.
 
 ## Using it
 

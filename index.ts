@@ -223,5 +223,5 @@ export {
   type DsFieldStyle,
 } from "./button-style";
 export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
-export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, type DsBrandKit } from "./brand-kit";
+export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";

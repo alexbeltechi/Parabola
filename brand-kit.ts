@@ -17,7 +17,7 @@
 import { dsMoodLabel } from "./character";
 import { DS_SPACES } from "./spacing";
 import { dsTasteNames, dsTasteVoice } from "./taste";
-import { dsThemeColourTokens, dsThemeCss, dsThemeExport, type DsThemeConfig } from "./theme";
+import { dsThemeColourTokens, dsThemeCss, dsThemeExport, parseDsThemeConfig, type DsThemeConfig } from "./theme";
 
 /** The colours a brand kit names, each with what it's for (the tokens tokens.css sets as `--ds-<name>`). */
 const KIT_COLOURS: [token: string, usage: string][] = [
@@ -75,7 +75,8 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
   const tokens = {
     name,
     version: 1,
-    meta: { source: "Parabola" },
+    // The theme itself rides along, so a design system made from this kit comes back into Parabola exactly.
+    meta: { source: "Parabola", parabola: theme },
     color: {
       themes: [
         { id: "light", name: "Light" },
@@ -223,4 +224,26 @@ export function dsBrandKitPrompt(kit: DsBrandKit): string {
     "=== tokens.json ===",
     JSON.stringify(kit.tokens, null, 2),
   ].join("\n");
+}
+
+/**
+ * A theme from whatever was pasted: Parabola's code, a kit's tokens.json, or
+ * the whole design-system text (its tokens.json part), as long as it came
+ * from Parabola and carries the theme. Null for anything else: a design
+ * system made elsewhere needs an agent to turn it into a theme.
+ */
+export function dsThemeFromPaste(text: string): DsThemeConfig | null {
+  const json = (raw: string) => {
+    try {
+      return JSON.parse(raw) as unknown;
+    } catch {
+      return null;
+    }
+  };
+  const marker = text.indexOf("=== tokens.json ===");
+  const value = json(text) ?? (marker >= 0 ? json(text.slice(marker + "=== tokens.json ===".length)) : null);
+  if (!value || typeof value !== "object") return null;
+  const raw = value as { settings?: unknown; meta?: { parabola?: unknown }; character?: unknown };
+  const theme = raw.settings ?? raw.meta?.parabola ?? (raw.character ? raw : null);
+  return theme ? parseDsThemeConfig(theme) : null;
 }
