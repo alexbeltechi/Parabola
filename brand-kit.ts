@@ -209,13 +209,14 @@ export function dsBrandKitFiles(kit: DsBrandKit): Record<string, string> {
 }
 
 /**
- * What to paste into Claude to make the kit a design system there: the guide
- * as the system's README and the tokens in the shape it reads.
+ * The kit as one text to paste into Claude Design or any agent: build the
+ * design system from it. The guide (README.md) and the tokens (tokens.json,
+ * in the shape Claude's Design System reads), each given as it is.
  */
-export function dsBrandKitClaudePrompt(kit: DsBrandKit): string {
+export function dsBrandKitPrompt(kit: DsBrandKit): string {
   return [
-    `Make "${kit.name}" a Design System in Claude, from my brand kit below (made with Parabola).`,
-    "Use the README as the system's README.md, word for word, and the JSON as its tokens.json, exactly as given. Don't invent values or components; add a cover.",
+    `Build my design system, "${kit.name}", from the brand guide and tokens below (made with Parabola).`,
+    "In Claude Design, make it a Design System: the guide is its README.md, word for word, and the JSON its tokens.json, exactly as given. Anywhere else, use them as the design system's source. Don't invent values.",
     "",
     "=== README.md ===",
     kit.readme,

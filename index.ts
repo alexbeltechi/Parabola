@@ -163,6 +163,7 @@ export { DsSwitch } from "./primitives/switch";
 export { DsTopBar, type DsTopBarSurface } from "./primitives/top-bar";
 export { DsThemeToggle } from "./primitives/theme-toggle";
 export { DsToaster, DsToast, DsToastAction, dsToast } from "./primitives/toast";
+export { DsCopyButton } from "./primitives/copy-button";
 export { DsCopyField } from "./primitives/copy-field";
 export { DsProgress, dsSegmentColor, type DsProgressSegment } from "./primitives/progress";
 export { DsTooltip } from "./primitives/tooltip";
@@ -222,5 +223,5 @@ export {
   type DsFieldStyle,
 } from "./button-style";
 export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
-export { dsBrandKit, dsBrandKitClaudePrompt, dsBrandKitFiles, type DsBrandKit } from "./brand-kit";
+export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";

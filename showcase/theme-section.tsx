@@ -10,7 +10,6 @@ import {
   ClipboardPaste,
   Copy,
   Download,
-  ExternalLink,
   Archive,
   ArrowLeft,
   ArrowRight,
@@ -63,8 +62,9 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { dsBrandKit, dsBrandKitClaudePrompt, dsBrandKitFiles } from "../brand-kit";
+import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt } from "../brand-kit";
 import { DsAccordion } from "../primitives/accordion";
+import { DsCopyField } from "../primitives/copy-field";
 import { DsButton } from "../primitives/button";
 import {
   DsConfirmDialog,
@@ -400,53 +400,16 @@ function SectionRestore({
 /** The theme dropdown's last option, which adds a theme rather than opening one. */
 const ADD_THEME = "__add-theme";
 
-/** A read-only text to copy: a few lines high, the rest a scroll away inside it. */
-function ShareText({ label, text }: { label: string; text: string }) {
-  return (
-    <pre
-      aria-label={label}
-      tabIndex={0}
-      className="max-h-[180px] w-full overflow-auto whitespace-pre-wrap break-words rounded-ds-md border border-ds-field-border bg-ds-field px-3 py-2 font-mono text-small text-ds-fg"
-    >
-      {text}
-    </pre>
-  );
-}
-
-/** One way out of the panel: its name, a line on what it's for, what to press, then what it hands over. */
-function ShareWay({
-  title,
-  description,
-  actions,
-  children,
-}: {
-  title: string;
-  description: string;
-  actions: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-ds-8">
-      <div className="flex flex-col gap-ds-4">
-        <span className="text-p text-ds-fg">{title}</span>
-        <span className="text-small text-ds-fg-muted">{description}</span>
-      </div>
-      <div className="flex flex-wrap gap-ds-8">{actions}</div>
-      {children}
-    </div>
-  );
-}
-
-function copy(text: string, done: string) {
-  navigator.clipboard.writeText(text).then(() => dsToast.success(done));
-}
+/** Where "Claude Design" in the design system's hint opens, with the text copied first. */
+const CLAUDE_URL = "https://claude.ai/new";
 
 /**
  * Share, folded at the panel's foot: the open theme as a brand kit
  * (brand-kit.ts), every way out from one source. The kit to download (the
- * guide, Claude's tokens, the CSS and the theme), the guide to paste into
- * any agent, a design system in Claude, and Parabola's own code, which a
- * paste reads back and applies at once. Nothing goes anywhere on its own.
+ * guide, Claude's tokens, the CSS and the theme); the design system as one
+ * text for Claude Design or any agent, its hint's "Claude Design" copying it
+ * and opening Claude; and Parabola's own code, which a paste reads back and
+ * applies at once. Nothing goes anywhere on its own.
  */
 function ThemeShare({
   theme,
@@ -458,6 +421,7 @@ function ThemeShare({
   setTheme: (theme: DsThemeConfig) => void;
 }) {
   const kit = React.useMemo(() => dsBrandKit(theme, name), [theme, name]);
+  const prompt = React.useMemo(() => dsBrandKitPrompt(kit), [kit]);
   const code = React.useMemo(() => JSON.stringify(kit.theme, null, 2), [kit]);
   const [text, setText] = React.useState(code);
   const [invalid, setInvalid] = React.useState(false);
@@ -484,64 +448,50 @@ function ThemeShare({
   return (
     <DsAccordion title="Share" defaultOpen={false}>
       <div className="flex flex-col gap-ds-20">
-        <ShareWay
-          title="Brand kit"
-          description="Your brand as files: the guide (README.md), tokens for Claude and code, the CSS, and this theme. Put them wherever you work."
-          actions={
-            <DsButton size="small" iconLeft={Download} onClick={download}>
-              Download
-            </DsButton>
-          }
-        />
-        <ShareWay
-          title="For your agent"
-          description="Paste this into any AI before it makes something for you: a page, a deck, a post, an email."
-          actions={
-            <DsButton size="small" iconLeft={Copy} onClick={() => copy(kit.readme, "Brand guide copied")}>
-              Copy
-            </DsButton>
-          }
-        >
-          <ShareText label="The brand guide" text={kit.readme} />
-        </ShareWay>
-        <ShareWay
-          title="Claude Design"
-          description="Makes your brand a design system in Claude, so the designs and decks it makes use it. Copy, open Claude, paste."
-          actions={
+        <div className="flex flex-col gap-ds-8">
+          <div className="flex flex-col gap-ds-4">
+            <span className="text-p text-ds-fg">Brand kit</span>
+            <span className="text-small text-ds-fg-muted">
+              Your brand as files: the guide, tokens for Claude and code, the CSS and this theme. Put them wherever you work.
+            </span>
+          </div>
+          <DsButton size="small" iconLeft={Download} className="self-start" onClick={download}>
+            Download
+          </DsButton>
+        </div>
+        <DsField
+          label="Design system"
+          className="w-full"
+          description={
             <>
-              <DsButton
-                size="small"
-                iconLeft={Copy}
-                onClick={() => copy(dsBrandKitClaudePrompt(kit), "Copied for Claude: paste it into a new chat")}
+              Paste into{" "}
+              <a
+                href={CLAUDE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ds-fg underline decoration-ds-border underline-offset-2 hover:decoration-ds-fg"
+                onClick={() => navigator.clipboard.writeText(prompt).then(() => dsToast("Copied: paste it into Claude"))}
               >
-                Copy for Claude
-              </DsButton>
-              <DsButton
-                size="small"
-                variant="text"
-                iconRight={ExternalLink}
-                onClick={() => window.open("https://claude.ai/new", "_blank", "noopener")}
-              >
-                Open Claude
-              </DsButton>
+                Claude Design
+              </a>{" "}
+              or any agent to build your design system with these specifications.
             </>
           }
-        />
-        <ShareWay
-          title="Parabola code"
+        >
+          <DsCopyField scroll mono value={prompt} aria-label="Your design system, to paste" />
+        </DsField>
+        <DsField
+          label="Parabola code"
+          className="w-full"
           description="This theme as Parabola reads it. Paste one in to open it here."
-          actions={
-            <DsButton size="small" iconLeft={Copy} onClick={() => copy(code, "Theme copied")}>
-              Copy
-            </DsButton>
-          }
+          error={invalid ? "That isn't a Parabola theme." : undefined}
         >
           <DsTextarea
-            aria-label="The theme as code"
-            className="w-full font-mono [&_textarea]:max-h-[180px] [&_textarea]:overflow-y-auto [&_textarea]:text-small"
+            copyable
+            scroll
+            className="font-mono [&_textarea]:text-small"
             spellCheck={false}
             value={text}
-            invalid={invalid}
             onFocus={(e) => {
               e.currentTarget.select();
               justFocused.current = true;
@@ -560,7 +510,7 @@ function ThemeShare({
               }
             }}
           />
-        </ShareWay>
+        </DsField>
       </div>
     </DsAccordion>
   );
