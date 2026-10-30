@@ -447,8 +447,15 @@ export function Radio() {
   );
 }
 
+/** A long prompt for the long and scrolling versions of the textarea and copy field. */
+const LONG_PROMPT = Array.from(
+  { length: 6 },
+  (_, i) =>
+    `${i + 1}. Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do, step by step, and what each step is for.`
+).join("\n");
+
 export function TextareaField() {
-  const [o, setO] = useState({ label: false, description: false, error: false, focus: false, fill: false });
+  const [o, setO] = useState({ label: false, description: false, error: false, focus: false, fill: false, copyable: false, scroll: false });
   return (
     <Specimen
       wide={o.fill}
@@ -459,13 +466,20 @@ export function TextareaField() {
           error={o.error && "Keep it under 200 characters"}
           className={o.fill ? "w-full" : undefined}
         >
-          <DsTextarea placeholder="Write something…" showFocus={o.focus} />
+          <DsTextarea
+            placeholder="Write something…"
+            showFocus={o.focus}
+            copyable={o.copyable}
+            scroll={o.scroll}
+            defaultValue={o.scroll ? LONG_PROMPT : undefined}
+            key={o.scroll ? "long" : "short"}
+          />
         </DsField>
       }
       controls={
         <Controls
           options={o}
-          labels={{ label: "Label", description: "Description", error: "Error", focus: "Focus", fill: "Fill the row" }}
+          labels={{ label: "Label", description: "Description", error: "Error", focus: "Focus", fill: "Fill the row", copyable: "Copy", scroll: "Scroll" }}
           onChange={(next) => setO(exclusiveNote(o, next))}
         />
       }
@@ -1179,19 +1193,30 @@ export function InfoCard() {
   );
 }
 
-/** Fields › Copy: a read-only value with a copy button inside, on one cut-short line or wrapped. */
+/** Fields › Copy: a read-only value with a copy button inside, on one cut-short line, wrapped, or scrolling. */
 export function CopyField() {
+  const [o, setO] = useState({ wrap: false, scroll: false, mono: false, label: true });
+  const long = o.wrap || o.scroll;
   return (
-    <div className={DS_FIELDS_CLASS}>
-      <DsField label="Prompt">
-        <DsCopyField value="Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do." />
-      </DsField>
-      <DsField label="Command">
-        <DsCopyField mono value="npm run reset-password -- you@example.com" />
-      </DsField>
-      <DsField label="Prompt, wrapped" description="wrap: the whole text, the box growing downward; past ten lines it's cut short.">
-        <DsCopyField wrap value="Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do." />
-      </DsField>
-    </div>
+    <Specimen
+      wide={long}
+      preview={
+        <DsField label={o.label && "Prompt"} className={long ? "w-full" : undefined}>
+          <DsCopyField
+            wrap={o.wrap}
+            scroll={o.scroll}
+            mono={o.mono}
+            value={long ? LONG_PROMPT : "Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do."}
+          />
+        </DsField>
+      }
+      controls={
+        <Controls
+          options={o}
+          labels={{ wrap: "Wrap", scroll: "Scroll", mono: "Monospace", label: "Label" }}
+          onChange={(next) => setO({ ...next, ...(next.scroll && !o.scroll ? { wrap: false } : {}), ...(next.wrap && !o.wrap ? { scroll: false } : {}) })}
+        />
+      }
+    />
   );
 }

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CircleX, Search, type LucideIcon } from "lucide-react";
 import { cn } from "../cn";
+import { DsCopyButton } from "./copy-button";
 
 /**
  * Parabola fields, the style used by the
@@ -321,9 +322,18 @@ export function DsSearch({
  * `bare` drops the box and grows from one line, like writing on the page.
  */
 export function DsTextarea(
-  allProps: React.ComponentProps<"textarea"> & { invalid?: boolean; showFocus?: boolean; bare?: boolean }
+  allProps: React.ComponentProps<"textarea"> & {
+    invalid?: boolean;
+    showFocus?: boolean;
+    bare?: boolean;
+    /** A copy button inside on the right that copies the whole text (DsCopyButton). */
+    copyable?: boolean;
+    /** Stop growing at about ten lines; the rest scrolls inside. */
+    scroll?: boolean;
+  }
 ) {
-  const { invalid, showFocus, bare, className, ...props } = useDsField(allProps);
+  const { invalid, showFocus, bare, copyable, scroll, className, ...props } = useDsField(allProps);
+  const ref = React.useRef<HTMLTextAreaElement>(null);
   return (
     <div
       data-slot="ds-textarea"
@@ -331,15 +341,23 @@ export function DsTextarea(
       data-invalid={invalid || undefined}
       className={cn(
         bare ? [DS_FIELD_BARE_CLASS, "items-start"] : [DS_FIELD_BOX_CLASS, "h-auto items-start py-2", invalid && DS_FIELD_INVALID_CLASS],
+        copyable && "pr-2",
         className
       )}
     >
       <textarea
+        ref={ref}
         rows={bare ? 1 : 3}
         aria-invalid={invalid || undefined}
-        className={cn(DS_FIELD_INPUT_CLASS, bare ? "min-h-[22px]" : "min-h-[66px]", "resize-none [field-sizing:content]")}
+        className={cn(
+          DS_FIELD_INPUT_CLASS,
+          bare ? "min-h-[22px]" : "min-h-[66px]",
+          "resize-none [field-sizing:content]",
+          scroll && "max-h-[220px] overflow-y-auto"
+        )}
         {...props}
       />
+      {copyable && <DsCopyButton value={() => ref.current?.value ?? ""} />}
     </div>
   );
 }

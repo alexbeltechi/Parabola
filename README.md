@@ -229,23 +229,26 @@ and `/parabola` publishes too.
 ## Sharing a theme
 
 **Share**, at the foot of the theme panel, hands the open theme over as a
-**brand kit** (`brand-kit.ts`), one source with four ways out. Nothing goes
+**brand kit** (`brand-kit.ts`), one source with three ways out. Nothing goes
 anywhere on its own; the maker puts it where they work.
 
 - **Brand kit**: a zip (`zip.ts`, no dependency) with `README.md` (the brand
   guide), `tokens.json`, `tokens.css` and `parabola-theme.json`.
-- **For your agent**: the guide to paste into any AI before it makes a page,
-  a document, a deck, a post or an email. `dsBrandKit(theme, name).readme`.
-- **Claude Design**: a prompt (`dsBrandKitClaudePrompt`) that makes the kit a
-  Design System in Claude, so its designs and decks use the brand. The
-  `tokens.json` is in the shape that type reads: each family a list of
-  `{ name, value, usage }`, colours with light and dark themes.
-- **Parabola code**: the theme as `dsThemeExport` writes it; paste one in to
-  open it.
+- **Design system**: one text (`dsBrandKitPrompt`) for Claude Design or any
+  agent to build the design system from: the guide and the tokens, in a
+  scrolling copy field. Its hint's "Claude Design" copies it and opens
+  Claude. `tokens.json` is in the shape Claude's Design System reads: each
+  family a list of `{ name, value, usage }`, colours with light and dark.
+- **Parabola code**: the theme as `dsThemeExport` writes it, in a textarea
+  with copy and scroll on; paste one in to open it.
 
 Every value in the kit comes from the theme (colours, fonts, type styles,
 spacing, corners, buttons, the voice from `dsTasteVoice`); the guide adds
 only the rules for using them.
+
+Copy inside a field is one button, `DsCopyButton`: DsCopyField always has
+it, a DsTextarea takes it with `copyable`. Both take `scroll`: about ten
+lines high, the rest scrolling inside.
 
 ## Using it
 
