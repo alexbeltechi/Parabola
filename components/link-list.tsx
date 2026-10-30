@@ -14,8 +14,7 @@ const isExternal = (href: string) => /^(https?:)?\/\//.test(href) || href.starts
 
 /**
  * Parabola link list: links one a row, as a site lists its writing, its
- * pages or where to follow it (nicksaraev.com's lists; decisions,
- * 2026-10-28). Each label is in the reading size (`text-prose`) and the page
+ * pages or where to follow it. Each label is in the reading size (`text-prose`) and the page
  * colour, underlined in the border colour, the underline darkening on hover;
  * its meta sits on the right in P, subtle. Links off the site open in a new
  * tab with a small ↗. `divided` puts rules between the rows (a links page);

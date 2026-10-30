@@ -4,13 +4,13 @@ import * as React from "react";
 import { cn } from "../cn";
 
 /**
- * Parabola scroll row (Alex, 2026-10-29): one row of things (pills,
+ * Parabola scroll row: one row of things (pills,
  * chips, cards) that scrolls sideways when it's wider than its place, the
  * scrollbar hidden, its edge fading out on whichever side has more, so it's
  * plain there's more to slide to. A track of taste pills is one. When the
  * item picked in it changes (`aria-pressed`, `aria-current`), from a click
  * or from elsewhere, the row slides it into view, smoothly, so a change made
- * by another control is seen (Alex, 2026-10-29).
+ * by another control is seen.
  */
 export function DsScrollRow({
   className,

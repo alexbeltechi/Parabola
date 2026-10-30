@@ -8,7 +8,7 @@ import { cn } from "../cn";
 import { DsLink, type DsLinkProps } from "../provider";
 
 /**
- * Parabola nav item (Figma: Folio Dharmify 695:5638): a sidebar row, built on
+ * Parabola nav item: a sidebar row, built on
  * the button's rules but laid out as a full-width list row. No surface at
  * rest; hover and an open group take the default button surface, the current
  * page takes the selected-button colour.

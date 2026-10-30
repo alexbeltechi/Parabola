@@ -50,8 +50,7 @@ import {
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
- * data so a site, an agent or /parabola can set them (decisions,
- * 2026-10-28; BEL-109), much as shadcn's create page sets a style:
+ * data so a site, an agent or /parabola can set them much as shadcn's create page sets a style:
  *
  * - colours: the theme colour (the website's background), fonts and UI (the
  *   text and the greys drawn from it), the tertiary colour (the
@@ -89,7 +88,7 @@ export const DS_HEADING_FAMILY = "heading";
  * Each style's default name, family, weight, size and line height (px), as
  * tokens.css sets them (`npm run check:parabola` checks): Display to H2 in
  * the Heading family (Instrument Serif, which has one weight); H3, the small
- * heading, and the rest in Font at Medium (decisions, 2026-10-28).
+ * heading, and the rest in Font at Medium.
  */
 export const DS_TEXT_STYLE_DEFAULTS: Record<
   DsTextStyle,
@@ -393,9 +392,8 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
 }
 
 /**
- * The theme at a mood, its personality, restrained to wacky (character.ts;
- * Alex, 2026-10-29: "if I go through the slider, I want to see the mood
- * change"): inside the chips the style chose (taste.ts), the kind of type's
+ * The theme at a mood, its personality, restrained to wacky (character.ts; moving
+ * the slider should visibly change the mood): inside the chips the style chose (taste.ts), the kind of type's
  * font pair for that mood, the kind of button's roundness and depth, the
  * background's saturation (quieter restrained, stronger wacky) and the
  * palette's button colour for it. Without chips (a theme from before them),

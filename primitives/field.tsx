@@ -5,7 +5,7 @@ import { CircleX, Search, type LucideIcon } from "lucide-react";
 import { cn } from "../cn";
 
 /**
- * Parabola fields (Figma: Folio Dharmify 693:4336), the style used by the
+ * Parabola fields, the style used by the
  * admin post editor: 2px `ds-field-border` outline (the border, or drawn
  * from a field colour of its own), 16px radius, `text-p` with a
  * `ds-fg-subtle` placeholder; while you're in it the outline turns the
@@ -55,7 +55,7 @@ export const DS_FIELDS_CLASS = "flex flex-wrap items-start gap-ds-20";
 
 /**
  * The `bare` look: no box at all, just the text on the page, for writing
- * surfaces such as post blocks (Figma: Folio Dharmify 699:6154), where
+ * surfaces such as post blocks, where
  * the field should read as part of the page. Same type as the boxed field.
  */
 export const DS_FIELD_BARE_CLASS = "flex w-full items-center gap-2 text-p text-ds-fg [&_svg]:size-4 [&_svg]:shrink-0";

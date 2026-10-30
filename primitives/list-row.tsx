@@ -4,7 +4,7 @@ import { cn } from "../cn";
 import { DsLink } from "../provider";
 
 /**
- * Parabola list row (Figma: Folio Dharmify 699:6599): one item in an admin
+ * Parabola list row: one item in an admin
  * list, e.g. a post, page or media file. Optional leading control (usually a
  * DsCheckbox), a 48px thumbnail with 12px corners, a title (P) with an
  * optional pill beside it, up to two lines of detail (P then Small, subtle),

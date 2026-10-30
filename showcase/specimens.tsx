@@ -1118,7 +1118,7 @@ export function Progress() {
         meta="412 MB of 1 GB"
         segments={[
           { value: 230, label: "My site", meta: "230 MB" },
-          { value: 140, label: "Y3K Club", meta: "140 MB" },
+          { value: 140, label: "Studio", meta: "140 MB" },
           { value: 42, label: "Studio North", meta: "42 MB" },
         ]}
         description="Segments take Parabola's accents in order, with a legend."

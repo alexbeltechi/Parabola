@@ -164,7 +164,7 @@ import {
   useThemeEditor,
 } from "./theme-editor";
 
-/** The theme's colours on the wheel, in the order they're picked, named for what they colour (Alex, 2026-10-29). */
+/** The theme's colours on the wheel, in the order they're picked, named for what they colour. */
 const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Background" },
   { kind: "text", label: "Primary" },
@@ -362,7 +362,7 @@ function ColourWheelChoice({
 
 /**
  * A panel section's Restore, the icon at its header's right (every section
- * has one; Alex, 2026-10-29): puts that part of the open theme back to
+ * has one): puts that part of the open theme back to
  * Parabola's, with Undo in the toast.
  */
 function SectionRestore({
@@ -496,15 +496,15 @@ const PREVIEW_MEDIA = "/parabola/preview";
 type PreviewCopy = {
   x: string;
   story: [title: string, note: string, sticker: string];
-  /** Her next project, a line on her story (Alex, 2026-10-29): short. */
+  /** Her next project, a line on her story: short. */
   vision: string;
   email: { subject: string; title: string; greeting: string; body: string };
 };
 
 /**
- * The same news in each voice a taste can have (taste.ts, DsTone; Alex,
- * 2026-10-29: "the text doesn't change in the tweet; it obviously ought
- * to"). Ilo is a maker, Y3K's kind (craft, art, sound, writing): she has
+ * The same news in each voice a taste can have (taste.ts, DsTone), so
+ * the post changes with the taste, not only its look. Ilo is a maker (craft,
+ * art, sound, writing): she has
  * finished Dragonfly, the silver glasses she wears, made over three summers
  * at the lake, with recordings of the water. Told calm, exact, warm, sold,
  * shouted, confessed, argued, joked, screamed, logged, styled or felt.
@@ -703,8 +703,8 @@ type Story = "boxed" | "plain" | "loud";
  * Words on a photo, as Instagram sets them: each line in its own box, tight,
  * the boxes following the lines (`box-decoration-break: clone`), in the page
  * colour or the button colour, or none at all with the words in white held
- * by a soft shadow. One size for every bit, small, as a person sets them
- * (Alex, 2026-10-29). `alt` swaps the box to the other colour, for the bit
+ * by a soft shadow. One size for every bit, small, as a person sets them.
+ * `alt` swaps the box to the other colour, for the bit
  * that asks for a tap: words, not a button, as Instagram has none.
  */
 function StoryText({
@@ -748,8 +748,8 @@ function StoryText({
 }
 
 /**
- * The platforms' own look, which a theme can't brand (Alex, 2026-10-29:
- * "you can't do custom branding there, so let's not mislead"): Instagram's,
+ * The platforms' own look, which a theme can't brand (there's no
+ * custom branding there, so the preview doesn't pretend there is): Instagram's,
  * X's and Gmail's white, framed in a grey outline, their inks and their
  * system font. Only what Ilo puts in a post or a letter (her photo, her
  * words, her avatar, the letter itself) carries the theme.
@@ -774,7 +774,7 @@ const PLATFORM = {
  * in the taste's voice and set the way the taste asks (StoryText): her next
  * project, Dragonfly Vision, by her cheek, lined up on the left with her
  * avatar; and low in the middle the line and what to tap, the second in the
- * other colour (Alex, 2026-10-29). A playful mood tilts them a little
+ * other colour. A playful mood tilts them a little
  * (dsTasteTilt). Its corners
  * are rounded where the Social piece's outer corners are (`className`).
  */
@@ -854,7 +854,7 @@ function PreviewStory({
 /**
  * A post in the feed, beside the story, on Instagram's white in a grey
  * outline (PLATFORM): one photo, square, her at the lake's edge well inside
- * the frame, with nothing written on it (Alex, 2026-10-29: not a carousel), the actions under it, then the likes and her
+ * the frame, with nothing written on it (not a carousel), the actions under it, then the likes and her
  * caption in the taste's voice. Its corners are rounded where the Social
  * piece's outer corners are (`className`).
  */
@@ -989,12 +989,12 @@ function PreviewXPost({
 }
 
 /**
- * Her newsletter as a reader opens it in Gmail (Alex, 2026-10-29: "create a
+ * Her newsletter as a reader opens it in Gmail ("create a
  * layout close… it's in Gmail"), right after the subscribe box: Gmail's own
  * white, inks and font (PLATFORM), its toolbar, the subject with its Inbox
  * label, the sender's row (avatar, name and address, "to me", the time,
- * star and reply), then the letter itself: short and whole (Alex,
- * 2026-10-29: no fade), in the theme's fonts on white (the theme's own
+ * star and reply), then the letter itself: short and whole (no
+ * fade), in the theme's fonts on white (the theme's own
  * colours only far up Playful), its masthead and issue, the title, a
  * greeting, a few lines in the taste's voice, a link on and her name.
  */
@@ -1007,7 +1007,7 @@ function PreviewEmail({
   people: People;
   copy: PreviewCopy;
 }) {
-  // White, as letters mostly are, in Gmail's inks, unless the mood is far up Playful (Alex, 2026-10-29: "only like
+  // White, as letters mostly are, in Gmail's inks, unless the mood is far up Playful ("only like
   // funky stuff would do that"); the link in the button colour where it reads on white.
   const coloured = theme.character.mood >= 0.85;
   const white = dsThemeColourTokens(DS_DEFAULT_THEME, "light").bg;
@@ -1071,7 +1071,7 @@ function PreviewEmail({
               className="truncate"
               style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
             >
-              &lt;letters@iloodena.com&gt;
+              &lt;letters@example.com&gt;
             </span>
             <span
               className="ml-auto flex shrink-0 items-center gap-3 pl-ds-8"
@@ -1117,7 +1117,7 @@ function PreviewEmail({
   );
 }
 
-/** A part of the preview: a divider, its name as the panel's sections show theirs, then what it shows (Alex, 2026-10-29). */
+/** A part of the preview: a divider, its name as the panel's sections show theirs, then what it shows. */
 function PreviewPart({
   title,
   className,
@@ -1139,7 +1139,7 @@ function PreviewPart({
 }
 
 /**
- * The brand in words (Alex, 2026-10-29, "taste rules, brand rules"): a
+ * The brand in words ("taste rules, brand rules"): a
  * style statement from the pills and the chips (the tastes, then the mood,
  * the palette and the fonts it's set in), then the
  * voice, a rule from each taste picked. What the preview's words follow,
@@ -1253,7 +1253,7 @@ function PillRow({
 }
 
 /**
- * The takes (Alex, 2026-10-29): every draw is a take, kept in order with
+ * The takes: every draw is a take, kept in order with
  * the one showing. Back returns to the one before; forward replays an
  * undone one, or draws a new variation inside the style picked (its other
  * chips and colours, at the same mood); the dice picks another style and a
@@ -1264,7 +1264,7 @@ function useTakes(
   theme: DsThemeConfig,
   onTheme: (theme: DsThemeConfig) => void,
 ) {
-  // The last look had with each pick of pills, tweaks and all (Alex, 2026-10-29: back to Approachable should be
+  // The last look had with each pick of pills, tweaks and all (back to Approachable should be
   // the Approachable he saw). Forward and the dice are for new ones; picking another theme forgets them (reset).
   const seen = React.useRef(new Map<string, DsThemeConfig>());
   const keyOf = (ids: string[]) => [...ids].sort().join();
@@ -1353,7 +1353,7 @@ function DiceControl({ takes }: { takes: Takes }) {
 }
 
 /**
- * Previous, shuffle and Next, under the mood (Alex, 2026-10-29), grey
+ * Previous, shuffle and Next, under the mood, grey
  * buttons: Previous at the left with its chevron on the left, Next at the
  * right with its chevron on the right, stepping back and forth through the
  * versions seen; between them, filling the space, Shuffle, which draws
@@ -1392,7 +1392,7 @@ const MOOD_LINE =
   "linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--ds-border) calc(50% - 0.5px), var(--ds-border) calc(50% + 0.5px), transparent calc(50% + 0.5px))";
 
 /**
- * Taste (taste.ts; Alex, 2026-10-29: "aesthetics and personality"): the
+ * Taste (taste.ts; "aesthetics and personality"): the
  * Style rail, one pick at a time as tabs are (Classic, Minimal, Elegant,
  * Tech, Natural, Retro, Sport), which chooses a chip in Colour, Typography
  * and Buttons; then the Mood slider, the personality, Serious to Playful
@@ -1428,7 +1428,7 @@ function TasteChoice({
           onToggle={toggle}
         />
       </div>
-      {/* Mood as a slider again (Alex, 2026-10-29), its track a 1px line rather than a colour, Serious to Playful; no
+      {/* Mood as a slider again, its track a 1px line rather than a colour, Serious to Playful; no
           labels under it, the word above says where it is. */}
       <DsColourBar
         label="Mood"
@@ -1446,10 +1446,10 @@ function TasteChoice({
 }
 
 /**
- * A section's one rail (Alex, 2026-10-29): in Colour a palette, in
+ * A section's one rail: in Colour a palette, in
  * Typography a kind of type, in Buttons a kind of button, nothing else. The
  * style picks one on each; picking another by hand decides only that
- * section's values. One at a time, as tabs are (Alex, 2026-10-29). Kept on
+ * section's values. One at a time, as tabs are. Kept on
  * the theme (`character.scoped`).
  */
 function SectionRail({
@@ -1492,7 +1492,7 @@ function SectionRail({
 }
 
 /**
- * A section's fine-tuning, folded (Alex, 2026-10-29): the pills come first,
+ * A section's fine-tuning, folded: the pills come first,
  * and "Show advanced options" opens the sliders and fields under them.
  */
 function AdvancedOptions({ children }: { children: React.ReactNode }) {
@@ -1514,14 +1514,14 @@ function AdvancedOptions({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * The theme's colour (character.ts, taste.ts; Alex, 2026-10-29): first the
+ * The theme's colour (character.ts, taste.ts): first the
  * palettes, colour chips (Classic is Parabola's own, Neutral a startup's,
  * Vibrant, Sport…), each a background, a button colour and a contrast; then
  * the background as three bars: Hue (paper's by default; dragged onto a
  * white it tints it), Temperature (cooler or warmer: ice or paper on a
  * white, the hue leaned blue or orange on a colour) and Brightness, a true
- * one, black to the colour to white. No Saturation or Contrast bar (Alex:
- * "it's not like an actual saturation"; a palette sets both). Each bar is
+ * one, black to the colour to white. No Saturation or Contrast bar
+ * (saturation read as darkening; a palette sets both). Each bar is
  * drawn in what it does. "Show advanced options" opens the colours
  * themselves (the wheel, for the mode picked under the theme), for a colour
  * of its own.
@@ -1661,7 +1661,7 @@ function ColourChoice({
 }
 
 /**
- * The type's contrast (character.ts `ink`; Alex, 2026-10-29): full is black
+ * The type's contrast (character.ts `ink`): full is black
  * or white text; turned down, the text becomes an ink of the theme's hue,
  * more coloured and nearer the page, not a grey. The bar runs from the
  * softest ink to full, drawn in them.
@@ -1732,7 +1732,7 @@ function OutlineChoice({
   const transparency = Math.round((1 - opacity) * 100);
   return (
     <div className="flex flex-col gap-ds-16">
-      {/* The switch right after its label (decisions, 2026-10-28). */}
+      {/* The switch right after its label. */}
       <label className="inline-flex items-center gap-ds-8 self-start text-p text-ds-fg">
         Outline
         <DsSwitch
@@ -1801,7 +1801,7 @@ function OutlineChoice({
 }
 
 /**
- * The theme's buttons (button-style.ts; Alex, 2026-10-29): their fill,
+ * The theme's buttons (button-style.ts): their fill,
  * Solid or Gradient, and a gradient's contrast, a bar from -50 to +50 that
  * starts at 0 (flat) in the middle, drawn in the button colour, darker at
  * the top to the left of 0 and lighter at the top to the right; an outline
@@ -1833,7 +1833,7 @@ function ButtonChoice({
     on: boolean,
     change: (on: boolean) => void,
   ) => (
-    // The switch right after its label (decisions, 2026-10-28).
+    // The switch right after its label.
     <label className="inline-flex items-center gap-ds-8 self-start text-p text-ds-fg">
       {label}
       <DsSwitch checked={on} onCheckedChange={change} />
@@ -2051,7 +2051,7 @@ function ThemeNameDialog({
 
 /**
  * Theme: Parabola's home screen for making a theme, in the manner of
- * shadcn's create page (decisions, 2026-10-28). The page is a site's page
+ * shadcn's create page. The page is a site's page
  * wearing the open theme (its nav, a post's opening, buttons, a list of
  * writing, one card on the surface); the panel on
  * the right holds the theme's main choices: which theme (the site's reads
@@ -2109,7 +2109,7 @@ export function ThemeSection() {
     theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // The brand, not just the UI (Alex, 2026-10-29): the look in each place, at the CMS's reading width (600px),
+    // The brand, not just the UI: the look in each place, at the CMS's reading width (600px),
     // the site (Web), the top of a letter (Email), a story, a feed post and a post on X (Social), and the admin's own card
     // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
@@ -2188,7 +2188,7 @@ export function ThemeSection() {
       </PreviewPart>
 
       <PreviewPart title="Social">
-        {/* One piece (Alex, 2026-10-29): the story and the feed post side by side over the post on X, 4px apart,
+        {/* One piece: the story and the feed post side by side over the post on X, 4px apart,
             rounded only at the piece's outer corners. The story stretches to the post's height. */}
         <div className="flex flex-col gap-1">
           <div className="grid grid-cols-[23fr_35fr] gap-1">
@@ -2314,7 +2314,7 @@ export function ThemeSection() {
                 : (takes.reset(), select(value))
             }
           />
-          {/* The preview's mode, right under the theme (Alex, 2026-10-29); the UI's is the sidebar's toggle. */}
+          {/* The preview's mode, right under the theme; the UI's is the sidebar's toggle. */}
           <div
             className="flex items-center gap-ds-8"
             role="group"
@@ -2339,7 +2339,7 @@ export function ThemeSection() {
           </div>
         </PanelSection>
 
-        {/* The taste feeder first: push the whole look somewhere, then tune it below (Alex, 2026-10-29). */}
+        {/* The taste feeder first: push the whole look somewhere, then tune it below. */}
         <PanelSection
           title="Taste"
           actions={
@@ -2510,7 +2510,7 @@ export function ThemeSection() {
             }}
           />
           <AdvancedOptions>
-            {/* Roundness is the UI's, so it sits with the buttons (Alex, 2026-10-29); Custom below overrides it. */}
+            {/* Roundness is the UI's, so it sits with the buttons; Custom below overrides it. */}
             <DsColourBar
               label="Roundness"
               readout={String(Math.round(theme.character.roundness * 100))}

@@ -37,7 +37,7 @@ export const DS_SLIDER_THUMB = "pointer-events-none absolute size-4 -translate-x
 export const DS_SLIDER_THUMB_RING = "inset 0 0 0 2px white, 0 0 0 1px black";
 
 /**
- * Parabola slider (Alex, 2026-10-29): one value from 0 to 1 on a 12px
+ * Parabola slider: one value from 0 to 1 on a 12px
  * track that shows what it gives, left to right (a gradient; the page's
  * border to its text by default), and a thumb in the colour it's on. Above
  * it, its `title` in the text colour and, on the right, its `readout`

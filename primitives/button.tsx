@@ -5,7 +5,7 @@ import { cn } from "../cn";
 import { DsLink, type DsLinkProps } from "../provider";
 
 /**
- * Parabola button (Figma: Folio Dharmify 693:3362), built from the homepage
+ * Parabola button, built from the homepage
  * nav pills: `text-p` label, 8px gap between icon, label and trailing meta.
  *
  * Variants (style):
@@ -19,7 +19,7 @@ import { DsLink, type DsLinkProps } from "../provider";
  * - text: the ghost button. No surface at rest, for quiet actions like
  *   "Read more", a row's ⋮ or a site's nav. Hovering lays a light surface
  *   (`ds-surface` at 40%) under it, lighter than a default button so a row
- *   of them stays calm (decisions, 2026-10-28); it has the same padding as
+ *   of them stays calm; it has the same padding as
  *   the others to give that room.
  *
  * Sizes, for every variant, labelled or icon-only:
@@ -42,8 +42,8 @@ import { DsLink, type DsLinkProps } from "../provider";
  *
  * State (props, not variants); on the default variant both are drawn in
  * `ds-button`, as primary is; on the text variant in the default button's
- * own grey, so a picked chip and a plain button share one surface (Alex,
- * 2026-10-29):
+ * own grey, so a picked chip and a plain button share one
+ * surface:
  * - `pressed`: a toggle that's on; sets `aria-pressed`.
  * - `current`: the link to the page you're on; sets `aria-current="page"`.
  *

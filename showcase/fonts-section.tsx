@@ -153,7 +153,7 @@ function StyleDialog({
 /**
  * Typography › Type scale: Parabola's text styles (tokens.css), each in the
  * name, family, weight, size and line height the theme gives it, with its
- * spec and an edit button that opens its settings (decisions, 2026-10-28).
+ * spec and an edit button that opens its settings.
  */
 export function FontsSection() {
   const { theme, setTheme } = useThemeEditor();

@@ -43,7 +43,7 @@ function monthWeeks(view: Date): Date[][] {
 }
 
 /**
- * Parabola date picker (Figma: Folio Dharmify 702:7553): a field showing the
+ * Parabola date picker: a field showing the
  * date ("Today: Jan 13, 2026") with a calendar icon and a clear button, opening
  * a month calendar in a tray. Days are 36px circles in the button type: the
  * chosen day takes the selected-button colour, today the button surface.

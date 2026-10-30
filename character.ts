@@ -1,5 +1,5 @@
 /**
- * A theme's character (theme.ts; decisions, 2026-10-29): a few dials that
+ * A theme's character (theme.ts): a few dials that
  * set the look as a whole, the way a photograph is edited, before any one
  * value is picked. Every theme value that isn't given its own (Auto) is
  * worked out from them: the base and the colours that follow it, the
@@ -7,7 +7,7 @@
  * a dial moves, and Restore hands it back to the dials. So an agent sets a
  * look by moving dials, not by writing hexes; a person drags from there.
  *
- * - mood: the personality (Alex, 2026-10-29), 0 (serious) through 0.5
+ * - mood: the personality, 0 (serious) through 0.5
  *   (balanced, Parabola's own) and 0.75 (playful) to 1 (wacky), a slider. It moves the
  *   look inside the style's chips (taste.ts): the fonts, the buttons'
  *   roundness and depth, the colour's saturation and the button colour
@@ -17,15 +17,15 @@
  *   kind of type in Typography, a kind of button in Buttons (taste.ts), each
  *   deciding only that section's values.
  * - tastes: the style the look was drawn from (taste.ts), by id; one.
- * - The background, as dials rather than a hex (a hex is Colours' job;
- *   Alex, 2026-10-29), in Colour: hue, 0 to 360 (40, paper's, by default);
+ * - The background, as dials rather than a hex (a hex is Colours' job),
+ *   in Colour: hue, 0 to 360 (40, paper's, by default);
  *   warmth, the Temperature bar, -1 (cool) to 1 (warm): on a white, ice or
  *   paper, on a colour its hue leaned toward blue or orange; brightness, a
  *   true one, 0 black, 0.5 the colour at its strongest, 1 white. colour,
  *   how much of the hue there is, 0 (none) to 1 (full), is set by a palette
  *   or a hue dragged onto a white; it has no bar of its own (a Saturation
- *   bar replaced Temperature for a day; Alex: "it's not like an actual
- *   saturation").
+ *   bar replaced Temperature for a day, since it read as darkening
+ *   rather than saturation).
  * - ink, the type's contrast, Typography's Contrast bar: 1 (full, Parabola's)
  *   to 0 (soft): lower, the text becomes an ink of the hue, more coloured
  *   and nearer the page, not a grey (colours.ts).
@@ -228,8 +228,8 @@ export const dsCharacterIsDefault = (c: DsCharacter) =>
  * tints the white toward paper (40°) or ice (210°), a little more the
  * further it goes, so a warm white is paper, not lemon; on a colour it leans
  * the hue toward orange (warm, 30°) or blue (cool, 220°), up to 25° at the
- * ends, so a warm yellow stays a yellow. Brightness is a true one (Alex,
- * 2026-10-29): 0 black, 0.5 the colour at its strongest, 1 white.
+ * ends, so a warm yellow stays a yellow. Brightness is a true one:
+ * 0 black, 0.5 the colour at its strongest, 1 white.
  */
 export function dsCharacterBase(c: DsCharacter): string | null {
   if (c.colour === 0 && c.brightness === 1 && c.warmth === 0) return null;

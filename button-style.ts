@@ -1,10 +1,10 @@
 /**
- * How a theme's buttons look (theme.ts; Alex, 2026-10-29): the solid
+ * How a theme's buttons look (theme.ts): the solid
  * buttons (Publish, Subscribe), in the theme's primary button colour
  * (colours.ts).
  *
- * - fill: solid, a gradient of the button colour, or none (Alex,
- *   2026-10-29: outline and text buttons): no fill, the label in the button
+ * - fill: solid, a gradient of the button colour, or none (outline and
+ *   text buttons): no fill, the label in the button
  *   colour, an outline if it's on. For a gradient, `contrast` runs from
  *   -1 to 1 and starts at 0, flat: above 0 the top is lighter and the
  *   bottom darker, below 0 the other way round, further apart the further

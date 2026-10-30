@@ -22,7 +22,7 @@ export function dsFontOptions(theme: DsThemeConfig): DsSelectOption[] {
  * Parabola font pairing: a select for each of a theme's font families
  * (theme.ts: Primary, Secondary and any it added), of the theme's fonts with
  * "Aa" in the face. Every text style is set in one of them (Typography ›
- * Type scale). On Settings › Design (decisions, 2026-10-28). Controlled: it
+ * Type scale). On Settings › Design. Controlled: it
  * shows `theme` and hands back the whole theme with the change.
  */
 export function DsFontPairing({

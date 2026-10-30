@@ -22,7 +22,7 @@ export function DsAccordionGroup({ open, version, children }: DsAccordionGroupSt
  * Parabola accordion: a title with a small chevron that folds what's under
  * it away, and at the header's right end its `actions` (a ⋮ menu). Compact:
  * a 32px header, then what's under it 8px down, lined up with the title
- * (no indent; Alex, 2026-10-29). Accordions nest: one inside
+ * (no indent). Accordions nest: one inside
  * another is `inset`, its title in the text colour where the outer one's is muted (as /parabola's
  * Colours holds Theme colour, Surface and the rest). Under a
  * DsAccordionGroup they all open or fold at once when the group says so.

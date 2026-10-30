@@ -1,5 +1,5 @@
 /**
- * Taste (Alex, 2026-10-29): two things, the way people describe a brand,
+ * Taste: two things, the way people describe a brand,
  * its aesthetics and its personality.
  *
  * - **Style**, the aesthetics: one rail, one pick, as tabs are, never none
@@ -18,7 +18,7 @@
  * A style is a recipe, not one fixed look: picking it draws a look inside
  * it at the mood set (`dsShuffleTaste`); › draws another. A chip can be
  * picked by hand after. (A Feel track, a World track and an Era with rules
- * between its picks came first, the same day; Alex: "too much going on".
+ * between its picks came first, the same day, and was too much going on.
  * Fashion became Elegant, which Luxury and Sci-fi were too close to: Luxury
  * went into it, Sci-fi into Tech. Default and Editorial became Classic.
  * Gradients stay off every style; Tactile is there to pick by hand.)
@@ -95,7 +95,7 @@ export const DS_PALETTES: readonly DsPalette[] = [
 /**
  * Typography's chips: a kind of type, its four font pairs from the most
  * serious to the wackiest: the playful one plainly playful, the wacky one a
- * retro display face (Alex, 2026-10-29). Classic's balanced one is
+ * retro display face. Classic's balanced one is
  * Parabola's own (null), its others keep Parabola's text face under another
  * headline. Elegant has no Didones (Bodoni, Playfair): Garamonds and a
  * flared roman.
@@ -207,7 +207,7 @@ export const DS_BUTTON_LOOKS: readonly { id: string; label: string; roundness: R
   { id: "sharp", label: "Sharp", roundness: [0, 0.1], depth: [0, 0] },
   { id: "outline", label: "Outline", roundness: [0, 1], depth: [0, 0], style: { fill: "none", outline: true, outlineWidth: 1 } },
   { id: "text", label: "Text", roundness: [0.5, 1], depth: [0, 0], style: { fill: "none" } },
-  // Something to press: the one with a gradient, to pick by hand (Alex, 2026-10-29: no gradients in the styles).
+  // Something to press: the one with a gradient, to pick by hand (no gradients in the styles).
   { id: "tactile", label: "Tactile", roundness: [0.3, 0.7], depth: [0.5, 0.95] },
   // Solid with a thick edge, no gradient.
   { id: "chunky", label: "Chunky", roundness: [0.45, 0.9], depth: [0, 0], style: { outline: true, outlineWidth: 2 } },
@@ -227,8 +227,8 @@ export type DsTaste = {
   types: readonly string[];
   buttons: readonly string[];
   /**
-   * The type's contrast it sits in (character.ts `ink`; Alex, 2026-10-29:
-   * "different styles have different contrast levels"): 1 full, lower an
+   * The type's contrast it sits in (character.ts `ink`;
+   * different styles have different contrast levels): 1 full, lower an
    * ink of the page's hue. Its own look takes the middle; Shuffle and the
    * dice draw inside it.
    */
@@ -277,7 +277,7 @@ export const DS_TASTES: DsTaste[] = [
     id: "elegant",
     label: "Elegant",
     ink: [0.55, 0.85],
-    // A refined serif, rich colour, square buttons (it was Fashion for a day; Alex: "most definitely not fashion").
+    // A refined serif, rich colour, square buttons (briefly called Fashion, which it isn't).
     palettes: ["rich", "classic"],
     types: ["elegant"],
     buttons: ["sharp", "outline"],
@@ -292,7 +292,7 @@ export const DS_TASTES: DsTaste[] = [
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
     types: ["startup", "startup", "futurist"],
-    // Fully round, now and then a product's small radius (Alex, 2026-10-29: square is Minimal's).
+    // Fully round, now and then a product's small radius (square is Minimal's).
     buttons: ["soft", "soft", "product"],
     people: "initials",
     story: "boxed",

@@ -77,7 +77,7 @@
   --radius-ds-pill: var(--ds-radius-pill);
   --radius-ds-chip: var(--ds-radius-chip);
 
-  /* Parabola type scale (Figma: Folio Dharmify 693:5061), named for the
+  /* Parabola type scale, named for the
      element each style is for: text-display, text-h1 … text-h3, text-p, text-prose,
      text-small. All medium; the only text sizes the site and admin should use. 14px
      (`text-small`) is the floor: there is no smaller size. Sizes, leading, weight and
@@ -213,7 +213,7 @@
 }
 
 :root {
-  /* Type (theme.ts, fonts.ts; decisions 2026-10-28): two families, a
+  /* Type (theme.ts, fonts.ts): two families, a
      Font (--ds-family-body) and Heading (--ds-family-heading) to start (a
      theme can add more: --ds-family-<id>), and for each text style its
      family, size, line height and weight. These are
@@ -253,7 +253,7 @@
   --ds-text-small-leading: 18px;
   --ds-weight-small: 500;
 
-  /* Parabola palette (Figma: Folio Dharmify). Ten colours per theme;
+  /* Parabola palette. Ten colours per theme;
      every component draws from these and nothing else.
        bg / fg          page and primary text
        fg-muted         labels, secondary copy, meta (counts beside a label)

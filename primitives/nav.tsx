@@ -8,7 +8,7 @@ import { DsButton } from "./button";
 import { DsThemeToggle } from "./theme-toggle";
 
 /**
- * Top bar (Figma: Folio Dharmify 693:5454 desktop, 693:5143 mobile): back on
+ * Top bar: back on
  * the left, which leaves for `backHref` (the homepage by default) rather than
  * stepping back through history; theme and menu on the right, 20px from the
  * edges. A DsMenu is modal, so while one is open render the bar inside it

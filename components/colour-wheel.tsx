@@ -36,7 +36,7 @@ const HUES = "#FF0000, #FF00FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000";
 /**
  * The hue a white, black or grey is headed: none of them has one, so they point to paper's warm yellow-orange
  * (Parabola's own paper and charcoal sit there), and moving one out from the centre warms it, not reddens it
- * (Alex, 2026-10-29).
+ *.
  */
 const NEUTRAL_HUE = 40;
 
@@ -269,7 +269,7 @@ export function DsColourWheel({
           }}
         />
         {/* The disc: a faint wheel, so where a point sits reads as a colour. Clicking it does nothing: colours
-            move only by dragging their point, so a stray click never changes one (Alex, 2026-10-29). */}
+            move only by dragging their point, so a stray click never changes one. */}
         <div
           aria-hidden
           className="pointer-events-none absolute rounded-full opacity-[0.22]"
@@ -280,7 +280,7 @@ export function DsColourWheel({
         />
         {/* The hue: a tick across the ring at the chosen colour's hue, pointing the way it's headed even when it's
             white or grey at the centre. Drag round the ring to turn the hue, as on any colour wheel; its
-            saturation and brightness stay (Alex, 2026-10-29). */}
+            saturation and brightness stay. */}
         <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 size-full overflow-visible">
           <circle
             role="slider"
@@ -339,7 +339,7 @@ export function DsColourWheel({
                 zIndex: chosen ? points.length + 1 : points.length - i,
                 // The chosen point is filled with its colour, ringed white with a line in the text colour outside;
                 // the others are only a thin black ring with a faint white line outside it, so they show on a dark wheel
-                // too, and the chosen one stands out (Alex, 2026-10-29).
+                // too, and the chosen one stands out.
                 backgroundColor: chosen ? p.colour : "transparent",
                 boxShadow: chosen
                   ? "inset 0 0 0 2px white, 0 0 0 2px var(--ds-fg)"

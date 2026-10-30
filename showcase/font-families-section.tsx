@@ -184,7 +184,7 @@ function AddFontDialog({ theme, onClose, onAdd }: { theme: DsThemeConfig; onClos
  * (linked to Google Fonts) and weights, each with an edit button; Add family
  * under them. Then every font the theme can use, how many top right, each
  * linked to Google Fonts and removable but System (not while a family uses
- * it), and Add font under the list (decisions, 2026-10-28).
+ * it), and Add font under the list.
  */
 export function FontFamiliesSection() {
   const { theme, setTheme } = useThemeEditor();

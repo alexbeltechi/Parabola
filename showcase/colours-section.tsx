@@ -23,7 +23,7 @@ function Swatch({ value, page }: { value: Value; page: string }) {
  * Foundations › Colours: the open theme's palette by role, each token in
  * light and dark side by side, worked out from what the theme section set
  * (its taste, its dials, any colour of its own), so the foundations follow
- * the theme (Alex, 2026-10-29); then the one elevation. Parabola's own
+ * the theme; then the one elevation. Parabola's own
  * values, which tokens.css holds, are what shows with nothing changed.
  */
 export function MainColoursSection() {

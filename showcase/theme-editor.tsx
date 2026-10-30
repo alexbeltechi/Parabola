@@ -126,7 +126,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const setTheme = React.useCallback(
     (theme: DsThemeConfig) => {
       if (JSON.stringify(theme) === JSON.stringify(entry.theme)) return;
-      // Custom brought back to Parabola's own (its sections restored, say) is Parabola again (Alex, 2026-10-29: a
+      // Custom brought back to Parabola's own (its sections restored, say) is Parabola again (a
       // restore left him on Custom): Parabola opens and the working copy goes, unless it's the one the site wears.
       if (entry.id === CUSTOM_THEME_ID && library.active !== CUSTOM_THEME_ID && dsSameLook(theme, DS_DEFAULT_THEME)) {
         change({ ...library, themes: library.themes.filter((t) => t.id !== CUSTOM_THEME_ID) });

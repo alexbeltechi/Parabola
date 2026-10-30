@@ -6,7 +6,7 @@ import { CheckIcon } from "lucide-react";
 import { cn } from "../cn";
 
 /**
- * Parabola checkbox (Figma: Folio Dharmify 706:8558): the Radix primitive
+ * Parabola checkbox: the Radix primitive
  * shadcn's Checkbox wraps, drawn from palette tokens only. 16px box, 4px
  * corners. Unchecked is a 2px `ds-fg-subtle` outline; checked fills with
  * `ds-button` (the selected-button colour) and a 12px check in

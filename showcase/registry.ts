@@ -73,7 +73,7 @@ export const DS_TIERS: DsTier[] = [
         slug: "colours",
         label: "Colours",
         icon: Palette,
-        // One page, the open theme's colours; the content accents (category colours) aren't a theme's (Alex, 2026-10-29).
+        // One page, the open theme's colours; the content accents (category colours) aren't a theme's.
         single: true,
         pages: [{ slug: "main", label: "Colours", component: MainColoursSection }],
       },

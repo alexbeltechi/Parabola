@@ -1,6 +1,6 @@
 /**
- * The six colours a theme picks (theme.ts; decisions, 2026-10-28, renamed
- * 2026-10-29), each based on another until it's given its own:
+ * The six colours a theme picks (theme.ts),
+ * each based on another until it's given its own:
  *
  * - **background** (`theme`): the website's background, Parabola's white (and
  *   charcoal in dark) by default; any colour, a bright yellow included.
@@ -390,7 +390,7 @@ function fromHsl(h: number, s: number, l: number): string {
   return toHex([(r + m) * 255, (g + m) * 255, (b + m) * 255]);
 }
 
-/** How bright a page's dark version is at most: about 87% dark, dark enough to read as dark, light enough that its colour shows (Alex, 2026-10-29). */
+/** How bright a page's dark version is at most: about 87% dark, dark enough to read as dark, light enough that its colour shows. */
 const DARK_PAGE = 0.13;
 /** A card's dark version is a step brighter than the page's, so cards still show. */
 const DARK_CARD = 0.165;
@@ -473,7 +473,7 @@ function hexIn(
  * contrast, -1 (soft) to 1 (hard), that moves the quieter text, borders and
  * cards nearer to or further from the base; and the type's contrast, `ink`,
  * 1 (full: black or white) down to 0 (soft), which takes the text toward a
- * colour of `inkHue` rather than toward grey (Alex, 2026-10-29: "it doesn't
+ * colour of `inkHue` rather than toward grey ("it doesn't
  * necessarily make it grey… it could start to be more of a colour").
  */
 export type DsColourOptions = { base?: string | null; contrast?: number; ink?: number; inkHue?: number };
@@ -505,7 +505,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     Object.assign(tokens, {
       bg,
       fg,
-      // The quieter text: in dark a little closer to the strong text, where it reads fainter (Alex, 2026-10-29).
+      // The quieter text: in dark a little closer to the strong text, where it reads fainter.
       "fg-muted": dsMix(fg, bg, Math.min(0.92, (mode === "dark" ? 0.8 : 0.7) + 0.12 * contrast)),
       "fg-subtle": dsMix(fg, bg, Math.min(0.8, (mode === "dark" ? 0.64 : 0.52) + 0.12 * contrast)),
       border: dsMix(fg, bg, 0.12 * k),

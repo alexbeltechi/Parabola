@@ -6,7 +6,7 @@ import { CircleCheck, Info, Loader2, OctagonX, TriangleAlert } from "lucide-reac
 import { cn } from "../cn";
 
 /**
- * Parabola toast (Figma: Folio Dharmify 713:9389): a short message in the
+ * Parabola toast: a short message in the
  * selected-button colours, `ds-surface-inverse` with a blur behind, 16px
  * corners, 16px side padding. The title is P in the page colour, an optional
  * description P at 70%, and an optional action sits on the right as a round
