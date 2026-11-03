@@ -223,5 +223,16 @@ export {
   type DsFieldStyle,
 } from "./button-style";
 export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
+export {
+  DS_THEME_FILE_CONTRACT,
+  DS_THEME_FILE_FORMAT,
+  DS_THEME_FILE_SUFFIX,
+  DS_THEME_FILE_VERSION,
+  dsThemeFileName,
+  dsThemeFileParse,
+  dsThemeFileText,
+  dsThemeToFile,
+  type DsThemeFileResult,
+} from "./theme-file";
 export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";
