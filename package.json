@@ -22,7 +22,8 @@
     "components",
     "blocks",
     "showcase",
-    "README.md"
+    "README.md",
+    "bin"
   ],
   "exports": {
     ".": "./index.ts",
@@ -32,6 +33,12 @@
     "./showcase/registry": "./showcase/registry.ts",
     "./tokens.css": "./tokens.css",
     "./package.json": "./package.json"
+  },
+  "bin": {
+    "parabola": "./bin/parabola.mjs"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/build-parabola-cli.mjs"
   },
   "peerDependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

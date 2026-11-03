@@ -62,7 +62,7 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste } from "../brand-kit";
+import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeCommands, dsThemeFromPaste } from "../brand-kit";
 import { DsAccordion } from "../primitives/accordion";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsButton } from "../primitives/button";
@@ -407,8 +407,9 @@ const CLAUDE_URL = "https://claude.ai/new";
  * (brand-kit.ts), every way out from one source. The kit to download (the
  * guide, Claude's tokens, the CSS and the theme); the design system as one
  * text for Claude Design or any agent, its hint's "Claude Design" copying it
- * and opening Claude; and Parabola's own code, which a paste reads back and
- * applies at once. Nothing goes anywhere on its own.
+ * and opening Claude; the command that copies the theme and a component into
+ * a project (`npx … add`, cli/core.ts); and Parabola's own code, which a paste
+ * reads back and applies at once. Nothing goes anywhere on its own.
  */
 function ThemeShare({
   theme,
@@ -422,6 +423,7 @@ function ThemeShare({
   const kit = React.useMemo(() => dsBrandKit(theme, name), [theme, name]);
   const prompt = React.useMemo(() => dsBrandKitPrompt(kit), [kit]);
   const code = React.useMemo(() => JSON.stringify(kit.theme, null, 2), [kit]);
+  const commands = React.useMemo(() => dsThemeCommands(kit), [kit]);
   const [text, setText] = React.useState(code);
   const [invalid, setInvalid] = React.useState(false);
   // A click in selects it all (copy takes the whole theme, a paste replaces it); the mouse coming up keeps that.
@@ -478,6 +480,20 @@ function ThemeShare({
           }
         >
           <DsCopyField collapsible mono value={prompt} aria-label="Your design system, to paste" />
+        </DsField>
+        <DsField
+          label="Command"
+          className="w-full"
+          description="In your project's folder: adds this theme's tokens (tokens.css and theme.css, imported from your stylesheet). Then add a component to wear it."
+        >
+          <DsCopyField collapsible mono value={commands.theme} aria-label="The command that adds this theme" />
+        </DsField>
+        <DsField
+          label="Add a component"
+          className="w-full"
+          description="Copies the button and the Parabola files it imports into your project (parabola/primitives/button.tsx). Swap button for pill, field and others; `list` shows them all."
+        >
+          <DsCopyField mono value={commands.component} aria-label="The command that adds the button" />
         </DsField>
         <DsField
           label="Parabola code"
