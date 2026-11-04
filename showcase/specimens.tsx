@@ -576,8 +576,8 @@ export function DateField() {
 }
 
 /**
- * A form as the admin lays one out: every field at the standard width,
- * left-aligned and wrapping as the canvas narrows; a long text fills its row.
+ * A form as the admin lays one out: every field at the standard width, one
+ * under the other, left-aligned; a long text fills its row.
  */
 export function FieldsForm() {
   const [o, setO] = useState({ fill: true });

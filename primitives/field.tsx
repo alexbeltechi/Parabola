@@ -48,12 +48,12 @@ export const DS_FIELD_BOX_CLASS = [
 export const DS_FIELD_SMALL_CLASS = "h-6 gap-1 rounded-ds-control px-2 text-small";
 
 /**
- * A form's fields: left-aligned at the standard width, side by side, wrapping
- * onto new rows as the form narrows, never stretched to fill a row. A field
- * that should fill the row (a long text, a list of files) takes `w-full` on
- * its DsField and gets a row to itself.
+ * A form's fields: one under the other, left-aligned at the standard width,
+ * never side by side and never stretched to fill a row (side by side, fields
+ * of different heights read as a broken grid). A field that should fill the
+ * row (a long text, a list of files) takes `w-full` on its DsField.
  */
-export const DS_FIELDS_CLASS = "flex flex-wrap items-start gap-ds-20";
+export const DS_FIELDS_CLASS = "flex flex-col items-start gap-ds-20";
 
 /**
  * The `bare` look: no box at all, just the text on the page, for writing
