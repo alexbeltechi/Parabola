@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CircleX, Search, type LucideIcon } from "lucide-react";
+import { CircleX, Eye, EyeOff, Search, type LucideIcon } from "lucide-react";
 import { cn } from "../cn";
 import { DsCopyButton } from "./copy-button";
 import { DS_SHOW_MORE_CLOSED_CLASS, DsShowMoreButton, useDsShowMore } from "./show-more";
@@ -30,6 +30,9 @@ import { DS_SHOW_MORE_CLOSED_CLASS, DsShowMoreButton, useDsShowMore } from "./sh
  * date triggers, multi-select) draws the same box, and DS_FIELD_INVALID_CLASS
  * its error outline, always 2px, so it shows even in a theme whose fields
  * have no outline.
+ *
+ * A password field (`type="password"`) carries an eye on the right that
+ * shows and hides what's typed; nothing to pass.
  */
 export const DS_FIELD_WIDTH_CLASS = "w-(--ds-field-width) max-w-full";
 
@@ -164,6 +167,8 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
     () => props.defaultValue != null && String(props.defaultValue) !== ""
   );
   const hasValue = controlled ? String(props.value) !== "" : uncontrolledHasValue;
+  const password = props.type === "password";
+  const [revealed, setRevealed] = React.useState(false);
 
   const setRef = (node: HTMLInputElement | null) => {
     inputRef.current = node;
@@ -201,6 +206,7 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
           onChange?.(e);
         }}
         {...props}
+        type={password && revealed ? "text" : props.type}
       />
       {meta != null && <span className="text-small text-ds-fg-subtle">{meta}</span>}
       {(clearable || onClear) && hasValue && (
@@ -214,6 +220,28 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
           className={cn(DS_FIELD_CLEAR_CLASS, "hidden group-focus-within:flex group-data-[focus]:flex")}
         >
           <CircleX aria-hidden />
+        </button>
+      )}
+      {password && (
+        <button
+          type="button"
+          // Keep focus in the input, and the caret where it was: switching
+          // the type moves it to the start.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            const input = inputRef.current;
+            const caret = input ? [input.selectionStart, input.selectionEnd] : null;
+            setRevealed((r) => !r);
+            requestAnimationFrame(() => {
+              if (input && caret && document.activeElement === input) input.setSelectionRange(caret[0], caret[1]);
+            });
+          }}
+          disabled={props.disabled}
+          aria-label={revealed ? "Hide password" : "Show password"}
+          aria-pressed={revealed}
+          className={cn(DS_FIELD_CLEAR_CLASS, "flex disabled:pointer-events-none")}
+        >
+          {revealed ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
         </button>
       )}
       {IconRight && <IconRight aria-hidden />}
