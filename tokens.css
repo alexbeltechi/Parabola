@@ -155,7 +155,7 @@
     transparent
   );
 
-  /* Apple-style progressive blur, kept soft: a 10px blur that dies out by
+  /* Apple-style progressive blur, kept soft: a 6px blur that dies out by
      60% of the bar's height, and a 3px one that carries on to the bottom
      edge, each masked so the blur ramps in with no visible seam. The tint
      above is light (40% of the page colour), so the page shows through. */
@@ -168,8 +168,8 @@
     pointer-events: none;
   }
   &::before {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
     mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
   }

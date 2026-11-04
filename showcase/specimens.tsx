@@ -773,7 +773,7 @@ export function Accordion() {
 }
 
 export function TopBar() {
-  const [o, setO] = useState({ solid: true, transparent: false, blur: false, filters: false });
+  const [o, setO] = useState({ solid: false, transparent: false, blur: true, filters: false });
   const surface = o.blur ? "blur" : o.transparent ? "transparent" : "solid";
   const rows = Array.from({ length: 12 }, (_, i) => `Row ${i + 1}`);
   return (
