@@ -97,12 +97,23 @@ export function dsFont(id: string | undefined): DsFont {
   return DS_FONTS.find((f) => f.id === id) ?? DS_FONTS.find((f) => f.id === DS_DEFAULT_FONT)!;
 }
 
+/** What a font's name may hold: letters (accented too), digits, space, hyphen, underscore, period, apostrophe. It ends up inside CSS on every page. */
+export const DS_FONT_LABEL_RE = /^[\p{L}\p{N} ._'-]{1,60}$/u;
+/** A font name safe for the CSS font stack: anything outside the allowed characters is dropped. */
+export const dsSafeFontLabel = (label: string): string =>
+  label.replace(/[^\p{L}\p{N} ._'-]/gu, "").trim().slice(0, 60) || "Font";
+/** A Google font's name and weights as the link carries them: no quotes, brackets or slashes. */
+export const DS_GOOGLE_FONT_RE = /^[A-Za-z0-9+]+(:[A-Za-z0-9,;@.:+]*)?$/;
+/** A custom font's id. */
+export const DS_CUSTOM_FONT_ID_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
+
 /** A theme's added font as a DsFont: its name first, then the system face; the weights its link asked for. */
 export function dsCustomFont(font: DsCustomFont): DsFont {
   return {
     id: font.id,
     label: font.label,
-    family: `"${font.label}", ${SYSTEM_STACK}`,
+    // The name sits inside quotes in CSS: only safe characters, so it can't close them or the <style>.
+    family: `"${dsSafeFontLabel(font.label)}", ${SYSTEM_STACK}`,
     weights: dsGoogleWeights(font.google),
     google: font.google,
     custom: true,

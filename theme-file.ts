@@ -1,6 +1,6 @@
 import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
 import { DS_CHARACTER_DIALS } from "./character";
-import { DS_FONTS } from "./fonts";
+import { DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE } from "./fonts";
 import { DS_OUTLINE_MAX } from "./button-style";
 import { DS_RADII, DS_RADIUS_MAX } from "./radius";
 import { DS_TEXT_STYLES, parseDsThemeConfig, type DsThemeConfig } from "./theme";
@@ -140,9 +140,11 @@ function checkTheme(theme: Obj, errors: string[]) {
         unknownKeys(f, CUSTOM_FONT_KEYS, at, errors);
         if (typeof f.id !== "string" || !/^[a-z][a-z0-9-]{0,40}$/.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes`);
         else customIds.push(f.id);
-        if (typeof f.label !== "string" || !f.label.trim()) errors.push(`${at}.label: the font's name`);
+        if (typeof f.label !== "string" || !f.label.trim() || !DS_FONT_LABEL_RE.test(f.label)) {
+          errors.push(`${at}.label: the font's name, up to 60 letters, digits, spaces, hyphens, underscores, periods or apostrophes`);
+        }
         // A name and its weights, never a link: a theme can't point the site at an address of its own.
-        if (typeof f.google !== "string" || !/^[A-Za-z0-9+]+(:[A-Za-z0-9,;@.:+]*)?$/.test(f.google)) {
+        if (typeof f.google !== "string" || !DS_GOOGLE_FONT_RE.test(f.google)) {
           errors.push(`${at}.google: a Google font by name, like "Fraunces:wght@400;700". No links`);
         }
       });
@@ -228,6 +230,16 @@ function checkTheme(theme: Obj, errors: string[]) {
 }
 
 /**
+ * The file's colours in the shape the stored-theme reader takes as current. That reader falls back to
+ * an older colour layout unless `theme` or `text` is present, which drops a partial file's colours
+ * (only `accent`, only `surface`); empty picks keep those present and the rest at Auto.
+ */
+function withColourShape(theme: Obj): Obj {
+  if (!isObj(theme.colours)) return theme;
+  return { ...theme, colours: { theme: {}, text: {}, ...theme.colours } };
+}
+
+/**
  * Reads a theme file (its text, or the value already parsed). Strict: the
  * first wrong thing isn't the only one reported, and unknown keys fail rather
  * than vanish. On success `theme` is the cleaned, complete theme.
@@ -260,7 +272,7 @@ export function dsThemeFileParse(input: unknown): DsThemeFileResult {
     ok: true,
     name: (value.name as string).trim(),
     description: typeof value.description === "string" ? value.description.trim() : "",
-    theme: parseDsThemeConfig(value.theme),
+    theme: parseDsThemeConfig(withColourShape(value.theme as Obj)),
   };
 }
 
