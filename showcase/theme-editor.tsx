@@ -73,12 +73,28 @@ type ThemeEditor = {
   canRedo: boolean;
   undo: () => void;
   redo: () => void;
-  /** Whether the canvas shows the theme light or dark: its own, not the UI's (the sidebar's toggle). */
+  /** Whether the canvas shows the theme light or dark: the UI's own until one is picked for it (the panel's toggle). */
   previewMode: "light" | "dark";
   setPreviewMode: (mode: "light" | "dark") => void;
 };
 
 const ThemeEditorContext = React.createContext<ThemeEditor | null>(null);
+
+/** Watches the `dark` class on <html>, the UI's light or dark. */
+function subscribeUiMode(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  return () => observer.disconnect();
+}
+
+/** The UI's own light or dark, followed as it changes (light on the server). */
+function useUiMode(): "light" | "dark" {
+  return React.useSyncExternalStore(
+    subscribeUiMode,
+    () => (document.documentElement.classList.contains("dark") ? "dark" : "light"),
+    () => "light"
+  );
+}
 
 /** Custom: the one working copy that a change to Parabola goes into. */
 const CUSTOM_THEME_ID = "custom";
@@ -103,7 +119,10 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const [selected, setSelected] = React.useState(saved.active);
   const entry = library.themes.find((t) => t.id === selected) ?? library.themes[0];
   const [saving, setSaving] = React.useState(false);
-  const [previewMode, setPreviewMode] = React.useState<"light" | "dark">("light");
+  // The canvas follows the UI's light or dark until one is picked for it: a light page in a dark frame looks broken.
+  const uiMode = useUiMode();
+  const [pickedMode, setPreviewMode] = React.useState<"light" | "dark" | null>(null);
+  const previewMode = pickedMode ?? uiMode;
 
   // The open theme shows on the canvas (DsCanvas), whatever changed it; the rest of /parabola stays in Parabola's own.
   React.useEffect(() => dsApplyTheme(entry.theme, DS_THEME_SCOPE), [entry.theme]);
