@@ -14,7 +14,7 @@
  * output as arguments so a test can drive it.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { dsBrandKit, dsThemeFromPaste } from "../brand-kit";
 import { DS_DEFAULT_THEME, type DsThemeConfig } from "../theme";
 
@@ -145,7 +145,9 @@ function defaultDir(cwd: string): string {
 
 const STYLESHEETS = ["src/app/globals.css", "app/globals.css", "src/styles/globals.css", "styles/globals.css", "src/index.css", "src/globals.css"];
 
-const FONTS_IMPORT = /^@import url\("https:\/\/fonts\.googleapis\.com\/[^\n]*\n+/m;
+// The CLI marks the fonts import it writes, so a rerun replaces only its own line.
+const FONTS_MARK = "/* parabola:fonts */";
+const FONTS_IMPORT = /\/\* parabola:fonts \*\/\n@import url\([^\n]*\n+/;
 
 /**
  * Adds the two imports under Tailwind's, if the stylesheet doesn't have them yet,
@@ -154,8 +156,8 @@ const FONTS_IMPORT = /^@import url\("https:\/\/fonts\.googleapis\.com\/[^\n]*\n+
  */
 function importInto(css: string, cwd: string, dir: string, fonts: string | undefined, io: RunIo): void {
   let source = readFileSync(css, "utf8");
-  const fontsLine = fonts ? `@import url("${fonts}");\n` : "";
-  if (!source.includes(fontsLine) || (!fonts && FONTS_IMPORT.test(source))) {
+  const fontsLine = fonts ? `${FONTS_MARK}\n@import url("${fonts}");\n` : "";
+  if (!fontsLine ? FONTS_IMPORT.test(source) : !source.includes(fontsLine)) {
     source = fontsLine + source.replace(FONTS_IMPORT, "");
     writeFileSync(css, source);
     if (fonts) io.log(`  updated  ${relative(cwd, css)} (the theme's fonts, first line)`);
@@ -180,7 +182,7 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
   const { flags } = opts;
   let theme: DsThemeConfig = DS_DEFAULT_THEME;
   if (typeof flags.from === "string") {
-    const file = join(cwd, flags.from);
+    const file = resolve(cwd, flags.from);
     if (!existsSync(file)) throw new Error(`No file at ${flags.from}. Download the brand kit from /parabola/theme (Share) and use its parabola-theme.json.`);
     const read = themeFromText(readFileSync(file, "utf8"));
     if (!read) throw new Error(`${flags.from} isn't a Parabola theme (expected parabola-theme.json from the brand kit).`);
@@ -194,7 +196,7 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
   }
   const name = typeof flags.name === "string" ? flags.name : "Parabola";
   const overwrite = flags.overwrite === true;
-  const dir = join(cwd, typeof flags.dir === "string" ? flags.dir : defaultDir(cwd));
+  const dir = resolve(cwd, typeof flags.dir === "string" ? flags.dir : defaultDir(cwd));
   const kit = dsBrandKit(theme, name);
   io.log("Adding the theme:");
   write(join(dir, "tokens.css"), readFileSync(join(pkgRoot, "tokens.css"), "utf8"), overwrite, cwd, io);
@@ -202,7 +204,7 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
   const fonts = (kit.theme.typography as { googleFonts?: string }).googleFonts;
   write(join(dir, "theme.css"), kit.css.replace(/^@import url\([^\n]*\n+/, ""), true, cwd, io);
   write(join(dir, "parabola-theme.json"), `${JSON.stringify(kit.theme, null, 2)}\n`, true, cwd, io);
-  const css = typeof flags.css === "string" ? join(cwd, flags.css) : STYLESHEETS.map((p) => join(cwd, p)).find(existsSync);
+  const css = typeof flags.css === "string" ? resolve(cwd, flags.css) : STYLESHEETS.map((p) => join(cwd, p)).find(existsSync);
   if (css && existsSync(css)) importInto(css, cwd, dir, fonts, io);
   else io.log(`  No stylesheet found. First line of yours: ${fonts ? `@import url("${fonts}");` : "(no web fonts)"}. After Tailwind's import, add:\n    @import "${relative(cwd, join(dir, "tokens.css")).split("\\").join("/")}";\n    @import "${relative(cwd, join(dir, "theme.css")).split("\\").join("/")}";\n  (paths relative to that stylesheet)`);
   return 0;
@@ -210,7 +212,7 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
 
 function addComponents(names: string[], opts: Options, pkgRoot: string, cwd: string, io: RunIo): number {
   const overwrite = opts.flags.overwrite === true;
-  const dir = join(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
+  const dir = resolve(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
   const packages = new Set<string>();
   for (const name of names) {
     const found = resolveComponent(pkgRoot, name);
