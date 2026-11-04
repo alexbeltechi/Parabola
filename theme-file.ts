@@ -1,6 +1,7 @@
-import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
+import type { DsThemeColours } from "./colours";
+import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
 import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER } from "./character";
-import { DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE } from "./fonts";
+import { DS_CUSTOM_FONT_ID_RE, DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE, dsGoogleWeightsValid } from "./fonts";
 import { DS_OUTLINE_MAX } from "./button-style";
 import { DS_RADII, DS_RADIUS_MAX } from "./radius";
 import { DS_TEXT_STYLES, parseDsThemeConfig, type DsThemeConfig } from "./theme";
@@ -101,6 +102,13 @@ function checkTheme(theme: Obj, errors: string[]) {
         const v = theme.character[d.id];
         if (v !== undefined) range(v, d.min, d.max, `theme.character.${d.id}`, errors);
       }
+      const { tastes, scoped } = theme.character;
+      if (tastes !== undefined && (!Array.isArray(tastes) || tastes.length > 4 || tastes.some((t) => typeof t !== "string" || t.length > 40))) {
+        errors.push("theme.character.tastes: a short list of style names");
+      }
+      if (scoped !== undefined && (!isObj(scoped) || Object.values(scoped).some((v) => typeof v !== "string" || v.length > 40))) {
+        errors.push("theme.character.scoped: an object of short names");
+      }
       if (theme.character.mood !== undefined) range(theme.character.mood, 0, 1, "theme.character.mood", errors);
     }
   }
@@ -138,14 +146,14 @@ function checkTheme(theme: Obj, errors: string[]) {
         const at = `theme.customFonts[${i}]`;
         if (!isObj(f)) return void errors.push(`${at}: must be an object`);
         unknownKeys(f, CUSTOM_FONT_KEYS, at, errors);
-        if (typeof f.id !== "string" || !/^[a-z][a-z0-9-]{0,40}$/.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes`);
+        if (typeof f.id !== "string" || !DS_CUSTOM_FONT_ID_RE.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes, up to 41 characters`);
         else customIds.push(f.id);
         if (typeof f.label !== "string" || !f.label.trim() || !DS_FONT_LABEL_RE.test(f.label)) {
           errors.push(`${at}.label: the font's name, up to 60 letters, digits, spaces, hyphens, underscores, periods or apostrophes`);
         }
         // A name and its weights, never a link: a theme can't point the site at an address of its own.
-        if (typeof f.google !== "string" || !DS_GOOGLE_FONT_RE.test(f.google)) {
-          errors.push(`${at}.google: a Google font by name, like "Fraunces:wght@400;700". No links`);
+        if (typeof f.google !== "string" || !DS_GOOGLE_FONT_RE.test(f.google) || !dsGoogleWeightsValid(f.google)) {
+          errors.push(`${at}.google: a Google font by name, like "Fraunces:wght@400;700", weights from 1 to 1000. No links`);
         }
       });
     }
@@ -162,6 +170,7 @@ function checkTheme(theme: Obj, errors: string[]) {
         unknownKeys(f, FAMILY_KEYS, at, errors);
         if (typeof f.id !== "string" || !/^[a-z][a-z0-9-]{0,40}$/.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes`);
         else familyIds.push(f.id);
+        if (f.label !== undefined && (typeof f.label !== "string" || f.label.length > 40)) errors.push(`${at}.label: text of up to 40 characters`);
         if (typeof f.font !== "string" || !fontIds.includes(f.font)) {
           errors.push(`${at}.font: must be one of ${list(fontIds)}`);
         }
@@ -185,6 +194,7 @@ function checkTheme(theme: Obj, errors: string[]) {
         if (s.family !== undefined && theme.families !== undefined && (typeof s.family !== "string" || !familyIds.includes(s.family))) {
           errors.push(`${at}.family: must be one of the theme's families ${list(familyIds)}`);
         }
+        if (s.label !== undefined && (typeof s.label !== "string" || s.label.length > 40)) errors.push(`${at}.label: text of up to 40 characters`);
         if (s.weight !== undefined) range(s.weight, 100, 900, `${at}.weight`, errors);
         if (s.size !== undefined) range(s.size, 10, 200, `${at}.size`, errors);
         if (s.lineHeight !== undefined) range(s.lineHeight, 10, 240, `${at}.lineHeight`, errors);
@@ -246,13 +256,9 @@ function withColourShape(theme: Obj): Obj {
 /** A light colour pick stored as an older preset ("blue") as the hex it stands for; the file takes hex or Auto only. */
 function presetToHex(light: unknown, key: string): unknown {
   if (typeof light !== "string" || dsIsHex(light)) return light;
-  const hex =
-    key === "accent"
-      ? DS_ACCENT_COLOURS.find((c) => c.id === light)?.light.highlight
-      : key === "text"
-        ? DS_BASE_COLOURS.find((c) => c.id === light)?.swatch
-        : undefined;
-  return hex ?? null;
+  // A text preset sets the quieter steps; its primary text is black (see dsColourTokens), which is Auto, not a hex.
+  if (key === "accent") return DS_ACCENT_COLOURS.find((c) => c.id === light)?.light.highlight ?? null;
+  return null;
 }
 
 /**
@@ -295,7 +301,10 @@ export function dsThemeFileParse(input: unknown): DsThemeFileResult {
 function withHexColours(theme: DsThemeConfig): DsThemeConfig {
   const colours = Object.fromEntries(
     Object.entries(theme.colours).map(([key, pick]) => [key, { ...pick, light: presetToHex(pick.light, key) }]),
-  ) as unknown as DsThemeConfig["colours"];
+  ) as unknown as DsThemeColours;
+  // The text preset's quieter step carries over as the secondary text, unless one was picked.
+  const preset = DS_BASE_COLOURS.find((c) => c.id === theme.colours.text.light && c.id !== DS_DEFAULT_BASE_COLOUR);
+  if (preset && !colours.muted.light) colours.muted = { ...colours.muted, light: preset.light["fg-muted"] };
   return { ...theme, colours };
 }
 
@@ -304,8 +313,9 @@ export function dsThemeToFile(theme: DsThemeConfig, name: string, description = 
   return {
     format: DS_THEME_FILE_FORMAT,
     version: DS_THEME_FILE_VERSION,
-    name,
-    ...(description && { description }),
+    // The file refuses more than a name of 60 and a description of 300, so a longer one is cut here.
+    name: name.trim().slice(0, 60) || "Theme",
+    ...(description && { description: description.slice(0, 300) }),
     theme: withHexColours(JSON.parse(JSON.stringify(theme)) as DsThemeConfig),
   };
 }

@@ -19,6 +19,7 @@ import {
   dsSafeFontLabel,
   DS_CUSTOM_FONT_ID_RE,
   DS_GOOGLE_FONT_RE,
+  dsGoogleWeightsValid,
   dsCustomFontFromInput,
   dsGoogleFontsUrl,
   dsNearestWeight,
@@ -227,7 +228,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
         const font = f as Partial<DsCustomFont>;
         // Stored data is checked like a file: the id, name and link end up in CSS and in a link on every page.
         return typeof font?.id === "string" && typeof font.label === "string" && typeof font.google === "string" &&
-          DS_CUSTOM_FONT_ID_RE.test(font.id) && DS_GOOGLE_FONT_RE.test(font.google)
+          DS_CUSTOM_FONT_ID_RE.test(font.id) && DS_GOOGLE_FONT_RE.test(font.google) && dsGoogleWeightsValid(font.google)
           ? [{ id: font.id, label: dsSafeFontLabel(font.label), google: font.google }]
           : [];
       })

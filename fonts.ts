@@ -74,20 +74,27 @@ export function dsNearestWeight(font: DsFont, weight: number): number {
   return font.weights.reduce((best, w) => (Math.abs(w - weight) < Math.abs(best - weight) ? w : best), font.weights[0] ?? 400);
 }
 
+/** The heaviest weight Google Fonts has. */
+export const DS_GOOGLE_WEIGHT_MAX = 1000;
+
 /** The weights a Google Fonts family value asks for: `wght@400;500`, a range `wght@400..700`, or none (Regular). */
 export function dsGoogleWeights(google: string): number[] {
   const spec = google.split(":")[1] ?? "";
   const values = spec.includes("@") ? spec.split("@")[1] : "";
   if (!/wght/.test(spec) || !values) return [400];
+  // Google's weights run 1 to 1000; stored data from any path may say more, so every number is clamped
+  // and a range is walked in a bounded number of steps.
+  const clampW = (n: number) => Math.min(DS_GOOGLE_WEIGHT_MAX, Math.max(1, Math.round(n)));
   const weights = new Set<number>();
-  for (const part of values.split(";")) {
+  for (const part of values.split(";").slice(0, 40)) {
     // `ital,wght@0,400;1,400`: the weight is the last number.
     const value = part.split(",").pop() ?? "";
     const [from, to] = value.split("..").map(Number);
     if (Number.isFinite(from) && Number.isFinite(to)) {
-      for (let w = Math.ceil(from / 100) * 100; w <= to; w += 100) weights.add(w);
+      const end = clampW(to);
+      for (let w = Math.ceil(clampW(from) / 100) * 100, steps = 0; w <= end && steps < 12; w += 100, steps += 1) weights.add(w);
     } else if (Number.isFinite(from)) {
-      weights.add(from);
+      weights.add(clampW(from));
     }
   }
   return weights.size > 0 ? [...weights].sort((a, b) => a - b) : [400];
@@ -105,7 +112,20 @@ export const dsSafeFontLabel = (label: string): string =>
 /** A Google font's name and weights as the link carries them: no quotes, brackets or slashes. */
 export const DS_GOOGLE_FONT_RE = /^[A-Za-z0-9+]+(:[A-Za-z0-9,;@.:+]*)?$/;
 /** A custom font's id. */
-export const DS_CUSTOM_FONT_ID_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
+export const DS_CUSTOM_FONT_ID_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
+
+/** Whether a Google font value's weights are numbers from 1 to 1000 (a range is low..high). The family part is DS_GOOGLE_FONT_RE's. */
+export function dsGoogleWeightsValid(google: string): boolean {
+  const values = google.split(":")[1]?.split("@")[1];
+  if (!values) return true;
+  return values.split(";").every((part) => {
+    const value = part.split(",").pop() ?? "";
+    const range = value.split("..");
+    if (range.length > 2) return false;
+    const nums = range.map((n) => (/^\d{1,4}$/.test(n) ? Number(n) : NaN));
+    return nums.every((n) => n >= 1 && n <= DS_GOOGLE_WEIGHT_MAX) && (nums.length < 2 || nums[0] <= nums[1]);
+  });
+}
 
 /** A theme's added font as a DsFont: its name first, then the system face; the weights its link asked for. */
 export function dsCustomFont(font: DsCustomFont): DsFont {
@@ -148,8 +168,10 @@ export function dsCustomFontFromInput(input: string): DsCustomFont | null {
   }
   if (!google) return null;
   const label = google.split(":")[0].replace(/\+/g, " ").trim();
-  if (!label) return null;
-  return { id: label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label, google: google.replace(/ /g, "+") };
+  const safeGoogle = google.replace(/ /g, "+");
+  if (!label || !DS_FONT_LABEL_RE.test(label) || !DS_GOOGLE_FONT_RE.test(safeGoogle) || !dsGoogleWeightsValid(safeGoogle)) return null;
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+  return id ? { id, label, google: safeGoogle } : null;
 }
 
 /** A Google font's page on fonts.google.com, to check it's the one meant; null for System. */
