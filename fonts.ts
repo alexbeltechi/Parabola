@@ -114,17 +114,26 @@ export const DS_GOOGLE_FONT_RE = /^[A-Za-z0-9+]+(:[A-Za-z0-9,;@.:+]*)?$/;
 /** A custom font's id. */
 export const DS_CUSTOM_FONT_ID_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
 
-/** Whether a Google font value's weights are numbers from 1 to 1000 (a range is low..high). The family part is DS_GOOGLE_FONT_RE's. */
+/**
+ * Whether a Google font value's axes are sound: `wght` values are whole numbers from 1 to 1000 (a range is low..high),
+ * `ital` is 0 or 1, other axes are left as the link regex allows. The family part is DS_GOOGLE_FONT_RE's.
+ */
 export function dsGoogleWeightsValid(google: string): boolean {
-  const values = google.split(":")[1]?.split("@")[1];
+  const spec = google.split(":")[1];
+  if (!spec || !spec.includes("@")) return true;
+  const [axisList, values] = spec.split("@");
+  const axes = axisList.split(",");
   if (!values) return true;
-  return values.split(";").every((part) => {
-    const value = part.split(",").pop() ?? "";
-    const range = value.split("..");
-    if (range.length > 2) return false;
-    const nums = range.map((n) => (/^\d{1,4}$/.test(n) ? Number(n) : NaN));
-    return nums.every((n) => n >= 1 && n <= DS_GOOGLE_WEIGHT_MAX) && (nums.length < 2 || nums[0] <= nums[1]);
-  });
+  return values.split(";").every((tuple) =>
+    tuple.split(",").every((value, i) => {
+      if (axes[i] === "ital") return value === "0" || value === "1";
+      if (axes[i] !== "wght") return true;
+      const range = value.split("..");
+      if (range.length > 2) return false;
+      const nums = range.map((n) => (/^\d{1,4}$/.test(n) ? Number(n) : NaN));
+      return nums.every((n) => n >= 1 && n <= DS_GOOGLE_WEIGHT_MAX) && (nums.length < 2 || nums[0] <= nums[1]);
+    }),
+  );
 }
 
 /** A theme's added font as a DsFont: its name first, then the system face; the weights its link asked for. */
