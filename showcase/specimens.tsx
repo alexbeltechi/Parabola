@@ -722,14 +722,14 @@ export function NavFade() {
       preview={
         <div className="relative h-[360px] w-full max-w-[420px] overflow-y-auto rounded-ds-lg border border-ds-border bg-ds-bg">
           {/* The bar floats: controls on top, the style behind, clicks passing through. */}
-          <div className="pointer-events-none sticky top-0 z-10 flex flex-col ds-nav-fade px-5 pt-5 pb-10 [&>*]:pointer-events-auto">
+          <DsTopBar surface="blur" className="z-10 px-5 pt-5 pb-10">
             <div className="flex items-center gap-2">
               <DsButton iconLeft={X} aria-label="Close" />
               <span className="flex-1 text-p text-ds-fg">Title</span>
               <DsButton iconLeft={MoreVertical} aria-label="More" />
             </div>
             {o.subnav && <DsSearch aria-label="Search" className="mt-5 w-full" />}
-          </div>
+          </DsTopBar>
           <ul className="flex flex-col px-5 pb-5">
             {rows.map((row) => (
               <li key={row} className="py-3 text-p text-ds-fg-muted">

@@ -139,7 +139,7 @@
 
 /* Parabola nav fade: the soft wash behind a bar that floats over scrolling
    content (the admin editor's top bar, the posts list header with its
-   search). The page colour at 70% fading to nothing, top to bottom, so
+   search). The page colour at 40% fading to nothing, top to bottom, so
    content dissolves beneath the controls instead of being cut off. One
    style for every floating bar, with or without a sub-nav: the bar sets its
    own height (pad it below the controls for the length of the fade); it
@@ -151,13 +151,14 @@
   isolation: isolate;
   background-image: linear-gradient(
     to bottom,
-    color-mix(in srgb, var(--ds-bg) 70%, transparent),
+    color-mix(in srgb, var(--ds-bg) 40%, transparent),
     transparent
   );
 
-  /* Apple-style progressive blur: a heavy blur that dies out by 60% of the
-     bar's height, and a light one that carries on to the bottom edge, each
-     masked so the blur ramps in with no visible seam. */
+  /* Apple-style progressive blur, kept soft: a 10px blur that dies out by
+     60% of the bar's height, and a 3px one that carries on to the bottom
+     edge, each masked so the blur ramps in with no visible seam. The tint
+     above is light (40% of the page colour), so the page shows through. */
   &::before,
   &::after {
     content: "";
@@ -167,14 +168,14 @@
     pointer-events: none;
   }
   &::before {
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
     mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
   }
   &::after {
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
     -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
   }
