@@ -194,6 +194,7 @@ const SPACE_USAGE: Record<number, string> = {
   8: "Tight groups: pills in a row, a label and its field.",
   16: "Card padding; gaps between items in a list.",
   20: "The page's side margin on a phone.",
+  32: "A picture and the text beside it, in a list.",
   40: "Between blocks inside a section.",
   80: "Between sections.",
   160: "Around the biggest breaks: before a footer, around a hero.",
