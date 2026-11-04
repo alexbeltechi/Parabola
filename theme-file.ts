@@ -1,5 +1,5 @@
 import type { DsThemeColours } from "./colours";
-import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_DEFAULT_BASE_COLOUR, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
+import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
 import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER } from "./character";
 import { DS_CUSTOM_FONT_ID_RE, DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE, dsGoogleWeightsValid } from "./fonts";
 import { DS_OUTLINE_MAX } from "./button-style";
@@ -127,8 +127,11 @@ function checkTheme(theme: Obj, errors: string[]) {
         }
         unknownKeys(pick, COLOUR_PICK_KEYS, at, errors);
         for (const mode of ["light", "dark"] as const) {
-          if (pick[mode] !== undefined && pick[mode] !== null && !dsIsHex(pick[mode])) {
-            errors.push(`${at}.${mode}: must be null (Auto) or a hex colour like "#1A2B3C"`);
+          // The accent's and the text's light pick may also be one of the known presets, which render differently from any hex.
+          const presets = key === "accent" ? DS_ACCENT_COLOURS : key === "text" ? DS_BASE_COLOURS : [];
+          const preset = mode === "light" && typeof pick.light === "string" && presets.some((c) => c.id === pick.light);
+          if (pick[mode] !== undefined && pick[mode] !== null && !dsIsHex(pick[mode]) && !preset) {
+            errors.push(`${at}.${mode}: must be null (Auto) or a hex colour like "#1A2B3C"${mode === "light" && presets.length ? ` or a preset (${list(presets.map((c) => c.id))})` : ""}`);
           }
         }
         for (const shift of ["lightShift", "darkShift"] as const) {
@@ -253,12 +256,12 @@ function withColourShape(theme: Obj): Obj {
   return { ...withCharacter, colours: { theme: {}, text: {}, ...withCharacter.colours } };
 }
 
-/** A light colour pick stored as an older preset ("blue") as the hex it stands for; the file takes hex or Auto only. */
+/** A light colour pick: a hex or a known preset is kept as it is, anything else is Auto. */
 function presetToHex(light: unknown, key: string): unknown {
   if (typeof light !== "string" || dsIsHex(light)) return light;
-  // A text preset sets the quieter steps; its primary text is black (see dsColourTokens), which is Auto, not a hex.
-  if (key === "accent") return DS_ACCENT_COLOURS.find((c) => c.id === light)?.light.highlight ?? null;
-  return null;
+  // A preset stays a preset: it sets more than one colour (a hex would recolour buttons and derive other dark colours).
+  const presets = key === "accent" ? DS_ACCENT_COLOURS : key === "text" ? DS_BASE_COLOURS : [];
+  return presets.some((c) => c.id === light) ? light : null;
 }
 
 /**
@@ -302,9 +305,6 @@ function withHexColours(theme: DsThemeConfig): DsThemeConfig {
   const colours = Object.fromEntries(
     Object.entries(theme.colours).map(([key, pick]) => [key, { ...pick, light: presetToHex(pick.light, key) }]),
   ) as unknown as DsThemeColours;
-  // The text preset's quieter step carries over as the secondary text, unless one was picked.
-  const preset = DS_BASE_COLOURS.find((c) => c.id === theme.colours.text.light && c.id !== DS_DEFAULT_BASE_COLOUR);
-  if (preset && !colours.muted.light) colours.muted = { ...colours.muted, light: preset.light["fg-muted"] };
   return { ...theme, colours };
 }
 
