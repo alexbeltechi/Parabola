@@ -1,5 +1,5 @@
-import { DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
-import { DS_CHARACTER_DIALS } from "./character";
+import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, dsIsHex } from "./colours";
+import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER } from "./character";
 import { DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE } from "./fonts";
 import { DS_OUTLINE_MAX } from "./button-style";
 import { DS_RADII, DS_RADIUS_MAX } from "./radius";
@@ -235,8 +235,24 @@ function checkTheme(theme: Obj, errors: string[]) {
  * (only `accent`, only `surface`); empty picks keep those present and the rest at Auto.
  */
 function withColourShape(theme: Obj): Obj {
-  if (!isObj(theme.colours)) return theme;
-  return { ...theme, colours: { theme: {}, text: {}, ...theme.colours } };
+  // Same for the character: without `warmth` the reader takes `colour` and `brightness` as an older
+  // layout's saturation and value. A file always means the current dials.
+  const character = isObj(theme.character) ? { warmth: DS_DEFAULT_CHARACTER.warmth, ...theme.character } : theme.character;
+  const withCharacter = character === theme.character ? theme : { ...theme, character };
+  if (!isObj(withCharacter.colours)) return withCharacter;
+  return { ...withCharacter, colours: { theme: {}, text: {}, ...withCharacter.colours } };
+}
+
+/** A light colour pick stored as an older preset ("blue") as the hex it stands for; the file takes hex or Auto only. */
+function presetToHex(light: unknown, key: string): unknown {
+  if (typeof light !== "string" || dsIsHex(light)) return light;
+  const hex =
+    key === "accent"
+      ? DS_ACCENT_COLOURS.find((c) => c.id === light)?.light.highlight
+      : key === "text"
+        ? DS_BASE_COLOURS.find((c) => c.id === light)?.swatch
+        : undefined;
+  return hex ?? null;
 }
 
 /**
@@ -276,6 +292,13 @@ export function dsThemeFileParse(input: unknown): DsThemeFileResult {
   };
 }
 
+function withHexColours(theme: DsThemeConfig): DsThemeConfig {
+  const colours = Object.fromEntries(
+    Object.entries(theme.colours).map(([key, pick]) => [key, { ...pick, light: presetToHex(pick.light, key) }]),
+  ) as unknown as DsThemeConfig["colours"];
+  return { ...theme, colours };
+}
+
 /** A theme as a file, to save as `<name>.theme.json`. It reads back to the same theme. */
 export function dsThemeToFile(theme: DsThemeConfig, name: string, description = "") {
   return {
@@ -283,7 +306,7 @@ export function dsThemeToFile(theme: DsThemeConfig, name: string, description = 
     version: DS_THEME_FILE_VERSION,
     name,
     ...(description && { description }),
-    theme: JSON.parse(JSON.stringify(theme)) as DsThemeConfig,
+    theme: withHexColours(JSON.parse(JSON.stringify(theme)) as DsThemeConfig),
   };
 }
 
