@@ -155,10 +155,13 @@
     transparent
   );
 
-  /* Apple-style progressive blur, kept soft: a 6px blur that dies out by
-     60% of the bar's height, and a 3px one that carries on to the bottom
-     edge, each masked so the blur ramps in with no visible seam. The tint
-     above is light (40% of the page colour), so the page shows through. */
+  /* Apple-style progressive blur, kept soft: a 6px blur at the top that dies
+     out by 60% of the bar's height, and a 3px one that takes over as it
+     fades and dies out at the bottom edge, each masked so the blur ramps
+     with no visible seam. The 3px layer stays clear of the top: one blur
+     over another blurs twice, and the top would read stronger than 6px.
+     The tint above is light (40% of the page colour), so the page shows
+     through. */
   &::before,
   &::after {
     content: "";
@@ -176,8 +179,8 @@
   &::after {
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
-    -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 25%, #000 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 25%, #000 60%, transparent 100%);
   }
 }
 
