@@ -48,6 +48,7 @@ import { DsSwitch } from "../primitives/switch";
 import { DsToast, DsToastAction, dsToast } from "../primitives/toast";
 import { DsTopBar } from "../primitives/top-bar";
 import { DsAccordion } from "../primitives/accordion";
+import { DsDisclosure } from "../primitives/disclosure";
 import { DsTooltip } from "../primitives/tooltip";
 import { cn } from "../cn";
 import { DsColourDot, DsMenuItem, DsMenuSeparator, DsTray } from "../primitives/tray";
@@ -768,6 +769,21 @@ export function Accordion() {
         </div>
       }
       controls={<Controls options={o} labels={{ nested: "Nested", actions: "Actions" }} onChange={setO} />}
+    />
+  );
+}
+
+export function Disclosure() {
+  return (
+    <Specimen
+      preview={
+        <div className="flex w-full max-w-[360px] flex-col gap-ds-16">
+          <p className="text-p text-ds-fg-muted">What most people need, every time.</p>
+          <DsDisclosure label="AI instructions">
+            <p className="text-p text-ds-fg-muted">What a few need, now and then: folded until asked for.</p>
+          </DsDisclosure>
+        </div>
+      }
     />
   );
 }

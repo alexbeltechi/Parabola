@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   Dices,
   ChevronRight,
-  ChevronUp,
   ClipboardPaste,
   Copy,
   Download,
@@ -66,6 +65,7 @@ import { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste } from 
 import { DsAccordion } from "../primitives/accordion";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsButton } from "../primitives/button";
+import { DsDisclosure } from "../primitives/disclosure";
 import {
   DsConfirmDialog,
   DsDialog,
@@ -1527,26 +1527,9 @@ function SectionRail({
   );
 }
 
-/**
- * A section's fine-tuning, folded: the pills come first,
- * and "Show advanced options" opens the sliders and fields under them.
- */
+/** A section's fine-tuning, folded: the pills come first, and "Show advanced options" opens the sliders and fields under them. */
 function AdvancedOptions({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <>
-      <DsButton
-        variant="text"
-        size="small"
-        iconRight={open ? ChevronUp : ChevronDown}
-        className="-ml-2 self-start"
-        onClick={() => setOpen((on) => !on)}
-      >
-        {open ? "Hide advanced options" : "Show advanced options"}
-      </DsButton>
-      {open && <div className="flex flex-col gap-ds-16">{children}</div>}
-    </>
-  );
+  return <DsDisclosure label="advanced options">{children}</DsDisclosure>;
 }
 
 /**
