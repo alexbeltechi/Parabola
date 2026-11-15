@@ -6,6 +6,7 @@ const USES: Record<DsSpace, string> = {
   8: "The lines of one text group; a post header's date, title and categories",
   16: "A picture and the text under it: a post tile's image and title",
   20: "The gutter: between pictures and tiles, across and down; groups in a column (a title and its button); the page's side margin",
+  32: "A picture and the text beside it: a list row's picture and its title",
   40: "Between blocks: a post's text and galleries, a collection's intro and its feed, the More section and the footer",
   80: "Between a text column and the content beside it; between the sections of a page",
   160: "Between a page's main content and what follows it: the post page's More section",
