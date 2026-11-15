@@ -297,7 +297,7 @@ Fields have one width, `--ds-field-width` (320px): a `DsField`, or a
 control on its own (input, select, date picker, search, textarea,
 multi-select), is that wide wherever it's dropped, and a control inside a
 `DsField` fills the field. Lay a form out with `DS_FIELDS_CLASS`: fields
-left-aligned in a row that wraps, never stretched. Opt out deliberately:
+one under the other, left-aligned, never side by side and never stretched. Opt out deliberately:
 
 - `className="w-full"` on the `DsField` (or a control on its own) for one
   that fills its row: long text, a list of files, a toolbar's search bar.

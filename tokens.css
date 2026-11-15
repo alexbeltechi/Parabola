@@ -379,8 +379,8 @@
 
   /* Field width: the one width of a field (the DsField, and any input,
      select, date picker, search, textarea or multi-select on its own), so a
-     field dropped on a page is already its size and a form is a row of
-     fields that left-aligns and wraps (DS_FIELDS_CLASS). 320px holds about
+     field dropped on a page is already its size and a form is a column of
+     fields, left-aligned (DS_FIELDS_CLASS). 320px holds about
      35 characters of text-p (a title, an email, a URL). Below 1024px (where
      the admin takes its phone layout) fields run the full width instead,
      edge to edge; buttons keep their own width. Containers one field wide
