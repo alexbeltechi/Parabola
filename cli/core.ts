@@ -10,6 +10,10 @@
  *   file of Parabola it imports, in the same folders it has in the package
  *   (so its imports hold), plus the npm packages to install.
  *
+ * - `update`, `status`: a newer Parabola into a project that already has a
+ *   copy, keeping what the project changed (`update.ts`). Every `add` notes
+ *   what it copied in `parabola.json` so `update` knows where it came from.
+ *
  * Plain Node, no prompts: it prints what it did. `run` takes the folders and
  * output as arguments so a test can drive it.
  */
@@ -17,6 +21,8 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { dsBrandKit, dsThemeFromPaste } from "../brand-kit";
 import { DS_DEFAULT_THEME, type DsThemeConfig } from "../theme";
+import { closure, hasDependency, transform } from "./files";
+import { DEFAULT_SOURCE, commitOf, readManifest, runUpdate, writeManifest, type Manifest } from "./update";
 
 const USAGE = `Parabola: copy a design system into your project.
 
@@ -35,7 +41,7 @@ export type RunIo = { log: (line: string) => void; error: (line: string) => void
 
 type Options = { positional: string[]; flags: Record<string, string | true> };
 
-const VALUE_FLAGS = ["from", "code", "name", "dir", "css"];
+const VALUE_FLAGS = ["from", "code", "name", "dir", "css", "to", "source"];
 
 export function parseArgs(argv: string[]): Options {
   const positional: string[] = [];
@@ -81,51 +87,11 @@ export function listComponents(pkgRoot: string): string[] {
   });
 }
 
-const FILE_EXTENSIONS = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
-
-function resolveFile(pkgRoot: string, from: string, spec: string): string | null {
-  const base = join(dirname(from), spec);
-  for (const ext of FILE_EXTENSIONS) {
-    const path = base + ext;
-    if (/\.(tsx?|css)$/.test(path) && existsSync(join(pkgRoot, path))) return path;
-  }
-  return null;
-}
-
-/**
- * Parabola's `provider.tsx` imports its theme *types* only; a copy would
- * pull the whole theme engine in for them, so they're stubbed where copied.
- */
-function transform(file: string, source: string): string {
-  if (file !== "provider.tsx") return source;
-  return source.replace(
-    /import type \{ DsThemeEntry, DsThemeLibrary \} from "\.\/theme";/,
-    "// The theme engine isn't copied with a component; these are its shapes, loosely.\ntype DsThemeEntry = { id: string; name: string; theme: unknown };\ntype DsThemeLibrary = { themes: DsThemeEntry[]; active: string };"
-  );
-}
-
 /** A component's files (paths in the package, entry first) and the npm packages they import. */
 export function resolveComponent(pkgRoot: string, name: string): { files: string[]; packages: string[] } {
   const entry = ["primitives", "components"].map((f) => `${f}/${name}.tsx`).find((p) => existsSync(join(pkgRoot, p)));
   if (!entry) throw new Error(`No component called "${name}". Run \`list\` to see them.`);
-  const files: string[] = [];
-  const packages = new Set<string>();
-  const visit = (file: string) => {
-    if (files.includes(file)) return;
-    files.push(file);
-    const source = readFileSync(join(pkgRoot, file), "utf8");
-    for (const [, spec] of source.matchAll(/(?:from|import)\s+["']([^"']+)["']/g)) {
-      if (file === "provider.tsx" && spec === "./theme") continue;
-      if (spec.startsWith(".")) {
-        const next = resolveFile(pkgRoot, file, spec);
-        if (next) visit(next);
-      } else if (!spec.startsWith("node:")) {
-        packages.add(spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0]);
-      }
-    }
-  };
-  visit(entry);
-  return { files, packages: [...packages].sort() };
+  return closure(pkgRoot, [entry]);
 }
 
 function write(path: string, body: string, overwrite: boolean, cwd: string, io: RunIo): boolean {
@@ -140,7 +106,47 @@ function write(path: string, body: string, overwrite: boolean, cwd: string, io: 
 }
 
 function defaultDir(cwd: string): string {
-  return existsSync(join(cwd, "src")) ? "src/parabola" : "parabola";
+  return readManifest(cwd)?.dir ?? (existsSync(join(cwd, "src")) ? "src/parabola" : "parabola");
+}
+
+/** Where this Parabola is fetched from, for a project's parabola.json. */
+function sourceOf(pkgRoot: string): string {
+  try {
+    const repo = (JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8")) as { repository?: { url?: string } }).repository;
+    return repo?.url?.replace(/^git\+/, "") || DEFAULT_SOURCE;
+  } catch {
+    return DEFAULT_SOURCE;
+  }
+}
+
+function versionOf(pkgRoot: string): string {
+  return (JSON.parse(readFileSync(join(pkgRoot, "package.json"), "utf8")) as { version: string }).version;
+}
+
+/** A copy can't mix two Parabolas: `update` would no longer know what each file started as. */
+function assertSameVersion(cwd: string, pkgRoot: string): void {
+  const manifest = readManifest(cwd);
+  if (!manifest) return;
+  const commit = commitOf(pkgRoot);
+  const same = manifest.commit && commit ? manifest.commit === commit : manifest.version === versionOf(pkgRoot);
+  if (!same) {
+    throw new Error(`This project is on Parabola ${manifest.version} and this command is ${versionOf(pkgRoot)}. Run \`update\` first, then add.`);
+  }
+}
+
+/** Notes the copied files in parabola.json, so `update` knows where each came from. */
+function record(cwd: string, pkgRoot: string, dir: string, files: string[]): void {
+  const existing = readManifest(cwd);
+  if (existing?.files === "*") return;
+  const commit = commitOf(pkgRoot);
+  const manifest: Manifest = {
+    source: existing?.source ?? sourceOf(pkgRoot),
+    version: versionOf(pkgRoot),
+    ...(commit ? { commit } : {}),
+    dir: relative(cwd, dir).split("\\").join("/") || ".",
+    files: [...new Set([...(existing?.files ?? []), ...files])].filter((f) => existsSync(join(dir, f))).sort(),
+  };
+  writeManifest(cwd, manifest);
 }
 
 const STYLESHEETS = ["src/app/globals.css", "app/globals.css", "src/styles/globals.css", "styles/globals.css", "src/index.css", "src/globals.css"];
@@ -198,8 +204,10 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
   const overwrite = flags.overwrite === true;
   const dir = resolve(cwd, typeof flags.dir === "string" ? flags.dir : defaultDir(cwd));
   const kit = dsBrandKit(theme, name);
+  assertSameVersion(cwd, pkgRoot);
   io.log("Adding the theme:");
   write(join(dir, "tokens.css"), readFileSync(join(pkgRoot, "tokens.css"), "utf8"), overwrite, cwd, io);
+  record(cwd, pkgRoot, dir, ["tokens.css"]);
   // The theme is what the maker changes, so it's always replaced.
   const fonts = (kit.theme.typography as { googleFonts?: string }).googleFonts;
   write(join(dir, "theme.css"), kit.css.replace(/^@import url\([^\n]*\n+/, ""), true, cwd, io);
@@ -214,8 +222,11 @@ function addComponents(names: string[], opts: Options, pkgRoot: string, cwd: str
   const overwrite = opts.flags.overwrite === true;
   const dir = resolve(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
   const packages = new Set<string>();
+  const copied: string[] = [];
+  assertSameVersion(cwd, pkgRoot);
   for (const name of names) {
     const found = resolveComponent(pkgRoot, name);
+    copied.push(...found.files);
     io.log(`Adding ${name}:`);
     for (const file of found.files) {
       write(join(dir, file), transform(file, readFileSync(join(pkgRoot, file), "utf8")), overwrite, cwd, io);
@@ -224,19 +235,11 @@ function addComponents(names: string[], opts: Options, pkgRoot: string, cwd: str
     const entry = relative(cwd, join(dir, found.files[0])).replace(/\.tsx$/, "").split("\\").join("/");
     io.log(`  import from "${entry}" (your path alias may shorten it)`);
   }
+  record(cwd, pkgRoot, dir, copied);
   const missing = [...packages].filter((p) => !hasDependency(cwd, p));
   if (missing.length) io.log(`\nInstall what they need:\n  npm install ${missing.join(" ")}`);
   io.log("\nThey draw from the theme's tokens: run `add theme` too if you haven't.");
   return 0;
-}
-
-function hasDependency(cwd: string, name: string): boolean {
-  try {
-    const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as Record<string, Record<string, string> | undefined>;
-    return Boolean(pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]);
-  } catch {
-    return false;
-  }
 }
 
 /** Runs the command; returns the exit code. */
@@ -252,6 +255,7 @@ export function run(argv: string[], cwd: string, pkgRoot: string, io: RunIo): nu
       io.log(listComponents(pkgRoot).join("\n"));
       return 0;
     }
+    if (command === "update" || command === "status") return runUpdate(opts.flags, cwd, io, command === "status");
     if (command !== "add") throw new Error(`Unknown command "${command}".\n\n${USAGE}`);
     if (!rest.length) throw new Error("Add what? `add theme`, or a component such as `add button`.");
     if (rest[0] === "theme") {

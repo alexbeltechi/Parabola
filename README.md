@@ -261,9 +261,10 @@ it's hard to work on a phone.
 
 The third way out, besides the kit and the design-system text: a command, as
 shadcn's `add`, that copies Parabola into a project so the maker owns the
-files (`cli/core.ts`, bundled to `bin/parabola.mjs` by
-`scripts/build-parabola-cli.mjs`, which `npm pack` runs; the bundle isn't in
-git). Run it in the project's folder:
+files (`cli/`, bundled to `bin/parabola.mjs` by `npm run bundle`; the bundle
+is committed, so the command runs straight from this repo). Run it in the
+project's folder. Until Parabola is on npm, write
+`npx github:alexbeltechi/parabola` where these say `npx @beltechi/parabola`:
 
 ```sh
 npx @beltechi/parabola add theme --from parabola-theme.json   # the kit's theme file
@@ -280,6 +281,46 @@ theme's variables, light and dark, and its Google fonts) and
 and what it imports in the folders it has here, so its imports hold, and
 prints the npm packages to install. `/parabola/theme` (Share) shows the
 command for the open theme. Nothing is fetched or published by it.
+
+Every `add` notes what it copied in `parabola.json` at the project's root:
+where Parabola came from, its version and commit, the folder, the files.
+
+### Taking a newer Parabola
+
+A project owns its copy, and nothing changes in it until someone asks:
+
+```sh
+npx @beltechi/parabola status             # which Parabola this project is on; what a newer one would change
+npx @beltechi/parabola update --dry-run   # the same, file by file, writing nothing
+npx @beltechi/parabola update             # take the latest version (--to v0.3.0 for another)
+```
+
+`update` (`cli/update.ts`) looks at each file three ways: as it was when
+copied (from `parabola.json`'s commit), as the project has it, and as
+Parabola has it now. A file the project never touched takes Parabola's. A
+file only the project changed stays. Where both changed it the two are
+merged as git would, and lines both sides changed get git's conflict markers
+(`<<<<<<< yours`) for a person or their agent to settle. It prints the
+changelog between the two versions, and it won't run over uncommitted work,
+so `git checkout` undoes it. Copier's `update` works this way for project
+templates; shadcn's `add --diff` shows the difference and leaves the merge
+to you.
+
+A project that carries the whole package rather than a few components (as
+Darmio does, in `packages/parabola`) says `"files": "*"` in `parabola.json`,
+with `exclude` for what it doesn't want (`bin/`, `scripts/`, `test/`).
+
+A change made in a project's copy stays that project's. To give it to every
+project, open a pull request here with it; the others get it the next time
+they update.
+
+### Releasing a version
+
+Change things here, add an entry to `CHANGELOG.md` in plain words (say which
+files a project is likely to have edited), raise `version` in
+`package.json`, `npm run bundle`, `npm test`, commit, and tag it `v<version>`.
+`update` takes the newest tag. Nothing happens in any project until it runs
+`update`.
 
 ## Using it
 

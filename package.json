@@ -1,12 +1,11 @@
 {
   "name": "@beltechi/parabola",
-  "version": "0.1.0",
-  "description": "Parabola, the design system behind Darmio: tokens, primitives, components and blocks for React and Tailwind CSS v4.",
+  "version": "0.2.0",
+  "description": "Parabola: a design system you copy into your project and own. Tokens, primitives, components and blocks for React and Tailwind CSS v4.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alexbeltechi/darmio.git",
-    "directory": "packages/parabola"
+    "url": "https://github.com/alexbeltechi/parabola.git"
   },
   "publishConfig": {
     "access": "public"
@@ -23,7 +22,8 @@
     "blocks",
     "showcase",
     "README.md",
-    "bin"
+    "bin",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": "./index.ts",
@@ -38,7 +38,14 @@
     "parabola": "./bin/parabola.mjs"
   },
   "scripts": {
-    "prepack": "node ../../scripts/build-parabola-cli.mjs"
+    "bundle": "node scripts/build-cli.mjs",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "esbuild": "^0.27.7",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
   },
   "peerDependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
