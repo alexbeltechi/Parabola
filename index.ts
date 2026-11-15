@@ -115,6 +115,7 @@ export {
   type DsLinkProps,
 } from "./provider";
 export { DsAccordion, DsAccordionGroup } from "./primitives/accordion";
+export { DsDisclosure } from "./primitives/disclosure";
 export { DsButton, dsButtonVariants, type DsButtonProps } from "./primitives/button";
 export { DS_COLUMNS_CLASS } from "./primitives/columns";
 export { DsCheckbox, DsCheckboxMark } from "./primitives/checkbox";
