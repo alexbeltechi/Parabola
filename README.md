@@ -257,6 +257,30 @@ it. Both take `collapsible` (`show-more.tsx`): six lines fading out and
 Show more, then the whole text in the page. Never a scroll inside a scroll:
 it's hard to work on a phone.
 
+### Copying it with a command
+
+The third way out, besides the kit and the design-system text: a command, as
+shadcn's `add`, that copies Parabola into a project so the maker owns the
+files (`cli/core.ts`, bundled to `bin/parabola.mjs` by
+`scripts/build-parabola-cli.mjs`, which `npm pack` runs; the bundle isn't in
+git). Run it in the project's folder:
+
+```sh
+npx @beltechi/parabola add theme --from parabola-theme.json   # the kit's theme file
+npx @beltechi/parabola add theme --code <theme>               # pasted: Parabola code, or base64 of it
+npx @beltechi/parabola add button                             # a component, and the Parabola files it imports
+npx @beltechi/parabola list
+```
+
+`add theme` writes `tokens.css` (the `ds-*` utilities), `theme.css` (the
+theme's variables, light and dark, and its Google fonts) and
+`parabola-theme.json` into `parabola/` (`src/parabola/` where there's a
+`src/`; `--dir` changes it) and imports the first two from the project's
+`globals.css` under Tailwind's import. `add <component>` copies the component
+and what it imports in the folders it has here, so its imports hold, and
+prints the npm packages to install. `/parabola/theme` (Share) shows the
+command for the open theme. Nothing is fetched or published by it.
+
 ## Using it
 
 ```tsx

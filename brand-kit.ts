@@ -247,3 +247,25 @@ export function dsThemeFromPaste(text: string): DsThemeConfig | null {
   const theme = raw.settings ?? raw.meta?.parabola ?? (raw.character ? raw : null);
   return theme ? parseDsThemeConfig(theme) : null;
 }
+
+/** The package's name as the command is typed (a rename changes this one line). */
+export const DS_PACKAGE_NAME = "@beltechi/parabola";
+
+/**
+ * The theme as one shell-safe word, base64 of its Parabola code: what
+ * `add theme --code` takes (cli/core.ts reads it back).
+ */
+export function dsThemeCode(kit: DsBrandKit): string {
+  const bytes = new TextEncoder().encode(JSON.stringify(kit.theme));
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/** The commands that copy this theme, and a component, into a project (`npx`, as shadcn's `add`). */
+export function dsThemeCommands(kit: DsBrandKit): { theme: string; component: string } {
+  return {
+    theme: `npx ${DS_PACKAGE_NAME} add theme --code ${dsThemeCode(kit)}`,
+    component: `npx ${DS_PACKAGE_NAME} add button`,
+  };
+}
