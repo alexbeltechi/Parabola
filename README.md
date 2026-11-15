@@ -1,7 +1,15 @@
 # Parabola
 
-The design system for the site and the admin, as a package: `@beltechi/parabola`.
-Showcase: `/parabola`.
+Parabola is a style, not a design system in the traditional sense, although
+it contains components. **Fixed below, free above:** the basics are those of a
+design system (tokens, buttons, fields, a spacing scale), and they leave room
+for visual expression, so any model can experiment on top of them and a
+site still reads as one thing from page to page.
+
+The default theme is the fallback, so everything is consistent; from there a
+page can expand. Not every page is made from scratch.
+
+As a package it's `@beltechi/parabola`. Showcase: `/parabola`.
 
 ## What belongs here
 
