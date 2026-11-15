@@ -285,6 +285,28 @@ command for the open theme. Nothing is fetched or published by it.
 Every `add` notes what it copied in `parabola.json` at the project's root:
 where Parabola came from, its version and commit, the folder, the files.
 
+### With shadcn/ui components
+
+Parabola's components are the ones a Parabola site is built from, and nothing
+makes a project use another set. For a project that wants shadcn/ui parts on
+a page anyway, `shadcn.css` is the bridge: it points each name shadcn's
+components read (`--background`, `--primary`, `--muted-foreground`,
+`--border`, `--radius`…) at the Parabola token that plays the same part.
+
+```sh
+npx @beltechi/parabola add shadcn    # copies shadcn.css, imports it after the theme
+```
+
+It's optional and separate: a project that doesn't import it is unchanged.
+The names resolve wherever Parabola's values change (the page, `.dark`, a
+scoped theme, `data-ds-mode`), so a shadcn component follows the theme in
+that spot. Colours, corners and the font carry over. Parabola's button looks
+(gradient, outline, 3D label), its type scale and its spacing don't, so a
+shadcn component looks like a relative of the theme, not a Parabola
+component. In a project that ran shadcn's own setup, take its `:root` and
+`.dark` values out of the stylesheet, or the later of the two wins. When
+shadcn adds a name, it's added here (`test/shadcn.test.ts` holds the list).
+
 ### Taking a newer Parabola
 
 A project owns its copy, and nothing changes in it until someone asks:

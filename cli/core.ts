@@ -10,6 +10,8 @@
  *   file of Parabola it imports, in the same folders it has in the package
  *   (so its imports hold), plus the npm packages to install.
  *
+ * - `add shadcn`: `shadcn.css`, which points shadcn/ui's colour names at
+ *   the theme's tokens. Optional; only for a project that uses shadcn parts.
  * - `update`, `status`: a newer Parabola into a project that already has a
  *   copy, keeping what the project changed (`update.ts`). Every `add` notes
  *   what it copied in `parabola.json` so `update` knows where it came from.
@@ -28,6 +30,8 @@ const USAGE = `Parabola: copy a design system into your project.
 
   add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
   add <component> [<component>…]      (button, pill, field…)
+  add shadcn                          optional: shadcn/ui's colour names pointed at the theme,
+                                      so shadcn components wear it
   list                                the components you can add
 
 Options
@@ -218,6 +222,42 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
   return 0;
 }
 
+/** Copies shadcn.css and imports it after the theme, so shadcn/ui components wear the theme. */
+function addShadcn(opts: Options, pkgRoot: string, cwd: string, io: RunIo): number {
+  assertSameVersion(cwd, pkgRoot);
+  const dir = resolve(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
+  io.log("Adding shadcn's names:");
+  write(join(dir, "shadcn.css"), readFileSync(join(pkgRoot, "shadcn.css"), "utf8"), opts.flags.overwrite === true, cwd, io);
+  record(cwd, pkgRoot, dir, ["shadcn.css"]);
+  const css = typeof opts.flags.css === "string" ? resolve(cwd, opts.flags.css) : STYLESHEETS.map((p) => join(cwd, p)).find(existsSync);
+  const path = (file: string, from: string) => {
+    const rel = relative(dirname(from), join(dir, file)).split("\\").join("/");
+    return rel.startsWith(".") ? rel : `./${rel}`;
+  };
+  if (!css || !existsSync(css)) {
+    io.log("  No stylesheet found. Import shadcn.css in yours, after tokens.css and theme.css.");
+    return 0;
+  }
+  const source = readFileSync(css, "utf8");
+  const line = `@import "${path("shadcn.css", css)}";`;
+  if (source.includes(line)) {
+    io.log(`  kept     ${relative(cwd, css)} (already imports it)`);
+    return 0;
+  }
+  // After the theme, so the names point at tokens that exist; in a project that ran shadcn's own setup, after its values too.
+  const theme = `@import "${path("theme.css", css)}";`;
+  if (!source.includes(theme)) {
+    io.log(`  Add this to ${relative(cwd, css)}, after the theme's imports (run \`add theme\` first if there are none):\n    ${line}`);
+    return 0;
+  }
+  writeFileSync(css, source.replace(theme, `${theme}\n${line}`));
+  io.log(`  updated  ${relative(cwd, css)} (imports shadcn.css after the theme)`);
+  if (/^\s*--background\s*:/m.test(source)) {
+    io.log("  This stylesheet gives shadcn's names values of its own (--background…). Take those out, or the later one wins.");
+  }
+  return 0;
+}
+
 function addComponents(names: string[], opts: Options, pkgRoot: string, cwd: string, io: RunIo): number {
   const overwrite = opts.flags.overwrite === true;
   const dir = resolve(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
@@ -258,11 +298,13 @@ export function run(argv: string[], cwd: string, pkgRoot: string, io: RunIo): nu
     if (command === "update" || command === "status") return runUpdate(opts.flags, cwd, io, command === "status");
     if (command !== "add") throw new Error(`Unknown command "${command}".\n\n${USAGE}`);
     if (!rest.length) throw new Error("Add what? `add theme`, or a component such as `add button`.");
-    if (rest[0] === "theme") {
-      const code = addTheme(opts, pkgRoot, cwd, io);
-      return rest.length > 1 ? addComponents(rest.slice(1), opts, pkgRoot, cwd, io) : code;
-    }
-    return addComponents(rest, opts, pkgRoot, cwd, io);
+    // `theme` and `shadcn` aren't components: each is its own step, in this order, then the components.
+    const names = rest.filter((name) => name !== "theme" && name !== "shadcn");
+    let code = 0;
+    if (rest.includes("theme")) code = addTheme(opts, pkgRoot, cwd, io) || code;
+    if (rest.includes("shadcn")) code = addShadcn(opts, pkgRoot, cwd, io) || code;
+    if (names.length) code = addComponents(names, opts, pkgRoot, cwd, io) || code;
+    return code;
   } catch (e) {
     io.error(e instanceof Error ? e.message : String(e));
     return 1;

@@ -1623,6 +1623,8 @@ var USAGE = `Parabola: copy a design system into your project.
 
   add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
   add <component> [<component>\u2026]      (button, pill, field\u2026)
+  add shadcn                          optional: shadcn/ui's colour names pointed at the theme,
+                                      so shadcn components wear it
   list                                the components you can add
 
 Options
@@ -1786,6 +1788,41 @@ function addTheme(opts, pkgRoot2, cwd, io) {
   (paths relative to that stylesheet)`);
   return 0;
 }
+function addShadcn(opts, pkgRoot2, cwd, io) {
+  assertSameVersion(cwd, pkgRoot2);
+  const dir = resolve2(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
+  io.log("Adding shadcn's names:");
+  write(join3(dir, "shadcn.css"), readFileSync3(join3(pkgRoot2, "shadcn.css"), "utf8"), opts.flags.overwrite === true, cwd, io);
+  record(cwd, pkgRoot2, dir, ["shadcn.css"]);
+  const css = typeof opts.flags.css === "string" ? resolve2(cwd, opts.flags.css) : STYLESHEETS.map((p) => join3(cwd, p)).find(existsSync3);
+  const path = (file, from) => {
+    const rel = relative2(dirname3(from), join3(dir, file)).split("\\").join("/");
+    return rel.startsWith(".") ? rel : `./${rel}`;
+  };
+  if (!css || !existsSync3(css)) {
+    io.log("  No stylesheet found. Import shadcn.css in yours, after tokens.css and theme.css.");
+    return 0;
+  }
+  const source = readFileSync3(css, "utf8");
+  const line = `@import "${path("shadcn.css", css)}";`;
+  if (source.includes(line)) {
+    io.log(`  kept     ${relative2(cwd, css)} (already imports it)`);
+    return 0;
+  }
+  const theme = `@import "${path("theme.css", css)}";`;
+  if (!source.includes(theme)) {
+    io.log(`  Add this to ${relative2(cwd, css)}, after the theme's imports (run \`add theme\` first if there are none):
+    ${line}`);
+    return 0;
+  }
+  writeFileSync2(css, source.replace(theme, `${theme}
+${line}`));
+  io.log(`  updated  ${relative2(cwd, css)} (imports shadcn.css after the theme)`);
+  if (/^\s*--background\s*:/m.test(source)) {
+    io.log("  This stylesheet gives shadcn's names values of its own (--background\u2026). Take those out, or the later one wins.");
+  }
+  return 0;
+}
 function addComponents(names, opts, pkgRoot2, cwd, io) {
   const overwrite = opts.flags.overwrite === true;
   const dir = resolve2(cwd, typeof opts.flags.dir === "string" ? opts.flags.dir : defaultDir(cwd));
@@ -1828,11 +1865,12 @@ function run(argv, cwd, pkgRoot2, io) {
 
 ${USAGE}`);
     if (!rest.length) throw new Error("Add what? `add theme`, or a component such as `add button`.");
-    if (rest[0] === "theme") {
-      const code = addTheme(opts, pkgRoot2, cwd, io);
-      return rest.length > 1 ? addComponents(rest.slice(1), opts, pkgRoot2, cwd, io) : code;
-    }
-    return addComponents(rest, opts, pkgRoot2, cwd, io);
+    const names = rest.filter((name) => name !== "theme" && name !== "shadcn");
+    let code = 0;
+    if (rest.includes("theme")) code = addTheme(opts, pkgRoot2, cwd, io) || code;
+    if (rest.includes("shadcn")) code = addShadcn(opts, pkgRoot2, cwd, io) || code;
+    if (names.length) code = addComponents(names, opts, pkgRoot2, cwd, io) || code;
+    return code;
   } catch (e) {
     io.error(e instanceof Error ? e.message : String(e));
     return 1;

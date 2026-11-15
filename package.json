@@ -1,6 +1,6 @@
 {
   "name": "@beltechi/parabola",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Parabola: a design system you copy into your project and own. Tokens, primitives, components and blocks for React and Tailwind CSS v4.",
   "license": "MIT",
   "repository": {
@@ -17,6 +17,7 @@
     "*.ts",
     "*.tsx",
     "tokens.css",
+    "shadcn.css",
     "primitives",
     "components",
     "blocks",
@@ -32,6 +33,7 @@
     "./showcase/ds-shell": "./showcase/ds-shell.tsx",
     "./showcase/registry": "./showcase/registry.ts",
     "./tokens.css": "./tokens.css",
+    "./shadcn.css": "./shadcn.css",
     "./package.json": "./package.json"
   },
   "bin": {

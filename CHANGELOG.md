@@ -4,6 +4,14 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## 0.3.0 — unreleased
+
+- New, optional: `shadcn.css` points shadcn/ui's colour names (`--background`,
+  `--primary`, `--border`…) at the theme's tokens, so a shadcn component
+  dropped into a page wears the theme, light and dark. `add shadcn` copies it
+  and imports it after the theme. Nothing in Parabola uses it, and a project
+  that doesn't import it is unchanged.
+
 ## 0.2.0 — 2026-11-15
 
 - Parabola has its own repo. A project keeps its own copy and takes a newer
