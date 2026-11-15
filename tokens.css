@@ -139,44 +139,38 @@
 
 /* Parabola nav fade: the soft wash behind a bar that floats over scrolling
    content (the admin editor's top bar, the posts list header with its
-   search). The page colour at 70% fading to nothing, top to bottom, so
+   search). The page colour at 40% fading to nothing, top to bottom, so
    content dissolves beneath the controls instead of being cut off. One
    style for every floating bar, with or without a sub-nav: the bar sets its
    own height (pad it below the controls for the length of the fade); it
-   also blurs what's behind it, progressively. The
+   also blurs what's behind it, evenly. The
    bar should be `pointer-events-none` with its controls turned back on, so
    clicks reach the content through the fade. */
 @utility ds-nav-fade {
-  /* A positioned bar: the two blur layers below sit behind its controls. */
+  /* A positioned bar: the blur layer below sits behind its controls. */
   isolation: isolate;
   background-image: linear-gradient(
     to bottom,
-    color-mix(in srgb, var(--ds-bg) 70%, transparent),
+    color-mix(in srgb, var(--ds-bg) 40%, transparent),
     transparent
   );
 
-  /* Apple-style progressive blur: a heavy blur that dies out by 60% of the
-     bar's height, and a light one that carries on to the bottom edge, each
-     masked so the blur ramps in with no visible seam. */
-  &::before,
-  &::after {
+  /* One even blur behind the whole bar, fading out only in a short strip at
+     its bottom edge, so the bar reads as one surface. Two blurs fading into
+     each other don't look like a blur in between: halfway, a sharp and a
+     blurred copy of the content show at once, and the bar looks sliced. Kept
+     soft (6px) under a light tint (40% of the page colour), so the page
+     shows through. */
+  &::before {
     content: "";
     position: absolute;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-  }
-  &::before {
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    -webkit-mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
-    mask-image: linear-gradient(to bottom, #000 25%, transparent 60%);
-  }
-  &::after {
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
-    -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
   }
 }
 

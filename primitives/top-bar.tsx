@@ -7,12 +7,12 @@ import { cn } from "../cn";
  * has one). Rows set their own sides (`px-5`) and are compact: 12px above
  * and below (`py-3`), as on /parabola and every admin page. Three surfaces:
  *
- * - solid (the default): the page colour, a rule under it; content scrolls
- *   away beneath it.
+ * - blur (the default): the nav fade (`ds-nav-fade`), content blurring
+ *   softly away beneath it; clicks pass through the fade's empty space to
+ *   the content. Every page's bar, admin and site, wears it.
+ * - solid: the page colour, a rule under it; content scrolls away beneath it.
  * - transparent: nothing behind it, for a bar over a picture or the page's
  *   own top.
- * - blur: the nav fade (`ds-nav-fade`), content blurring away beneath it;
- *   clicks pass through the fade's empty space to the content.
  */
 export type DsTopBarSurface = "solid" | "transparent" | "blur";
 
@@ -23,7 +23,7 @@ const SURFACES: Record<DsTopBarSurface, string> = {
 };
 
 export function DsTopBar({
-  surface = "solid",
+  surface = "blur",
   className,
   ...props
 }: React.ComponentProps<"header"> & { surface?: DsTopBarSurface }) {

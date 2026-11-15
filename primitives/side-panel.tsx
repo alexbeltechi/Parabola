@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "../cn";
 import { DsButton } from "./button";
+import { DsTopBar } from "./top-bar";
 
 /**
  * Parabola side panel: a full-height panel that slides in from the right
@@ -68,7 +69,7 @@ export function DsSidePanel({
             // beneath it (`ds-nav-fade`), as in the admin's top bars. Clicks
             // pass through the gradient to the content.
             <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-              <div className="pointer-events-none sticky top-0 z-20 -mx-5 -mb-4 flex flex-col gap-2 ds-nav-fade px-5 pt-5 pb-8 [&>*]:pointer-events-auto">
+              <DsTopBar surface="blur" className="-mx-5 -mb-4 gap-2 px-5 pt-5 pb-8">
                 <div className="flex items-start gap-2">
                   <Dialog.Title className="min-w-0 flex-1 pt-1.5 text-h3">{title}</Dialog.Title>
                   <Dialog.Close asChild>
@@ -80,7 +81,7 @@ export function DsSidePanel({
                 ) : (
                   <Dialog.Description className="sr-only">{title}</Dialog.Description>
                 )}
-              </div>
+              </DsTopBar>
               {children}
             </div>
           ) : (

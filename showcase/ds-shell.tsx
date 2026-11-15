@@ -230,7 +230,7 @@ export function DsCanvas({
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <DsTopBar className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
+        <DsTopBar surface="solid" className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
           <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
             <div className="flex min-w-0 flex-col">
               <p className="text-small text-ds-fg-subtle">{group}</p>
