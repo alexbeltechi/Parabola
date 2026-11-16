@@ -2,33 +2,24 @@ import { DS_ACCENTS } from "../accents";
 
 const SECTIONS: { title: string; body: React.ReactNode }[] = [
   {
-    title: "Lean by design",
-    body: "Four tiers, each built from the ones above: foundations, primitives, components and blocks. App screens are composed from them and stay with their page, so the system stays small enough to know by heart.",
+    title: "Fixed below, free above",
+    body: "The basics are those of a design system: tokens, buttons, fields, a spacing scale. They leave room for visual expression, so any model can experiment on top of them and a site still reads as one thing from page to page.",
   },
   {
-    title: "Content first",
-    body: "Quiet, neutral chrome so the work carries the colour. One highlight for the few things that need attention, nine accents for content.",
+    title: "The default is the fallback",
+    body: "The default theme keeps everything consistent; from there a page can expand. Not every page is made from scratch.",
   },
   {
-    title: "Light and dark, one codebase",
-    body: "Every component draws from semantic tokens only. Each token has a light and a dark value, so both themes come for free.",
+    title: "Four tiers",
+    body: "Foundations, primitives, components and blocks, each built only from the ones above it. App screens are composed from them and stay with their page, so the system stays small enough to know by heart.",
   },
   {
-    title: "Accessible by default",
-    body: "Built on Radix: full keyboard support, a visible focus ring, labelled controls and text that clears AA contrast in both themes.",
-  },
-  {
-    title: "Change once, everywhere",
-    body: (
-      <>
-        Tokens live in one place. Change a value and every screen follows;{" "}
-        <code className="text-ds-fg">npm run check</code> keeps the docs in step.
-      </>
-    ),
+    title: "Light and dark, accessible",
+    body: "Every component draws from semantic tokens with a light and a dark value, and is built on Radix: keyboard support, a visible focus ring and text that clears AA contrast in both.",
   },
 ];
 
-/** Intro › Welcome: Parabola in a few lines, a mobile-first one-pager. */
+/** Intro › Welcome: Parabola in a few lines, as the README opens; a mobile-first one-pager. */
 export function IntroSection() {
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-10 text-center">
@@ -40,7 +31,7 @@ export function IntroSection() {
         </div>
         <h2 className="text-h1 text-ds-fg">Welcome to Parabola</h2>
         <p className="text-p text-ds-fg-muted">
-          A lean design system for calm, content-first interfaces, optimised for small teams and fast iteration.
+          A style, not a design system in the traditional sense, although it contains components.
         </p>
       </div>
 
@@ -53,9 +44,11 @@ export function IntroSection() {
 
       <section className="flex w-full flex-col items-center gap-2">
         <h3 className="text-h3 text-ds-fg">Get started</h3>
-        <p className="text-p text-ds-fg-muted">Import components, style with tokens.</p>
+        <p className="text-p text-ds-fg-muted">Install it, then import components and style with tokens.</p>
         <pre className="w-full overflow-x-auto rounded-ds-lg bg-ds-surface/70 p-4 text-left text-small text-ds-fg">
-          <code>{`import { DsButton } from "@beltechi/parabola";
+          <code>{`npm install @beltechi/parabola
+
+import { DsButton } from "@beltechi/parabola";
 
 <DsButton variant="primary">Publish</DsButton>
 <div className="bg-ds-surface text-ds-fg-muted" />`}</code>
