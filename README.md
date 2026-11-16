@@ -135,9 +135,10 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   resolve a theme; `dsCharacterColourOptions` is what the colour
   derivations take from it. An agent sets a look by moving dials. The
   panel opens with **Taste** (`taste.ts`), aesthetics and personality:
-  the **Style** rail, one pick at a time as tabs are (`DS_TASTES`:
-  Classic, Minimal, Elegant, Tech, Natural, Retro, Sport;
-  `dsPickTaste`, `dsShuffleTaste`, `dsRandomTastes`), which chooses one chip on each section's rail
+  a style (`DS_TASTES`: Classic, Minimal, Elegant, Tech, Natural, Retro,
+  Sport; `dsPickTaste`, `dsShuffleTaste`, `dsRandomTastes`; the panel no
+  longer lists them to pick from, the dice and Shuffle draw from them, and
+  the themes at the panel's top are the looks to choose between), which chooses one chip on each section's rail
   (`character.scoped`): a palette in Colour (`DS_PALETTES`,
   `dsPaletteDraw`), a kind of type in Typography (`DS_TYPE_STYLES`,
   `dsTypeStyleFonts`) and a kind of button in Buttons (`DS_BUTTON_LOOKS`,

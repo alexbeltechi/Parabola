@@ -44,7 +44,6 @@ import {
   MoreHorizontal,
   Repeat2,
   Upload,
-  Moon,
   Minus,
   MoreVertical,
   OctagonAlert,
@@ -55,7 +54,6 @@ import {
   Plus,
   Send,
   RotateCcw,
-  Sun,
   Terminal,
   Trash2,
   Type,
@@ -128,12 +126,10 @@ import {
 import {
   DS_BUTTON_LOOKS,
   DS_PALETTES,
-  DS_TASTES,
   DS_TYPE_STYLES,
   dsButtonLookAt,
   dsButtonLookStyle,
   dsPaletteDraw,
-  dsPickTaste,
   dsRandomTastes,
   dsShuffleTaste,
   dsTasteNames,
@@ -396,8 +392,11 @@ function SectionRestore({
   );
 }
 
-/** The theme dropdown's last option, which adds a theme rather than opening one. */
-const ADD_THEME = "__add-theme";
+/** Light or dark, for the preview. */
+const MODES = [
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
+] as const;
 
 /** Where "Claude Design" in the design system's hint opens, with the text copied first. */
 const CLAUDE_URL = "https://claude.ai/new";
@@ -1273,18 +1272,22 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
 
 /**
  * A row of pills that slides sideways (DsScrollRow), the light kind (text
- * buttons): no fill at rest, a soft one when picked, with an icon each.
+ * buttons): no fill at rest, a soft one when picked, with an icon each
+ * (`plain`: text only).
  */
 function PillRow({
   label,
   options,
   picked,
   onToggle,
+  plain,
 }: {
   label: string;
   options: readonly { id: string; label: string }[];
   picked: readonly string[];
   onToggle: (id: string) => void;
+  /** Text only, no icons: the themes, and light or dark. */
+  plain?: boolean;
 }) {
   return (
     <DsScrollRow role="group" aria-label={label} className="-mx-2 px-2">
@@ -1293,7 +1296,7 @@ function PillRow({
           key={o.id}
           size="small"
           variant="text"
-          iconLeft={TASTE_ICONS[o.id]}
+          iconLeft={plain ? undefined : TASTE_ICONS[o.id]}
           pressed={picked.includes(o.id)}
           onClick={() => onToggle(o.id)}
         >
@@ -1409,7 +1412,7 @@ function DiceControl({ takes }: { takes: Takes }) {
  * buttons: Previous at the left with its chevron on the left, Next at the
  * right with its chevron on the right, stepping back and forth through the
  * versions seen; between them, filling the space, Shuffle, which draws
- * another version of the style picked (another Elegant, say). Not the dice, which
+ * another version of the look showing. Not the dice, which
  * starts over with any style and mood.
  */
 function VariationControls({ takes }: { takes: Takes }) {
@@ -1427,7 +1430,7 @@ function VariationControls({ takes }: { takes: Takes }) {
         size="small"
         iconLeft={Shuffle}
         className="flex-1"
-        title="Another version of this style"
+        title="Another version of this look"
         onClick={takes.shuffle}
       >
         Shuffle
@@ -1444,15 +1447,14 @@ const MOOD_LINE =
   "linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--ds-border) calc(50% - 0.5px), var(--ds-border) calc(50% + 0.5px), transparent calc(50% + 0.5px))";
 
 /**
- * Taste (taste.ts; "aesthetics and personality"): the
- * Style rail, one pick at a time as tabs are (Classic, Minimal, Elegant,
- * Tech, Natural, Retro, Sport), which chooses a chip in Colour, Typography
- * and Buttons; then the Mood slider, the personality, Serious to Playful
- * (on to Wacky at its end), which changes the look you can see inside that style (its
- * fonts, its buttons, its colour, its voice). Parabola's own is Classic and
- * Balanced. Picking a style changes the look at once (a take); under the
- * mood, the shuffle draws another version of it and Previous and Next step
- * through the versions seen; the dice at the top right starts over. Restore, beside the dice, is Parabola's own again.
+ * Taste (taste.ts; "aesthetics and personality"): the Mood slider, the
+ * personality, Serious to Playful (on to Wacky at its end), which changes the
+ * look (its fonts, its buttons, its colour, its voice). Parabola's own is
+ * Balanced. Under the mood, the shuffle draws another version of the look and
+ * Previous and Next step through the versions seen; the dice at the top right
+ * starts over with a random one. Restore, beside the dice, is Parabola's own
+ * again. There is no list of styles to pick from: the themes, at the panel's
+ * top, are the looks to choose between.
  */
 function TasteChoice({
   theme,
@@ -1464,23 +1466,9 @@ function TasteChoice({
   takes: Takes;
 }) {
   const character = theme.character;
-  const picked = character.tastes;
-  // One style at a time, as tabs are: picking the one picked does nothing.
-  const toggle = (id: string) => {
-    if (!picked.includes(id)) takes.draw(dsPickTaste(picked, id));
-  };
   return (
     <div className="flex flex-col gap-ds-16">
-      <div className="flex flex-col gap-ds-4">
-        <span className="text-small text-ds-fg-muted">Style</span>
-        <PillRow
-          label="Style"
-          options={DS_TASTES}
-          picked={picked}
-          onToggle={toggle}
-        />
-      </div>
-      {/* Mood as a slider again, its track a 1px line rather than a colour, Serious to Playful; no
+      {/* Mood as a slider, its track a 1px line rather than a colour, Serious to Playful; no
           labels under it, the word above says where it is. */}
       <DsColourBar
         label="Mood"
@@ -2089,9 +2077,9 @@ function ThemeNameDialog({
  * shadcn's create page. The page is a site's page
  * wearing the open theme (its nav, a post's opening, buttons, a list of
  * writing, one card on the surface); the panel on
- * the right holds the theme's main choices: which theme (the site's reads
- * "(default)"; Parabola itself never changes, a change to it opens a copy,
- * Custom, to create), light or dark for the preview, the five colours, the
+ * the right holds the theme's main choices: which theme, as a row of names
+ * (Parabola itself never changes, a change to it opens a copy, Custom, to
+ * name and keep), light or dark for the preview, the five colours, the
  * Heading and Font families' fonts, the radius and the icon library. The
  * rest is on Typography. Save as new theme or Save theme sits at the panel's
  * foot while there's something to keep; a site picks its theme in
@@ -2326,52 +2314,39 @@ export function ThemeSection() {
             </div>
           }
         >
-          <DsSelect
-            aria-label="Theme"
-            key={library.themes.map((t) => t.id).join()}
-            // Parabola, Parabola's own, is the default every theme starts from and restores to; Add theme is the last option.
-            options={[
-              ...library.themes.map((t) => ({
-                value: t.id,
-                label:
-                  t.id === DS_DEFAULT_THEME_ID ? `${t.name} (default)` : t.name,
-              })),
-              {
-                value: ADD_THEME,
-                label: "Add theme",
-                indicator: <Plus aria-hidden className="size-4" />,
-              },
-            ]}
-            value={entry.id}
-            onValueChange={(value) =>
-              value === ADD_THEME
-                ? setNaming("add")
-                : (takes.reset(), select(value))
-            }
-          />
-          {/* The preview's mode, right under the theme; the UI's is the sidebar's toggle. */}
-          <div
-            className="flex items-center gap-ds-8"
-            role="group"
-            aria-label="Mode"
-          >
+          {/* The themes, as text: Parabola first (its own, never changed), then any made from it.
+              A change to Parabola opens Custom, named and kept with Save as new theme. + adds a copy. */}
+          <div className="flex items-center gap-ds-4">
+            <div className="min-w-0 flex-1">
+              <PillRow
+                plain
+                label="Theme"
+                options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
+                picked={[entry.id]}
+                onToggle={(id) => {
+                  if (id === entry.id) return;
+                  takes.reset();
+                  select(id);
+                }}
+              />
+            </div>
             <DsButton
               size="small"
-              iconLeft={Sun}
-              pressed={mode === "light"}
-              onClick={() => setPreviewMode("light")}
-            >
-              Light
-            </DsButton>
-            <DsButton
-              size="small"
-              iconLeft={Moon}
-              pressed={mode === "dark"}
-              onClick={() => setPreviewMode("dark")}
-            >
-              Dark
-            </DsButton>
+              variant="text"
+              iconLeft={Plus}
+              aria-label="Add theme"
+              title="Add theme"
+              onClick={() => setNaming("add")}
+            />
           </div>
+          {/* The preview's mode, right under the themes, the same kind of row; the UI's is the sidebar's toggle. */}
+          <PillRow
+            plain
+            label="Mode"
+            options={MODES}
+            picked={[mode]}
+            onToggle={(id) => setPreviewMode(id as "light" | "dark")}
+          />
         </PanelSection>
 
         {/* The taste feeder first: push the whole look somewhere, then tune it below. */}
