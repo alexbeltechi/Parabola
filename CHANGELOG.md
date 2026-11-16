@@ -6,6 +6,10 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Fixed: in dark mode the showcase's canvas no longer flashes white for a
+  moment when a page loads. Until light or dark is picked for it, it follows
+  the page's own dark mode from the first paint. Touches `theme.ts`,
+  `showcase/ds-shell.tsx` and `showcase/theme-editor.tsx`.
 - New component: `DsPromptBox`, a chat prompt box up to 700px wide. One
   pill (+ for files, the text, microphone, send) that opens into two rows as
   the text grows: text on top, + bottom left, microphone and send bottom

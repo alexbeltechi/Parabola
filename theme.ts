@@ -643,7 +643,9 @@ export function dsThemeCss(theme: DsThemeConfig, scope?: string): string {
   const at = `.${scope}`;
   return [
     rule(at, { ...dsThemeVars(theme), ...SCOPE_DERIVED, ...SCOPE_MODE.light }),
-    rule(`${at}[data-ds-mode="dark"]`, { ...dsThemeDarkVars(theme), ...SCOPE_MODE.dark }),
+    // Dark by its own data-ds-mode, or, with none set, by the page's `.dark`
+    // (already there before the first paint, so the scope never flashes light).
+    rule(`${at}[data-ds-mode="dark"], .dark ${at}:not([data-ds-mode="light"])`, { ...dsThemeDarkVars(theme), ...SCOPE_MODE.dark }),
     `${at} { font-family: var(--ds-font); color: var(--ds-fg); }`,
   ].join(" ");
 }
