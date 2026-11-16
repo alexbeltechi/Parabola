@@ -58,6 +58,8 @@ import { DsPlaceholder } from "../components/placeholder";
 import { DsEmptyState } from "../components/empty-state";
 import { DsInfoCard } from "../components/info-card";
 import { DsLinkList } from "../components/link-list";
+import { DsPromptBox } from "../components/prompt-box";
+import { DsSubscribe } from "../components/subscribe";
 import { DsColourPicker } from "../components/colour-picker";
 import { DsCopyField } from "../primitives/copy-field";
 import { DsProgress } from "../primitives/progress";
@@ -1233,6 +1235,59 @@ export function CopyField() {
           onChange={(next) => setO({ ...next, ...(next.showMore && !o.showMore ? { wrap: false } : {}), ...(next.wrap && !o.wrap ? { showMore: false } : {}) })}
         />
       }
+    />
+  );
+}
+
+/** Components › Input › Prompt box: a chat prompt that grows into two rows, with files, a microphone and a note. */
+export function PromptBox() {
+  const [o, setO] = useState({ files: true, voice: true, note: true, enterSends: false, busy: false });
+  const [listening, setListening] = useState(false);
+  return (
+    <Specimen
+      wide
+      preview={
+        <DsPromptBox
+          files={o.files}
+          onVoice={o.voice ? () => setListening((l) => !l) : undefined}
+          listening={listening}
+          enterSends={o.enterSends}
+          busy={o.busy}
+          onStop={() => setO({ ...o, busy: false })}
+          note={o.note ? "AI can make mistakes. Check important info." : undefined}
+          onSubmit={({ text, files }) =>
+            dsToast(files.length ? `Sent, with ${files.length} file${files.length === 1 ? "" : "s"}` : "Sent", {
+              description: text.slice(0, 80) || undefined,
+            })
+          }
+        />
+      }
+      controls={
+        <Controls
+          options={o}
+          labels={{ files: "Add files (+)", voice: "Microphone", note: "Note under", enterSends: "Enter sends", busy: "Waiting for reply" }}
+          onChange={setO}
+        />
+      }
+    />
+  );
+}
+
+/** Components › Input › Subscribe: an email field and one button, then a thank-you line. */
+export function Subscribe() {
+  const [o, setO] = useState({ fails: false });
+  return (
+    <Specimen
+      preview={
+        <DsSubscribe
+          key={String(o.fails)}
+          onSubscribe={async () => {
+            await new Promise((r) => setTimeout(r, 700));
+            if (o.fails) throw new Error("that address looks mistyped");
+          }}
+        />
+      }
+      controls={<Controls options={o} labels={{ fails: "Show the error" }} onChange={setO} />}
     />
   );
 }
