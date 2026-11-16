@@ -6,6 +6,15 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: a change on the Theme page goes straight into the open theme,
+  Parabola included, instead of opening a copy called Custom. "Save as new
+  theme" is gone; New + is how to start another theme, and Restore (it asks
+  first) puts the open one back to Parabola's own. `parseDsThemeLibrary` no
+  longer turns an edited Parabola into a Custom theme. Touches `theme.ts`,
+  `showcase/theme-editor.tsx` and `showcase/theme-section.tsx`.
+- New: without an app to save to, the showcase keeps its themes in the
+  browser (localStorage), so a refresh keeps them. Nothing leaves the
+  browser.
 - Changed: the Theme page's Taste section is gone. Its Mood slider and its
   Previous / Shuffle / Next controls go with it; the dice it held now sits
   at the top of Theme, beside the ⋮ menu, with a Restore next to it that
