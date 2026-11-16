@@ -8,7 +8,7 @@ import { DS_TEXT_STYLES, parseDsThemeConfig, type DsThemeConfig } from "./theme"
 
 /**
  * The theme file: `<name>.theme.json`, a theme a maker or their agent writes
- * by hand, drops into Settings > Design and removes again, without touching
+ * by hand, drops into the app (Darmio: Settings > Design) and removes again, without touching
  * code. `theme` holds the same choices Parabola's builder sets
  * (`DsThemeConfig`); the file adds a name and a version, and this contract says
  * exactly which keys are allowed, so a mistake is named instead of ignored.
@@ -16,7 +16,9 @@ import { DS_TEXT_STYLES, parseDsThemeConfig, type DsThemeConfig } from "./theme"
  * Anything left out keeps Parabola's default. Anything not listed in
  * `DS_THEME_FILE_CONTRACT` is rejected, with the allowed values in the message.
  */
-export const DS_THEME_FILE_FORMAT = "darmio-theme";
+export const DS_THEME_FILE_FORMAT = "parabola-theme";
+/** Older theme files, written when Parabola shipped inside Darmio; still read. */
+export const DS_THEME_FILE_LEGACY_FORMATS: readonly string[] = ["darmio-theme"];
 export const DS_THEME_FILE_VERSION = 1;
 export const DS_THEME_FILE_SUFFIX = ".theme.json";
 /** A file bigger than this is not a theme. */
@@ -283,7 +285,7 @@ export function dsThemeFileParse(input: unknown): DsThemeFileResult {
 
   const errors: string[] = [];
   unknownKeys(value, FILE_KEYS, "file", errors);
-  if (value.format !== DS_THEME_FILE_FORMAT) errors.push(`format: must be "${DS_THEME_FILE_FORMAT}"`);
+  if (value.format !== DS_THEME_FILE_FORMAT && !DS_THEME_FILE_LEGACY_FORMATS.includes(value.format as string)) errors.push(`format: must be "${DS_THEME_FILE_FORMAT}"`);
   if (value.version !== DS_THEME_FILE_VERSION) errors.push(`version: must be ${DS_THEME_FILE_VERSION}`);
   if (typeof value.name !== "string" || !value.name.trim() || value.name.length > 60) errors.push("name: a name of 1 to 60 characters");
   if (value.description !== undefined && (typeof value.description !== "string" || value.description.length > 300)) {

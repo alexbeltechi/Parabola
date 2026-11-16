@@ -1,7 +1,7 @@
 /**
  * Parabola's fonts: the faces a theme's two families can be (theme.ts). Each
  * is a CSS font stack; a Google font also says how to load it. An app that
- * hosts the files itself (the CMS, through next/font) sets `--ds-font-<id>`
+ * hosts the files itself (Darmio does, through next/font) sets `--ds-font-<id>`
  * to its own family name, which each stack tries first; anything else loads
  * them from Google.
  *
@@ -49,7 +49,7 @@ export const DS_FONTS: DsFont[] = [
   { id: "system", label: "System", family: SYSTEM_STACK, weights: [300, 400, 500, 600, 700] },
 ];
 
-/** The Font family's default face: tokens.css sets `--ds-family-body` to its stack (`npm run check:parabola` checks). */
+/** The Font family's default face: tokens.css sets `--ds-family-body` to its stack (`npm run check` checks). */
 export const DS_DEFAULT_FONT = "instrument-sans";
 /** The Heading family's default face, for headlines (`--ds-family-heading`). */
 export const DS_DEFAULT_HEADING_FONT = "instrument-serif";

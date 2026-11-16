@@ -22,7 +22,7 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
     body: (
       <>
         Tokens live in one place. Change a value and every screen follows;{" "}
-        <code className="text-ds-fg">npm run check:parabola</code> keeps the docs in step.
+        <code className="text-ds-fg">npm run check</code> keeps the docs in step.
       </>
     ),
   },

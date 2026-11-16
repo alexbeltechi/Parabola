@@ -1,7 +1,7 @@
 /**
  * The data behind /parabola/colours/main: every UI token by role, with its
  * light and dark value. The values mirror `:root` / `.dark` in tokens.css;
- * `npm run check:parabola` fails if they drift apart.
+ * `npm run check` fails if they drift apart.
  */
 export type Value = { css: string; label: string };
 export type Colour = { name: string; token: string; light: Value; dark: Value };

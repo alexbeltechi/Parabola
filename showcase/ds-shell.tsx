@@ -120,8 +120,8 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
  * canvas holding the current page. Below `md` the sidebar moves into the
  * hamburger menu.
  */
-/** Top left of the sidebar: a menu to Parabola's home or back to the website. */
-function ShellMenu() {
+/** Top left of the sidebar: a menu to Parabola's home or back to the website (when there is one). */
+function ShellMenu({ backHref }: { backHref: string | null }) {
   const router = useRouter();
   return (
     <DsDropdown>
@@ -132,15 +132,24 @@ function ShellMenu() {
         <DsDropdownItem iconLeft={House} onSelect={() => router.push("/parabola")}>
           Home
         </DsDropdownItem>
-        <DsDropdownItem iconLeft={ArrowLeft} onSelect={() => router.push("/")}>
-          Back to website
-        </DsDropdownItem>
+        {backHref && (
+          <DsDropdownItem iconLeft={ArrowLeft} onSelect={() => router.push(backHref)}>
+            Back to website
+          </DsDropdownItem>
+        )}
       </DsDropdownContent>
     </DsDropdown>
   );
 }
 
-export function DsShell({ children }: { children: React.ReactNode }) {
+export function DsShell({
+  children,
+  backHref = "/",
+}: {
+  children: React.ReactNode;
+  /** Where "Back to website" goes; null leaves it out (Parabola's own site, where the showcase is the website). */
+  backHref?: string | null;
+}) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
 
@@ -157,21 +166,21 @@ export function DsShell({ children }: { children: React.ReactNode }) {
     <ThemeEditorProvider>
       <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border bg-ds-surface-subtle p-5 md:flex">
         <div className="flex items-center justify-between">
-          <ShellMenu />
+          <ShellMenu backHref={backHref} />
           <DsThemeToggle size="small" />
         </div>
         <SidebarNav />
       </aside>
 
       <div className="md:hidden">
-        <DsNavBar menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((o) => !o)} />
+        <DsNavBar backHref={backHref ?? "/parabola"} menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((o) => !o)} />
         <DsMenu
           open={menuOpen}
           onClose={closeMenu}
           className="items-stretch justify-start overflow-y-auto px-5 pt-[76px] pb-10"
         >
           {/* The menu is modal, so it carries its own copy of the bar for closing it. */}
-          <DsNavBar menuOpen onMenuToggle={closeMenu} />
+          <DsNavBar backHref={backHref ?? "/parabola"} menuOpen onMenuToggle={closeMenu} />
           <SidebarNav onNavigate={closeMenu} />
         </DsMenu>
       </div>
