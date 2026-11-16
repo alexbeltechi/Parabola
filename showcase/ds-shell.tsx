@@ -120,9 +120,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
  * canvas holding the current page. Below `md` the sidebar moves into the
  * hamburger menu.
  */
-/** Top left of the sidebar: a menu to Parabola's home or back to the website (when there is one). */
+/** Top left of the sidebar: a menu to Parabola's home or back to the website; just Home when there's no website. */
 function ShellMenu({ backHref }: { backHref: string | null }) {
   const router = useRouter();
+  // With no website to go back to there's one place to go: a plain Home button, not a menu of one.
+  if (!backHref) return <DsButton size="small" variant="text" iconLeft={House} aria-label="Home" href="/parabola" />;
   return (
     <DsDropdown>
       <DsDropdownTrigger asChild>
@@ -132,11 +134,9 @@ function ShellMenu({ backHref }: { backHref: string | null }) {
         <DsDropdownItem iconLeft={House} onSelect={() => router.push("/parabola")}>
           Home
         </DsDropdownItem>
-        {backHref && (
-          <DsDropdownItem iconLeft={ArrowLeft} onSelect={() => router.push(backHref)}>
-            Back to website
-          </DsDropdownItem>
-        )}
+        <DsDropdownItem iconLeft={ArrowLeft} onSelect={() => router.push(backHref)}>
+          Back to website
+        </DsDropdownItem>
       </DsDropdownContent>
     </DsDropdown>
   );

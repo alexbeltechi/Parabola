@@ -14,6 +14,8 @@ export interface DsSubscribeProps {
   onSubscribe: (email: string) => void | Promise<void>;
   buttonLabel?: string;
   placeholder?: string;
+  /** A reason to show under the field straight away, as "Couldn't subscribe: <error>" (e.g. one the page already knows). */
+  error?: string;
   /** Shown in place of the form once the address is accepted. */
   thanks?: React.ReactNode;
   disabled?: boolean;
@@ -33,6 +35,7 @@ export function DsSubscribe({
   onSubscribe,
   buttonLabel = "Subscribe",
   placeholder = "you@example.com",
+  error,
   thanks = "Thanks! Check your inbox to confirm.",
   disabled,
   className,
@@ -56,6 +59,8 @@ export function DsSubscribe({
     }
   };
 
+  const message = state.kind === "error" ? state.message : state.kind === "idle" ? error : undefined;
+
   if (state.kind === "done") {
     return (
       <p data-slot="ds-subscribe" data-state="done" role="status" className={cn("text-p text-ds-fg", className)}>
@@ -71,7 +76,7 @@ export function DsSubscribe({
       onSubmit={submit}
       className={cn("relative flex flex-col gap-ds-8 sm:flex-row sm:items-start", className)}
     >
-      <DsField error={state.kind === "error" ? `Couldn't subscribe: ${state.message}` : undefined}>
+      <DsField error={message ? `Couldn't subscribe: ${message}` : undefined}>
         <DsInput
           type="email"
           name="email"
