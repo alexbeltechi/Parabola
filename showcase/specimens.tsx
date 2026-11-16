@@ -1255,11 +1255,6 @@ export function PromptBox() {
           busy={o.busy}
           onStop={() => setO({ ...o, busy: false })}
           note={o.note ? "AI can make mistakes. Check important info." : undefined}
-          onSubmit={({ text, files }) =>
-            dsToast(files.length ? `Sent, with ${files.length} file${files.length === 1 ? "" : "s"}` : "Sent", {
-              description: text.slice(0, 80) || undefined,
-            })
-          }
         />
       }
       controls={
@@ -1275,19 +1270,20 @@ export function PromptBox() {
 
 /** Components › Input › Subscribe: an email field and one button, then a thank-you line. */
 export function Subscribe() {
-  const [o, setO] = useState({ fails: false });
+  const [o, setO] = useState({ error: false });
   return (
     <Specimen
       preview={
         <DsSubscribe
-          key={String(o.fails)}
+          key={String(o.error)}
+          error={o.error ? "that address looks mistyped" : undefined}
           onSubscribe={async () => {
             await new Promise((r) => setTimeout(r, 700));
-            if (o.fails) throw new Error("that address looks mistyped");
+            if (o.error) throw new Error("that address looks mistyped");
           }}
         />
       }
-      controls={<Controls options={o} labels={{ fails: "Show the error" }} onChange={setO} />}
+      controls={<Controls options={o} labels={{ error: "Show the error" }} onChange={setO} />}
     />
   );
 }

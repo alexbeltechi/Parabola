@@ -6,6 +6,12 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: a field's clear button (the X) now stays while the field has
+  text, focused or not, so a search can be cleared without clicking back
+  into it. Touches `primitives/field.tsx`.
+- Changed: with no website to go back to, the showcase's top-left menu is a
+  plain Home button. Touches `showcase/ds-shell.tsx`.
+- `DsSubscribe` takes `error`, to show a reason under the field from outside.
 - Fixed: in dark mode the showcase's canvas no longer flashes white for a
   moment when a page loads. Until light or dark is picked for it, it follows
   the page's own dark mode from the first paint. Touches `theme.ts`,

@@ -129,7 +129,7 @@ type DsInputOwnProps = {
   iconRight?: LucideIcon;
   /** Small trailing text such as a count: `text-small`, subtle. */
   meta?: React.ReactNode;
-  /** Adds a clear button, shown only while the field is focused and has text. */
+  /** Adds a clear button, shown while the field has text, focused or not. */
   clearable?: boolean;
   /** Called when the clear button empties the field; implies `clearable`. */
   onClear?: () => void;
@@ -212,12 +212,11 @@ export function DsInput({ ref, ...fieldProps }: DsInputProps) {
       {(clearable || onClear) && hasValue && (
         <button
           type="button"
-          // Keep focus in the input on click; otherwise the field blurs, the
-          // button hides, and the click never lands.
+          // Keep focus where it is on click; `clear` then hands it to the input.
           onMouseDown={(e) => e.preventDefault()}
           onClick={clear}
           aria-label="Clear"
-          className={cn(DS_FIELD_CLEAR_CLASS, "hidden group-focus-within:flex group-data-[focus]:flex")}
+          className={cn(DS_FIELD_CLEAR_CLASS, "flex")}
         >
           <CircleX aria-hidden />
         </button>
