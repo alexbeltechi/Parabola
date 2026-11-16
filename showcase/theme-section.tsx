@@ -153,7 +153,6 @@ import {
 import { dsZip } from "../zip";
 import {
   InPanel,
-  InPanelFooter,
   PanelSection,
   RESTORE,
   useThemeEditor,
@@ -535,22 +534,6 @@ const SECTION = {
     }),
   },
 } as const;
-
-/** Every section restored: the open theme back to Parabola's look. */
-const restoreAll = (t: DsThemeConfig): DsThemeConfig =>
-  dsThemeWithFonts(
-    {
-      ...SECTION.fields.restore(
-        SECTION.buttons.restore(SECTION.colour.restore(t)),
-      ),
-      character: DS_DEFAULT_CHARACTER,
-      type: DS_DEFAULT_THEME.type,
-      icons: DS_DEFAULT_THEME.icons,
-      families: DS_DEFAULT_THEME.families,
-      hiddenFonts: [],
-    },
-    null,
-  );
 
 /** The whole look again, at random: another style, mood and colours (taste.ts). */
 const drawLook = (t: DsThemeConfig): DsThemeConfig => {
@@ -2080,11 +2063,11 @@ function ThemeNameDialog({
  * wearing the open theme (its nav, a post's opening, buttons, a list of
  * writing, one card on the surface); the panel on
  * the right holds the theme's main choices: which theme, as a row of names
- * (Parabola itself never changes, a change to it opens a copy, Custom, to
- * name and keep), light or dark for the preview, the five colours, the
+ * (a change goes into the open one, Parabola included; Restore puts it
+ * back), light or dark for the preview, the five colours, the
  * Heading and Font families' fonts, the radius and the icon library. The
- * rest is on Typography. Save as new theme or Save theme sits at the panel's
- * foot while there's something to keep; a site picks its theme in
+ * rest is on Typography. Changes go straight into the open theme and are
+ * kept (in this browser, on Parabola's own site); a site picks its theme in
  * Settings › Design. Every spacing is a Parabola one.
  */
 export function ThemeSection() {
@@ -2093,19 +2076,16 @@ export function ThemeSection() {
     entry,
     theme,
     setTheme,
-    status,
-    createTheme,
-    saving,
     select,
     addTheme,
     renameTheme,
     removeTheme,
-    backToParabola,
+    restoreTheme,
     previewMode: mode,
     setPreviewMode,
   } = useThemeEditor();
   const [naming, setNaming] = React.useState<
-    "add" | "rename" | "create" | null
+    "add" | "rename" | null
   >(null);
   const [restoring, setRestoring] = React.useState(false);
 
@@ -2277,11 +2257,13 @@ export function ThemeSection() {
                 setTheme={setTheme}
                 draw={drawLook}
               />
-              <SectionRestore
-                section="Theme"
-                theme={theme}
-                setTheme={setTheme}
-                restore={restoreAll}
+              <DsButton
+                size="small"
+                variant="text"
+                iconLeft={RotateCcw}
+                aria-label="Restore Theme"
+                title="Restore"
+                onClick={() => setRestoring(true)}
               />
               <DsDropdown>
                 <DsDropdownTrigger asChild>
@@ -2307,12 +2289,6 @@ export function ThemeSection() {
                     Duplicate
                   </DsDropdownItem>
                   <DsDropdownItem
-                    iconLeft={RotateCcw}
-                    onSelect={() => setRestoring(true)}
-                  >
-                    Restore
-                  </DsDropdownItem>
-                  <DsDropdownItem
                     tone="danger"
                     iconLeft={Trash2}
                     disabled={
@@ -2329,7 +2305,7 @@ export function ThemeSection() {
           }
         >
           {/* The themes, as text: Parabola first (its own, never changed), then any made from it.
-              A change to Parabola opens Custom, named and kept with Save as new theme. New +, the last tab, adds a copy. */}
+              A change goes into the open theme, Parabola included (Restore puts it back); New +, the last tab, adds a copy. */}
           <PillRow
             plain
             label="Theme"
@@ -2573,33 +2549,6 @@ export function ThemeSection() {
         <ThemeShare theme={theme} name={entry.name} setTheme={setTheme} />
       </InPanel>
 
-      {/* At the panel's foot while Custom, the working copy, is open (a variation, say): save it as a theme of its own. */}
-      {status === "custom" && (
-        <InPanelFooter>
-          <DsButton
-            variant="primary"
-            className="w-full"
-            loading={saving}
-            onClick={() => setNaming("create")}
-          >
-            Save as new theme
-          </DsButton>
-        </InPanelFooter>
-      )}
-
-      {naming === "create" && (
-        <ThemeNameDialog
-          title="Save as a new theme"
-          description="Parabola stays as it is; this is a theme of its own, for a site to pick."
-          initial={entry.name}
-          action="Save theme"
-          onClose={() => setNaming(null)}
-          onSave={async (name) => {
-            setNaming(null);
-            await createTheme(name);
-          }}
-        />
-      )}
       <DsConfirmDialog
         open={restoring}
         onOpenChange={setRestoring}
@@ -2608,7 +2557,7 @@ export function ThemeSection() {
         confirmLabel="Restore"
         onConfirm={() => {
           setRestoring(false);
-          const undoIt = backToParabola();
+          const undoIt = restoreTheme();
           dsToast(RESTORE.all.done, {
             action: { label: "Undo", onClick: undoIt },
           });
@@ -2618,7 +2567,7 @@ export function ThemeSection() {
       {naming === "add" && (
         <ThemeNameDialog
           title="Add a theme"
-          description={`A copy of ${entry.name}, to change as you like. Publish keeps it.`}
+          description={`A copy of ${entry.name}, to change as you like.`}
           initial=""
           action="Add theme"
           onClose={() => setNaming(null)}

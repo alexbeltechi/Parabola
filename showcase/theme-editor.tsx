@@ -18,7 +18,6 @@ import {
   dsApplyTheme,
   dsClearAppliedTheme,
   dsThemeEntryId,
-  dsSameLook,
   parseDsThemeConfig,
   parseDsThemeLibrary,
   type DsThemeConfig,
@@ -32,9 +31,11 @@ import {
  * (dsApplyTheme, scoped) so a font picked on Font families shows on Type
  * scale and Theme too; the sidebar, header and panel stay in Parabola's own,
  * so a theme that's hard to read never makes the controls hard to use.
- * Parabola itself never changes: a change to it goes into Custom, the one
- * working copy (made if there's none, its contents replaced if there is),
- * which Create theme turns into a theme of its own. Every change goes on a
+ * A change goes into the open theme, Parabola included; Restore puts it back
+ * to Parabola's own (theme.ts keeps those), and New + makes another theme to
+ * change instead. Without an app to save to (no `onThemeLibraryChange`), the
+ * themes are kept in this browser (localStorage), so a refresh keeps them.
+ * Every change goes on a
  * history, so Undo and Redo step through them one at a time. Save keeps the
  * themes (DsProvider `onThemeLibraryChange`) without touching the website;
  * Publish saves them and makes the open theme the website's.
@@ -44,12 +45,10 @@ type ThemeEditor = {
   /** The theme open for editing. */
   entry: DsThemeEntry;
   theme: DsThemeConfig;
-  /** Change the open theme; on Parabola, a copy of it ("Custom") opens with the change. */
+  /** Change the open theme, whichever it is. */
   setTheme: (theme: DsThemeConfig) => void;
-  /** Whether the open theme is Parabola, Custom (the working copy) or one of the themes made. */
-  status: "parabola" | "custom" | "theme";
-  /** Turn Custom into a theme of its own called `name`, and save. */
-  createTheme: (name: string) => Promise<void>;
+  /** Whether the open theme is Parabola or one of the themes made. */
+  status: "parabola" | "theme";
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
   /** Add a theme called `name`, a copy of the open one, and open it. */
@@ -57,8 +56,8 @@ type ThemeEditor = {
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
-  /** Back to Parabola: open it (Publish then makes it the website's). Other themes stay. Returns what undoes it. */
-  backToParabola: () => () => void;
+  /** The open theme back to Parabola's own look. Other themes stay. Returns what undoes it. */
+  restoreTheme: () => () => void;
   /** Changes not saved yet. */
   dirty: boolean;
   /** The open theme isn't what the website wears, as it is. */
@@ -98,8 +97,8 @@ function useUiMode(): "light" | "dark" {
   );
 }
 
-/** Custom: the one working copy that a change to Parabola goes into. */
-const CUSTOM_THEME_ID = "custom";
+/** Where the themes are kept in the browser when there's no app to save them to. */
+const STORE_KEY = "parabola:themes";
 
 export function useThemeEditor(): ThemeEditor {
   const editor = React.useContext(ThemeEditorContext);
@@ -144,31 +143,51 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     setHistory((h) => (h.future.length === 0 ? h : { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1) }));
   }, []);
 
-  const setTheme = React.useCallback(
-    (theme: DsThemeConfig) => {
-      if (JSON.stringify(theme) === JSON.stringify(entry.theme)) return;
-      // Custom brought back to Parabola's own (its sections restored, say) is Parabola again (a
-      // restore left him on Custom): Parabola opens and the working copy goes, unless it's the one the site wears.
-      if (entry.id === CUSTOM_THEME_ID && library.active !== CUSTOM_THEME_ID && dsSameLook(theme, DS_DEFAULT_THEME)) {
-        change({ ...library, themes: library.themes.filter((t) => t.id !== CUSTOM_THEME_ID) });
-        setSelected(DS_DEFAULT_THEME_ID);
-        return;
+  // The open theme's id, for changes made from older closures (a toast's Undo).
+  const selectedRef = React.useRef(selected);
+  selectedRef.current = selected;
+
+  const setTheme = React.useCallback((theme: DsThemeConfig) => {
+    setHistory((h) => {
+      const lib = h.present;
+      const open = lib.themes.find((t) => t.id === selectedRef.current) ?? lib.themes[0];
+      if (JSON.stringify(theme) === JSON.stringify(open.theme)) return h;
+      return {
+        past: [...h.past, lib].slice(-100),
+        present: { ...lib, themes: lib.themes.map((t) => (t.id === open.id ? { ...t, theme } : t)) },
+        future: [],
+      };
+    });
+  }, []);
+
+  // No app to save to: keep the themes in this browser. Read once after the first paint (the server has no
+  // browser storage, so reading sooner would differ from its page), then written on every change.
+  const keepInBrowser = !onThemeLibraryChange;
+  const [loaded, setLoaded] = React.useState(!keepInBrowser);
+  React.useEffect(() => {
+    if (!keepInBrowser) return;
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const stored = JSON.parse(raw) as { library?: unknown; selected?: unknown };
+        const lib = parseDsThemeLibrary(stored.library);
+        setSaved(lib);
+        setHistory({ past: [], present: lib, future: [] });
+        if (typeof stored.selected === "string" && lib.themes.some((t) => t.id === stored.selected)) setSelected(stored.selected);
       }
-      if (entry.id === DS_DEFAULT_THEME_ID) {
-        // Parabola stays as it is: the change goes into Custom, the one working copy, opened.
-        const custom = { id: CUSTOM_THEME_ID, name: "Custom", theme };
-        const has = library.themes.some((t) => t.id === CUSTOM_THEME_ID);
-        change({
-          ...library,
-          themes: has ? library.themes.map((t) => (t.id === CUSTOM_THEME_ID ? custom : t)) : [...library.themes, custom],
-        });
-        setSelected(CUSTOM_THEME_ID);
-        return;
-      }
-      change({ ...library, themes: library.themes.map((t) => (t.id === entry.id ? { ...t, theme } : t)) });
-    },
-    [change, library, entry]
-  );
+    } catch {
+      // Storage off or unreadable: start from Parabola.
+    }
+    setLoaded(true);
+  }, [keepInBrowser]);
+  React.useEffect(() => {
+    if (!keepInBrowser || !loaded) return;
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify({ library, selected }));
+    } catch {
+      // Storage full or off: the themes last until the page closes.
+    }
+  }, [keepInBrowser, loaded, library, selected]);
 
   /** Save `next`; with `publish`, make that theme the website's too. */
   const store = React.useCallback(
@@ -201,24 +220,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
     await store(next, entry);
   }, [store, library, entry]);
 
-  const status: ThemeEditor["status"] =
-    entry.id === DS_DEFAULT_THEME_ID ? "parabola" : entry.id === CUSTOM_THEME_ID ? "custom" : "theme";
-
-  const createTheme = React.useCallback(
-    async (name: string) => {
-      // Custom becomes a theme of its own (its own id), so the next change to Parabola starts a fresh Custom.
-      const id = dsThemeEntryId(library, name);
-      const next = {
-        ...library,
-        themes: library.themes.map((t) => (t.id === entry.id ? { id, name, theme: t.theme } : t)),
-        active: library.active === entry.id ? id : library.active,
-      };
-      change(next);
-      setSelected(id);
-      await save(next);
-    },
-    [library, entry.id, change, save]
-  );
+  const status: ThemeEditor["status"] = entry.id === DS_DEFAULT_THEME_ID ? "parabola" : "theme";
 
   const value = React.useMemo<ThemeEditor>(
     () => ({
@@ -227,7 +229,6 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       theme: entry.theme,
       setTheme,
       status,
-      createTheme,
       select: setSelected,
       addTheme: (name) => {
         const id = dsThemeEntryId(library, name);
@@ -240,10 +241,17 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         change({ ...library, themes: library.themes.filter((t) => t.id !== id) });
         if (selected === id) setSelected(library.active);
       },
-      backToParabola: () => {
-        const wasSelected = entry.id;
-        setSelected(DS_DEFAULT_THEME_ID);
-        return () => setSelected(wasSelected);
+      restoreTheme: () => {
+        const id = entry.id;
+        const before = entry.theme;
+        const put = (theme: DsThemeConfig) =>
+          setHistory((h) => ({
+            past: [...h.past, h.present].slice(-100),
+            present: { ...h.present, themes: h.present.themes.map((t) => (t.id === id ? { ...t, theme } : t)) },
+            future: [],
+          }));
+        put(DS_DEFAULT_THEME);
+        return () => put(before);
       },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
       unpublished: published.id !== entry.id || JSON.stringify(published.theme) !== JSON.stringify(entry.theme),
@@ -259,7 +267,7 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       pickedMode,
       setPreviewMode,
     }),
-    [library, entry, setTheme, status, createTheme, change, selected, saved, published, saving, onThemeLibraryChange, save, publish, history.past.length, history.future.length, undo, redo, previewMode, pickedMode]
+    [library, entry, setTheme, status, change, selected, saved, published, saving, onThemeLibraryChange, save, publish, history.past.length, history.future.length, undo, redo, previewMode, pickedMode]
   );
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;
 }
@@ -321,7 +329,7 @@ export const RESTORE: Record<RestoreScope, { item: string; title: string; descri
   all: {
     item: "Restore all settings",
     title: "Restore all settings?",
-    description: "Restore all settings across the design system and components back to default.",
+    description: "Every setting of this theme goes back to Parabola's own. Undo brings them back.",
     done: "All settings restored",
   },
 };
@@ -338,12 +346,12 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
  * when there's none; Save, which keeps the changes without touching the
  * website; Publish (after a confirm), which saves them and puts the open
  * theme on the website; and, last, a ⋮ menu to restore Parabola's defaults
- * for this page's part of the open theme, or all settings (Parabola opens),
+ * for this page's part of the open theme, or all of it,
  * each after a confirm and with Undo in the toast that follows. Nothing
  * restored is live until it's published.
  */
 export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
-  const { theme, setTheme, entry, dirty, unpublished, saving, canSave, save, publish, canUndo, canRedo, undo, redo, backToParabola } =
+  const { theme, setTheme, entry, dirty, unpublished, saving, canSave, save, publish, canUndo, canRedo, undo, redo, restoreTheme } =
     useThemeEditor();
   const pathname = usePathname();
   const [publishing, setPublishing] = React.useState(false);
@@ -359,7 +367,7 @@ export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
   function restore(scope: RestoreScope) {
     setRestoring(null);
     if (scope === "all") {
-      const undoIt = backToParabola();
+      const undoIt = restoreTheme();
       dsToast(RESTORE.all.done, { action: { label: "Undo", onClick: undoIt } });
       return;
     }

@@ -779,16 +779,7 @@ export function parseDsThemeLibrary(value: unknown, legacy?: unknown): DsThemeLi
   };
   const first = themes.find((t) => t.id === DS_DEFAULT_THEME_ID) ?? fallbackDefault;
   const others = themes.filter((t) => t.id !== DS_DEFAULT_THEME_ID);
-  let active = typeof raw.active === "string" && others.some((t) => t.id === raw.active) ? raw.active : DS_DEFAULT_THEME_ID;
-  // Parabola is Parabola's own and never changes. One changed before that (its colours, its fonts) becomes a
-  // theme of its own, Custom, and stays the site's if it was, so the site looks as it did.
-  if (!dsSameLook(first.theme, DS_DEFAULT_THEME)) {
-    const names = new Set(others.map((t) => t.name));
-    let name = "Custom";
-    for (let n = 2; names.has(name); n++) name = `Custom ${n}`;
-    const id = dsThemeEntryId({ themes: [first, ...others], active }, name);
-    others.push({ id, name, theme: first.theme });
-    if (active === DS_DEFAULT_THEME_ID) active = id;
-  }
-  return { themes: [{ ...first, theme: DS_DEFAULT_THEME }, ...others], active };
+  const active = typeof raw.active === "string" && others.some((t) => t.id === raw.active) ? raw.active : DS_DEFAULT_THEME_ID;
+  // Parabola can be changed like any theme (Restore puts it back to DS_DEFAULT_THEME), so it's kept as stored.
+  return { themes: [first, ...others], active };
 }
