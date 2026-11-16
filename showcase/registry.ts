@@ -10,6 +10,7 @@ import {
   Pipette,
   ListTree,
   Mail,
+  MessageSquare,
   Ruler,
   MousePointerClick,
   Paintbrush,
@@ -220,6 +221,15 @@ export const DS_TIERS: DsTier[] = [
         label: "Links",
         icon: LinkIcon,
         pages: [{ slug: "link-list", label: "Link list", component: S.LinkList }],
+      },
+      {
+        slug: "input",
+        label: "Input",
+        icon: MessageSquare,
+        pages: [
+          { slug: "prompt-box", label: "Prompt box", component: S.PromptBox },
+          { slug: "subscribe", label: "Subscribe", component: S.Subscribe },
+        ],
       },
       {
         slug: "states",

@@ -4,6 +4,19 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## Unreleased
+
+- New component: `DsPromptBox`, a chat prompt box up to 700px wide. One
+  pill (+ for files, the text, microphone, send) that opens into two rows as
+  the text grows: text on top, + bottom left, microphone and send bottom
+  right. Enter adds a line and ⌘/Ctrl+Enter sends (`enterSends` for Enter);
+  `note` adds a line under it ("AI can make mistakes"). On `/parabola` under
+  Components › Input.
+- New component: `DsSubscribe`, the email field and button, sending nowhere
+  itself (`onSubscribe`). The Newsletter block is now built on it, and bots
+  that fill its hidden field no longer reach the endpoint. Touches
+  `blocks/newsletter.tsx`.
+
 ## 0.3.0 — 2026-11-16
 
 - Parabola has its own website, parabolasystem.com: the showcase, built

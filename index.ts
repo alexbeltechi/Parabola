@@ -187,6 +187,8 @@ export { DsInfoCard } from "./components/info-card";
 export { DsLinkList, type DsLinkListItem } from "./components/link-list";
 export { DsFontPairing, dsFontOptions } from "./components/font-pairing";
 export { DsColourBar, DsColourPicker } from "./components/colour-picker";
+export { DsPromptBox, type DsPromptBoxProps } from "./components/prompt-box";
+export { DsSubscribe, type DsSubscribeProps } from "./components/subscribe";
 export { DsSlider } from "./primitives/slider";
 export { DsScrollRow } from "./primitives/scroll-row";
 export { DsColourField } from "./components/colour-field";
