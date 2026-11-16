@@ -220,7 +220,7 @@ export function DsCanvas({
 }) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   const [footer, setFooter] = React.useState<HTMLElement | null>(null);
-  const { previewMode, setPreviewMode } = useThemeEditor();
+  const { previewMode, pickedMode, setPreviewMode } = useThemeEditor();
   // Collapse all, then Expand all: every accordion on the page (the panel's sections) at once.
   const [allOpen, setAllOpen] = React.useState(true);
   const [version, setVersion] = React.useState(0);
@@ -266,7 +266,9 @@ export function DsCanvas({
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
             around it stays Parabola's own, in the UI's mode. */}
         <div
-          data-ds-mode={previewMode}
+          // Only once a mode is picked: until then the canvas follows the page's own
+          // .dark class, set before the first paint, so it never flashes light.
+          data-ds-mode={pickedMode ?? undefined}
           className={`${DS_THEME_SCOPE} flex min-w-0 items-center-safe justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto`}>
           <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
         </div>

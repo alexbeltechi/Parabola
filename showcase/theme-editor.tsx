@@ -75,6 +75,8 @@ type ThemeEditor = {
   redo: () => void;
   /** Whether the canvas shows the theme light or dark: the UI's own until one is picked for it (the panel's toggle). */
   previewMode: "light" | "dark";
+  /** Light or dark picked for the canvas; null while it follows the UI's. */
+  pickedMode: "light" | "dark" | null;
   setPreviewMode: (mode: "light" | "dark") => void;
 };
 
@@ -254,9 +256,10 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       undo,
       redo,
       previewMode,
+      pickedMode,
       setPreviewMode,
     }),
-    [library, entry, setTheme, status, createTheme, change, selected, saved, published, saving, onThemeLibraryChange, save, publish, history.past.length, history.future.length, undo, redo, previewMode]
+    [library, entry, setTheme, status, createTheme, change, selected, saved, published, saving, onThemeLibraryChange, save, publish, history.past.length, history.future.length, undo, redo, previewMode, pickedMode]
   );
   return <ThemeEditorContext.Provider value={value}>{children}</ThemeEditorContext.Provider>;
 }
