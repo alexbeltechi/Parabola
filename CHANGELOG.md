@@ -6,6 +6,13 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: the Theme page's Taste section is gone. Its Mood slider and its
+  Previous / Shuffle / Next controls go with it; the dice it held now sits
+  at the top of Theme, beside the ⋮ menu, with a Restore next to it that
+  puts the open theme back to Parabola's look. Colour, Typography, Buttons
+  and Fields each get their own dice beside their Restore, which draws that
+  part again. Icons has no dice: Lucide is the only library that works.
+  Touches `showcase/theme-section.tsx`.
 - Changed: on the Theme page the theme dropdown is now a row of names
   (Parabola, then any theme made from it, then New +), with Light and Dark as a second
   row of the same kind. The Style list (Minimal, Elegant, Tech…) is gone
