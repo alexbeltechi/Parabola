@@ -7,7 +7,7 @@ files a change touches when a project is likely to have edited them.
 ## Unreleased
 
 - Changed: on the Theme page the theme dropdown is now a row of names
-  (Parabola, then any theme made from it), with Light and Dark as a second
+  (Parabola, then any theme made from it, then New +), with Light and Dark as a second
   row of the same kind. The Style list (Minimal, Elegant, Tech…) is gone
   from Taste; Mood, Shuffle and the dice stay. Touches
   `showcase/theme-section.tsx`.
