@@ -1281,6 +1281,7 @@ function PillRow({
   picked,
   onToggle,
   plain,
+  after,
 }: {
   label: string;
   options: readonly { id: string; label: string }[];
@@ -1288,6 +1289,8 @@ function PillRow({
   onToggle: (id: string) => void;
   /** Text only, no icons: the themes, and light or dark. */
   plain?: boolean;
+  /** One more button after the options, e.g. New +. */
+  after?: React.ReactNode;
 }) {
   return (
     <DsScrollRow role="group" aria-label={label} className="-mx-2 px-2">
@@ -1303,6 +1306,7 @@ function PillRow({
           {o.label}
         </DsButton>
       ))}
+      {after}
     </DsScrollRow>
   );
 }
@@ -2315,30 +2319,24 @@ export function ThemeSection() {
           }
         >
           {/* The themes, as text: Parabola first (its own, never changed), then any made from it.
-              A change to Parabola opens Custom, named and kept with Save as new theme. + adds a copy. */}
-          <div className="flex items-center gap-ds-4">
-            <div className="min-w-0 flex-1">
-              <PillRow
-                plain
-                label="Theme"
-                options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
-                picked={[entry.id]}
-                onToggle={(id) => {
-                  if (id === entry.id) return;
-                  takes.reset();
-                  select(id);
-                }}
-              />
-            </div>
-            <DsButton
-              size="small"
-              variant="text"
-              iconLeft={Plus}
-              aria-label="Add theme"
-              title="Add theme"
-              onClick={() => setNaming("add")}
-            />
-          </div>
+              A change to Parabola opens Custom, named and kept with Save as new theme. New +, the last tab, adds a copy. */}
+          <PillRow
+            plain
+            label="Theme"
+            options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
+            picked={[entry.id]}
+            onToggle={(id) => {
+              if (id === entry.id) return;
+              takes.reset();
+              select(id);
+            }}
+            // The last tab: a new theme, a copy of the open one, named first.
+            after={
+              <DsButton size="small" variant="text" iconRight={Plus} onClick={() => setNaming("add")}>
+                New
+              </DsButton>
+            }
+          />
           {/* The preview's mode, right under the themes, the same kind of row; the UI's is the sidebar's toggle. */}
           <PillRow
             plain
