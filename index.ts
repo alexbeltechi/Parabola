@@ -227,6 +227,7 @@ export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
 export {
   DS_THEME_FILE_CONTRACT,
   DS_THEME_FILE_FORMAT,
+  DS_THEME_FILE_LEGACY_FORMATS,
   DS_THEME_FILE_SUFFIX,
   DS_THEME_FILE_VERSION,
   dsThemeFileName,

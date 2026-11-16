@@ -5,7 +5,7 @@
  * items, tooltips). Large is
  * Parabola's default, where the pill is fully round; below it buttons
  * become rounded rectangles. The values live as `--ds-radius-*` on :root
- * (tokens.css has Large), and `npm run check:parabola` fails if the two
+ * (tokens.css has Large), and `npm run check` fails if the two
  * disagree. Progress bars, switches, radios and avatars stay round in any
  * theme: they're circles, not corners.
  */

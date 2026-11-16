@@ -6,7 +6,7 @@ import { dsThemeCss, dsThemeFont, type DsThemeConfig } from "./theme";
  * Applies a Parabola theme (theme.ts) to the page: one <style> that sets its
  * tokens on :root, and one Google Fonts stylesheet for the Google fonts its
  * families use, leaving out the ones the app hosts itself (`hosted`, by
- * font id: the CMS hosts Parabola's own with next/font). Render it once in
+ * font id: Darmio hosts Parabola's own with next/font). Render it once in
  * the page. With `scope`, only that class wears it (dsThemeCss). Server-safe:
  * no hooks.
  */

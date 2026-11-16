@@ -90,7 +90,7 @@ export const DS_HEADING_FAMILY = "heading";
 
 /**
  * Each style's default name, family, weight, size and line height (px), as
- * tokens.css sets them (`npm run check:parabola` checks): Display to H2 in
+ * tokens.css sets them (`npm run check` checks): Display to H2 in
  * the Heading family (Instrument Serif, which has one weight); H3, the small
  * heading, and the rest in Font at Medium.
  */

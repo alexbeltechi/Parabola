@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+/* Parabola: tokens, theme and ds-* utilities, straight from this repo. */
+@import "../../tokens.css";
+/* Parabola sits one folder up, so Tailwind has to be told to read its classes. */
+@source "../..";
+@source not "../../node_modules";
+@source not "../.next";
+
+body {
+  font-family: var(--ds-font);
+}
+
+/* The overscroll bounce shows the page colour, not whatever is behind it. */
+body:has(.site-root) {
+  background-color: var(--ds-bg);
+}
+
+@layer base {
+  * {
+    border-color: var(--ds-border);
+    outline-color: color-mix(in srgb, var(--ds-focus) 50%, transparent);
+  }
+  body {
+    background-color: var(--ds-bg);
+    color: var(--ds-fg);
+  }
+}

@@ -452,7 +452,7 @@ export function Radio() {
 const LONG_PROMPT = Array.from(
   { length: 6 },
   (_, i) =>
-    `${i + 1}. Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do, step by step, and what each step is for.`
+    `${i + 1}. Set up Parabola for me. Follow the README in the Parabola package: it says what to install, what to import and where, step by step, and what each step is for.`
 ).join("\n");
 
 export function TextareaField() {
@@ -1140,7 +1140,7 @@ export function Progress() {
         value={8}
         title="Storage"
         meta="82 MB of 1 GB free"
-        description="214 media items, counted by the CMS."
+        description="214 media items, counted by the app."
       />
       <DsProgress
         max={1024}
@@ -1200,7 +1200,7 @@ export function InfoCard() {
   return (
     <div className="flex w-full max-w-md flex-col gap-4">
       <DsInfoCard title="Set up with AI">
-        <DsCopyField className="w-full" value="Set up Darmio for me. Follow SETUP.md in the Darmio folder." />
+        <DsCopyField className="w-full" value="Set up Parabola for me. Follow the README in the Parabola package." />
       </DsInfoCard>
       <DsInfoCard title="Not live yet">
         <p>Changes to a published post wait until you publish them.</p>
@@ -1222,7 +1222,7 @@ export function CopyField() {
             wrap={o.wrap}
             collapsible={o.showMore}
             mono={o.mono}
-            value={long ? LONG_PROMPT : "Set up Darmio for me. Follow SETUP.md in the Darmio folder: it says what to ask me and what to do."}
+            value={long ? LONG_PROMPT : "Set up Parabola for me. Follow the README in the Parabola package: it says what to install and what to import."}
           />
         </DsField>
       }

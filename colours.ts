@@ -7,7 +7,7 @@
  * - **primary** (`text`): the text, and the borders drawn from it.
  *   Parabola's own is black or white, whichever reads on the background, with
  *   Stone's warm greys on the default page (tokens.css;
- *   `npm run check:parabola` checks).
+ *   `npm run check` checks).
  * - **secondary** (`muted`): the quieter text (`fg-muted`, and
  *   `fg-subtle` a step fainter). By default the primary type mixed toward
  *   the page.

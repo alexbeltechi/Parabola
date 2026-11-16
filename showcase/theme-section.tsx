@@ -2144,7 +2144,7 @@ export function ThemeSection() {
     theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // The brand, not just the UI: the look in each place, at the CMS's reading width (600px),
+    // The brand, not just the UI: the look in each place, at a site's reading width (600px),
     // the site (Web), the top of a letter (Email), a story, a feed post and a post on X (Social), and the admin's own card
     // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
@@ -2642,7 +2642,7 @@ export function ThemeSection() {
       {naming === "create" && (
         <ThemeNameDialog
           title="Save as a new theme"
-          description="Parabola stays as it is; this is a theme of its own, for a site to pick in Settings › Design."
+          description="Parabola stays as it is; this is a theme of its own, for a site to pick."
           initial={entry.name}
           action="Save theme"
           onClose={() => setNaming(null)}
@@ -2683,7 +2683,7 @@ export function ThemeSection() {
       {naming === "rename" && (
         <ThemeNameDialog
           title={`Rename ${entry.name}`}
-          description="What it's called here and in Settings › Design."
+          description="What it's called here and wherever a site picks it."
           initial={entry.name}
           action="Rename"
           onClose={() => setNaming(null)}

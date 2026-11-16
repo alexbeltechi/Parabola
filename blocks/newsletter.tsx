@@ -10,13 +10,13 @@ export interface DsNewsletterBlockProps {
   /** One line under the heading: what people get and how often. */
   text?: string;
   buttonLabel?: string;
-  /** The list the sign-up asks for ("news", "studio"); the CMS decides what that means. */
+  /** The list the sign-up asks for ("news", "studio"); the app decides what that means. */
   list?: string;
   /** Where the sign-up came from, for the list's records. Defaults to the page's path. */
   source?: string;
   /** Shown in place of the form once the address is accepted. */
   thanks?: string;
-  /** Where the form posts. The CMS's own door; the page never learns the provider behind it. */
+  /** Where the form posts. The app's own door; the page never learns the provider behind it. */
   endpoint?: string;
   className?: string;
 }
