@@ -240,3 +240,15 @@ export {
 } from "./theme-file";
 export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";
+export {
+  DS_COMPOSITION_CHOICES,
+  DS_DEFAULT_BRIEF,
+  DS_DEFAULT_COMPOSITION,
+  dsCompositionLabel,
+  dsCompositionWords,
+  parseDsBrief,
+  parseDsComposition,
+  type DsBrief,
+  type DsComposition,
+} from "./composition";
+export { DS_STARTING_POINTS, type DsStartingPoint } from "./starting-points";

@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Ruler,
   MousePointerClick,
+  LayoutDashboard,
   Paintbrush,
   Palette,
   SquareCheck,
@@ -26,11 +27,13 @@ import { FontsSection } from "./fonts-section";
 import { FontFamiliesSection } from "./font-families-section";
 import { SpacingSection } from "./spacing-section";
 import { IntroSection } from "./intro-section";
+import { BoardSection } from "./board";
 import { ThemeSection } from "./theme-section";
 import { BlocksOverview, ComponentsOverview } from "./tier-overview";
 import * as S from "./specimens";
 
-export type DsPage = { slug: string; label: string; component: ComponentType };
+/** `board`: the page fills the canvas and scrolls itself (showcase/board.tsx). */
+export type DsPage = { slug: string; label: string; component: ComponentType; board?: boolean };
 export type DsGroup = {
   slug: string;
   label: string;
@@ -64,6 +67,13 @@ export const DS_TIERS: DsTier[] = [
         icon: Paintbrush,
         single: true,
         pages: [{ slug: "fonts", label: "Theme", component: ThemeSection }],
+      },
+      {
+        slug: "board",
+        label: "Board",
+        icon: LayoutDashboard,
+        single: true,
+        pages: [{ slug: "all", label: "Board", component: BoardSection, board: true }],
       },
     ],
   },

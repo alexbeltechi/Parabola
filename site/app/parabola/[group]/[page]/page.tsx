@@ -22,7 +22,7 @@ export default async function ShowcasePage({ params }: Params) {
   if (!found) notFound();
   const Page = found.page.component;
   return (
-    <DsCanvas group={found.group.label} title={found.page.label} themeTitle={found.group.slug === "theme"}>
+    <DsCanvas group={found.group.label} title={found.page.label} themeTitle={found.group.slug === "theme"} board={found.page.board}>
       <Page />
     </DsCanvas>
   );

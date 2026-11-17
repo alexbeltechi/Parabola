@@ -1,3 +1,4 @@
+import { DS_DEFAULT_BRIEF, DS_DEFAULT_COMPOSITION, parseDsBrief, parseDsComposition, type DsBrief, type DsComposition } from "./composition";
 import {
   DS_ACCENT_COLOURS,
   DS_BASE_COLOURS,
@@ -140,6 +141,10 @@ export type DsThemeConfig = {
   fields: DsFieldStyle;
   /** The icon library, by id (colours.ts). */
   icons: string;
+  /** Where things sit, how big, how sections are marked (composition.ts): the part of a style that isn't a value. */
+  composition: DsComposition;
+  /** The style in the maker's words: a reference in a sentence, and its signature moves (composition.ts). */
+  brief: DsBrief;
 };
 
 export const DS_DEFAULT_THEME: DsThemeConfig = {
@@ -162,6 +167,8 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   buttons: null,
   fields: DS_DEFAULT_FIELD_STYLE,
   icons: "lucide",
+  composition: DS_DEFAULT_COMPOSITION,
+  brief: DS_DEFAULT_BRIEF,
 };
 
 /** The font no theme can take out: every stack ends in it. */
@@ -394,6 +401,8 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     buttons: buttonStyle,
     fields: parseDsFieldStyle(raw.fields),
     icons,
+    composition: parseDsComposition(raw.composition),
+    brief: parseDsBrief(raw.brief),
   };
 }
 

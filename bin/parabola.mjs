@@ -558,6 +558,122 @@ function dsCharacterButtons(c) {
   };
 }
 
+// composition.ts
+var DS_DEFAULT_COMPOSITION = {
+  layout: "inline",
+  align: "centre",
+  scale: "regular",
+  density: "airy",
+  structure: "plain",
+  labels: "none",
+  numbered: false,
+  hero: "statement"
+};
+var DS_DEFAULT_BRIEF = { reference: "", moves: [] };
+var DS_COMPOSITION_CHOICES = [
+  {
+    key: "layout",
+    label: "Layout",
+    options: [
+      { id: "inline", label: "Inline", says: "Everything sits in one reading column, about 640px wide, whatever the page." },
+      {
+        id: "hybrid",
+        label: "Hybrid",
+        says: "Pages that present (a home page, a shop) use the width, up to about 1200px. Anything meant to be read (an article) sits in a column about 640px wide."
+      },
+      {
+        id: "full",
+        label: "Full width",
+        says: "Pages run edge to edge on a 12-column grid. Text takes some of the columns; it is never a centred column with empty sides."
+      }
+    ]
+  },
+  {
+    key: "align",
+    label: "Alignment",
+    options: [
+      { id: "centre", label: "Centred", says: "Headlines and openings are centred." },
+      { id: "left", label: "Left", says: "Everything hangs from the left edge; nothing is centred." }
+    ]
+  },
+  {
+    key: "scale",
+    label: "Scale",
+    options: [
+      { id: "small", label: "Small", says: "Type stays small everywhere, headlines included. Pictures and space do the talking." },
+      { id: "regular", label: "Regular", says: "Type is at a normal reading scale, with clear steps between headline, heading and text." },
+      {
+        id: "loud",
+        label: "Loud",
+        says: "Type is very large. A headline is about a tenth of the screen's width tall, and running text is well above normal, around 24 to 40px on a desktop."
+      }
+    ]
+  },
+  {
+    key: "density",
+    label: "Density",
+    options: [
+      { id: "tight", label: "Tight", says: "Sections sit close together; the page is dense." },
+      { id: "regular", label: "Regular", says: "Sections have ordinary room between them." },
+      { id: "airy", label: "Airy", says: "Sections are far apart. Empty space is part of the design; leave it empty." }
+    ]
+  },
+  {
+    key: "structure",
+    label: "Structure",
+    options: [
+      { id: "plain", label: "Plain", says: "Space alone separates things: no rules, boxes or cards." },
+      { id: "ruled", label: "Ruled", says: "A hairline rule opens every section and sits above every item in a list." },
+      { id: "cards", label: "Cards", says: "Groups of things sit on cards, on the cards-and-panels colour." },
+      { id: "boxed", label: "Boxed", says: "Content sits in bordered cells that share their edges, like a table or a dashboard." }
+    ]
+  },
+  {
+    key: "labels",
+    label: "Labels",
+    options: [
+      { id: "none", label: "None", says: "Sections aren't labelled; their headings are enough." },
+      { id: "eyebrow", label: "Eyebrow", says: "A small uppercase label sits above each section's heading." },
+      { id: "bracket", label: "Brackets", says: "Each section is named by a small label in brackets, like (Work)." },
+      { id: "tag", label: "Tags", says: "Sections and items carry pill-shaped tags." }
+    ]
+  },
+  {
+    key: "hero",
+    label: "Opening",
+    options: [
+      { id: "statement", label: "Statement", says: "A page opens with words alone: one headline, no picture." },
+      { id: "split", label: "Split", says: "A page opens with words on one side and a picture on the other." },
+      { id: "poster", label: "Poster", says: "A page opens with a picture across the full width and the headline over it." }
+    ]
+  }
+];
+var NUMBERED_SAYS = "Parts are counted: 01, 02, 03.";
+function parseDsComposition(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const out = { ...DS_DEFAULT_COMPOSITION };
+  for (const choice of DS_COMPOSITION_CHOICES) {
+    if (choice.options.some((o) => o.id === raw[choice.key])) out[choice.key] = raw[choice.key];
+  }
+  out.numbered = raw.numbered === true;
+  return out;
+}
+function parseDsBrief(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const line = (v, max) => typeof v === "string" ? v.replace(/\s+/g, " ").trim().slice(0, max) : "";
+  return {
+    reference: line(raw.reference, 400),
+    moves: Array.isArray(raw.moves) ? raw.moves.map((m) => line(m, 200)).filter(Boolean).slice(0, 8) : []
+  };
+}
+function dsCompositionWords(c) {
+  const lines = DS_COMPOSITION_CHOICES.map((choice) => {
+    const option = choice.options.find((o) => o.id === c[choice.key]);
+    return option ? `${choice.label}: ${option.says}` : "";
+  }).filter(Boolean);
+  return c.numbered ? [...lines, `Numbering: ${NUMBERED_SAYS}`] : lines;
+}
+
 // spacing.ts
 var DS_SPACES = [4, 8, 16, 20, 32, 40, 80, 160];
 
@@ -927,7 +1043,9 @@ var DS_DEFAULT_THEME = {
   pillRadius: null,
   buttons: null,
   fields: DS_DEFAULT_FIELD_STYLE,
-  icons: "lucide"
+  icons: "lucide",
+  composition: DS_DEFAULT_COMPOSITION,
+  brief: DS_DEFAULT_BRIEF
 };
 var DS_PERMANENT_FONT = "system";
 function dsThemeFont(theme, id) {
@@ -1066,7 +1184,9 @@ function parseDsThemeConfig(value) {
     pillRadius,
     buttons: buttonStyle,
     fields: parseDsFieldStyle(raw.fields),
-    icons
+    icons,
+    composition: parseDsComposition(raw.composition),
+    brief: parseDsBrief(raw.brief)
   };
 }
 var dsThemeRadius = (theme) => theme.radius ?? dsCharacterRadius(theme.character);
@@ -1232,8 +1352,8 @@ var KIT_COLOURS = [
 ];
 var styleName = (label) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 var HOW_TO_USE = [
-  "Keep what's listed here as it is: the colours and what each is for, the fonts, the type sizes, the spacing steps and the corners. They are what makes everything you make read as one thing.",
-  "Everything above that is yours: the layout, how a page opens, imagery, composition, motion, and sections nobody has made before. Experiment there, and build it from these values."
+  "Keep the values as they are: the colours and what each is for, the fonts, the spacing steps and the corners. Follow the composition and the signature moves: they are what makes this style this style, and not another with the same colours.",
+  "Everything else is yours: what goes on a page, the sections it needs, imagery, motion, and things nobody has made before. Experiment there, and build it from these values."
 ];
 var MADE_WITH = "Created with parabolasystem.com";
 function pageInWords(hex) {
@@ -1381,10 +1501,12 @@ function dsBrandKit(theme, name) {
   const both = (token) => `${light[token]} (dark mode ${dark[token]})`;
   const size = (label, s) => `${label} ${parseInt(s.size)}/${parseInt(s.lineHeight)}`;
   const shape = corners.buttons === "fully round" ? "pill-shaped" : `with ${corners.buttons} corners`;
+  const brief = { ...theme.brief, moves: theme.brief.moves.map((m) => m.trim()).filter(Boolean) };
   const style = [
     `Use the "${name}" style for everything you make.`,
     "",
-    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}. One accent colour; generous space; the frame stays quiet so the content stands out.`,
+    ...brief.reference ? [brief.reference, ""] : [],
+    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}.`,
     "",
     "Colours",
     `- Page: ${both("bg")}`,
@@ -1395,13 +1517,17 @@ function dsBrandKit(theme, name) {
     "",
     "Type",
     `- Headings: ${heading}. Everything else: ${body}.${googleFontsUrl ? ` Fonts: ${googleFontsUrl}` : ""}`,
-    `- Sizes (size/line height, px): ${styles.map(([label, s]) => size(label, s)).join(", ")}`,
+    `- Base sizes (size/line height, px; Scale, under Composition, says how far pages go from them): ${styles.map(([label, s]) => size(label, s)).join(", ")}`,
     "",
     "Shape and space",
     `- Buttons: ${shape}; ${exported.buttons.outline === "none" ? exported.buttons.fill : `outlined, ${exported.buttons.outline}`}.`,
     `- Fields: ${exported.buttons.fieldOutline === "none" ? "no outline" : `a ${exported.buttons.fieldOutline} outline`}. Cards and panels: ${corners["cards and panels"]} corners.`,
     `- Spacing steps: ${DS_SPACES.map((px2) => `${px2}`).join(", ")}px.`,
     "",
+    "Composition",
+    ...dsCompositionWords(theme.composition).map((line) => `- ${line}`),
+    "",
+    ...brief.moves.length ? ["Signature moves", ...brief.moves.map((m) => `- ${m}`), ""] : [],
     `Voice: ${voice.tone}. ${(voice.rules.length ? voice.rules : ["Plain words and short sentences; nothing shouted."]).join(" ")}`,
     "",
     "How to use it",

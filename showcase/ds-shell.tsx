@@ -211,10 +211,13 @@ export function DsCanvas({
   group,
   title,
   themeTitle = false,
+  board = false,
   children,
 }: {
   group: string;
   title: string;
+  /** The page is a board (showcase/board.tsx): it fills the canvas edge to edge on the UI's own colours and scrolls itself; its frames wear the theme. */
+  board?: boolean;
   /** Show the open theme's name as the title (the Theme page: "Theme" over "Parabola"). */
   themeTitle?: boolean;
   children: React.ReactNode;
@@ -267,6 +270,11 @@ export function DsCanvas({
         </DsTopBar>
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
             around it stays Parabola's own, in the UI's mode. */}
+        {board ? (
+          <div className="relative h-[75vh] min-w-0 overflow-hidden bg-ds-surface-subtle lg:col-start-1 lg:row-start-2 lg:h-auto lg:min-h-0">
+            <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
+          </div>
+        ) : (
         <div
           // Only once a mode is picked: until then the canvas follows the page's own
           // .dark class, set before the first paint, so it never flashes light.
@@ -274,6 +282,7 @@ export function DsCanvas({
           className={`${DS_THEME_SCOPE} flex min-w-0 items-center-safe justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto`}>
           <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
         </div>
+        )}
         {/* The page's properties; hidden while it has none. A rule between sections,
             so folded ones still read as separate. */}
         {/* Its sections scroll; its foot (a page's main action) stays pinned under them, on the panel's own colour.

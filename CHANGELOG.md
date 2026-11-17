@@ -6,6 +6,21 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Exploration: **composition**, the part of a style that isn't a value
+  (`composition.ts`). A theme now carries `composition` (layout: inline,
+  hybrid or full width; alignment; scale; density; structure; labels;
+  numbering; how a page opens) and a `brief` (a reference in a sentence
+  and its signature moves). Both go into the exported style. Themes stored
+  before read as Parabola's own composition. Touches `theme.ts`,
+  `brand-kit.ts`.
+- Exploration: **the Board** (`showcase/board.tsx`, `/parabola/board/all`):
+  the open style on one surface to move around and zoom, as a home page,
+  an article and a product page at desktop, laptop and phone, a
+  newsletter, and how it shows in search, an AI answer, a shared link and
+  social posts. Its panel picks a **starting point**
+  (`starting-points.ts`: Parabola, Swiss, Institute, Storefront, Startup,
+  Onchain, Studio), holds the brief and sets the composition. `DsCanvas`
+  takes `board`.
 - New: **Export**, top right of every showcase page, in place of Share at
   the foot of the theme panel. Its dialog leads with the style in words
   (`dsBrandKit(...).style`) and a Copy style button: the look in a
