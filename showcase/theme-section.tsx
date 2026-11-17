@@ -128,8 +128,6 @@ import {
   dsButtonLookAt,
   dsButtonLookStyle,
   dsPaletteDraw,
-  dsRandomTastes,
-  dsShuffleTaste,
   dsTasteNames,
   dsTastePeople,
   dsTasteStory,
@@ -429,8 +427,7 @@ const pickOne = <T,>(list: readonly T[]): T =>
 /**
  * What each section's Restore puts back, and what its dice draws. Parabola's
  * own values on the left, a random one of that section's looks on the right;
- * the Theme section runs every restore, and its dice draws the whole look
- * (`dsShuffleTaste`, which also moves the mood).
+ * the Theme section's dice runs every section's draw (`drawLook`).
  */
 const SECTION = {
   colour: {
@@ -535,21 +532,16 @@ const SECTION = {
   },
 } as const;
 
-/** The whole look again, at random: another style, mood and colours (taste.ts). */
-const drawLook = (t: DsThemeConfig): DsThemeConfig => {
-  const next = dsShuffleTaste(dsRandomTastes(t.character.tastes), t.character, "wide");
-  return dsThemeWithFonts(
-    {
-      ...t,
-      character: next.character,
-      colours: { ...DS_DEFAULT_COLOURS, accent: { light: next.button, dark: null } },
-      radius: null,
-      pillRadius: null,
-      buttons: next.buttonStyle,
-    },
-    next.fonts,
+/**
+ * The whole look again, at random: each section's own dice, one after the
+ * other, and nothing else. So what comes up is always a combination of the
+ * choices the sections below offer (their chips), never a font or a colour
+ * from outside them.
+ */
+const drawLook = (t: DsThemeConfig): DsThemeConfig =>
+  SECTION.fields.draw(
+    SECTION.buttons.draw(SECTION.type.draw(SECTION.colour.draw(t))),
   );
-};
 
 /** Light or dark, for the preview. */
 const MODES = [
