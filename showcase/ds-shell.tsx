@@ -15,6 +15,7 @@ import { DsTopBar } from "../primitives/top-bar";
 import { DS_THEME_SCOPE } from "../theme";
 import { DsModeScope } from "../provider";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
+import { ThemeExport } from "./theme-export";
 import { PanelFooterSlotContext, PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
@@ -247,6 +248,7 @@ export function DsCanvas({
             </div>
             {/* Collapse all / Expand all first, then the theme's Undo, Redo, Save, Publish and ⋮ menu, wherever you are. */}
             <ThemeHeaderActions
+              trailing={<ThemeExport />}
               leading={
                 <DsButton
                   size="small"
