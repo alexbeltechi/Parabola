@@ -567,6 +567,27 @@ var pair2 = (heading, headingAxes, body, bodyAxes) => ({
   body: { label: body, google: `${body.replace(/ /g, "+")}${bodyAxes}` }
 });
 var AXES = ":wght@400..700";
+var DS_PALETTES = [
+  // Parabola's own: white, black buttons.
+  { id: "classic", label: "Classic", backgrounds: [null], buttons: [null], contrast: [0, 0] },
+  // A startup's: whites and zinc greys, near-black or one clear blue.
+  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#09090B"], buttons: ["#18181B", null, "#2563EB"], contrast: [0.05, 0.3] },
+  { id: "earthy", label: "Earthy", backgrounds: ["#F3EFE4", "#E7EDDF", "#D9C9A8", "#2E5E3A"], buttons: ["#2E5E3A", "#8A5A2B", "#B5532E"], contrast: [-0.15, 0.15] },
+  { id: "pastel", label: "Pastel", backgrounds: ["#FFF4E8", "#F2F0FF", "#EEF6F1", "#FDEFF4"], buttons: ["#2F6FEB", "#00A37A", "#7C5CFF", "#FF7A59"], contrast: [-0.25, 0] },
+  { id: "vibrant", label: "Vibrant", backgrounds: ["#FFE600", "#FF4F00", "#0F766E", "#FF3EA5", "#3D5AFE"], buttons: ["#111111", "#2F2BFF", "#FFFFFF"], contrast: [0.3, 0.7] },
+  // A team's: white or black, one loud primary, hard contrast.
+  // A team's and a track's: volt, black, electric blue, blaze orange, a court green; one loud colour on it.
+  {
+    id: "sport",
+    label: "Sport",
+    backgrounds: ["#C6FF3D", "#0B0B0B", "#1F3BFF", "#FF5A1F", "#00C46A", "#FF2E63", null],
+    buttons: ["#0B0B0B", "#FFFFFF", "#C6FF3D", "#FF5A1F", "#1F3BFF"],
+    contrast: [0.4, 0.8]
+  },
+  { id: "rich", label: "Rich", backgrounds: ["#F5F1EA", "#121212", "#1E2A24", "#3B2F2A", "#7A1F2B"], buttons: ["#111111", "#8C6A43", "#C9A96E"], contrast: [0.1, 0.4] },
+  { id: "vintage", label: "Vintage", backgrounds: ["#F4E9D8", "#F2D7A6", "#E9C46A", "#3B2A20"], buttons: ["#3B2A20", "#2A9D8F", "#D1495B", "#E76F51"], contrast: [-0.1, 0.25] },
+  { id: "neon", label: "Neon", backgrounds: ["#05070D", "#0E1A2B", "#2A1B4D", "#1B1035"], buttons: ["#00E5FF", "#B388FF", "#39FF88", "#FF5F1F"], contrast: [0.3, 0.7] }
+];
 var DS_TYPE_STYLES = [
   {
     id: "classic",
@@ -658,6 +679,19 @@ var DS_TYPE_STYLES = [
       pair2("Orbitron", AXES, "Exo 2", AXES)
     ]
   }
+];
+var DS_BUTTON_LOOKS = [
+  // A product's, as shadcn's are: a small radius, flat.
+  { id: "product", label: "Product", roundness: [0.15, 0.5], depth: [0, 0] },
+  // Parabola's own: fully round, flat.
+  { id: "soft", label: "Soft", roundness: [1, 1], depth: [0, 0] },
+  { id: "sharp", label: "Sharp", roundness: [0, 0.1], depth: [0, 0] },
+  { id: "outline", label: "Outline", roundness: [0, 1], depth: [0, 0], style: { fill: "none", outline: true, outlineWidth: 1 } },
+  { id: "text", label: "Text", roundness: [0.5, 1], depth: [0, 0], style: { fill: "none" } },
+  // Something to press: the one with a gradient, to pick by hand (no gradients in the styles).
+  { id: "tactile", label: "Tactile", roundness: [0.3, 0.7], depth: [0.5, 0.95] },
+  // Solid with a thick edge, no gradient.
+  { id: "chunky", label: "Chunky", roundness: [0.45, 0.9], depth: [0, 0], style: { outline: true, outlineWidth: 2 } }
 ];
 var DS_TASTES = [
   {
@@ -1197,6 +1231,22 @@ var KIT_COLOURS = [
   ["surface-inverse", "Toasts and tooltips."]
 ];
 var styleName = (label) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+var HOW_TO_USE = [
+  "Keep what's listed here as it is: the colours and what each is for, the fonts, the type sizes, the spacing steps and the corners. They are what makes everything you make read as one thing.",
+  "Everything above that is yours: the layout, how a page opens, imagery, composition, motion, and sections nobody has made before. Experiment there, and build it from these values."
+];
+var MADE_WITH = "Created with parabolasystem.com";
+function pageInWords(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "the page";
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255);
+  const light = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const grey = Math.max(r, g, b) - Math.min(r, g, b) < 0.06;
+  if (light > 0.97 && grey) return "a white page";
+  if (light < 0.12) return "a dark page";
+  if (grey) return light > 0.6 ? "a light grey page" : "a grey page";
+  return light > 0.8 ? "a pale, tinted page" : light > 0.35 ? "a page in full colour" : "a deep-coloured page";
+}
 function dsBrandKit(theme, name) {
   const exported = dsThemeExport(theme, name);
   const light = dsThemeColourTokens(theme, "light");
@@ -1257,6 +1307,8 @@ function dsBrandKit(theme, name) {
       }))
     }
   };
+  const googleFontsUrl = exported.typography.googleFonts;
+  const googleFonts = googleFontsUrl;
   const row = (cells) => `| ${cells.join(" | ")} |`;
   const describe = [
     tastes.length ? tastes.join(" and ") : "Parabola",
@@ -1267,7 +1319,9 @@ function dsBrandKit(theme, name) {
     "",
     `Made with Parabola. ${describe[0].toUpperCase()}${describe.slice(1)}, set in ${[.../* @__PURE__ */ new Set([heading, body])].join(" and ")}.`,
     "",
-    "**For agents.** Read this before making anything in this brand: a page, a document, a deck, a social post, an email. Use the exact values below; don't invent colours, fonts or sizes. For HTML, link `tokens.css` (or copy its variables) and the fonts.",
+    "**For agents.** Read this before making anything in this brand: a page, a document, a deck, a social post, an email. For HTML, link `tokens.css` (or copy its variables) and the fonts.",
+    "",
+    ...HOW_TO_USE,
     "",
     "## Voice",
     "",
@@ -1315,16 +1369,52 @@ function dsBrandKit(theme, name) {
     "- **Social posts and cards:** the brand's background and one accent; the heading font, large; few words, in the voice above.",
     "- **Email:** the body font on white or `bg`, `fg` text, the primary button for the one link that matters.",
     "",
-    "Don'ts: no colours, fonts or corner sizes outside this guide; no gradients unless the buttons above have one; no stock-AI looks (purple-blue gradients, emoji bullets).",
+    MADE_WITH,
     ""
   ].join("\n");
-  const googleFonts = exported.typography.googleFonts;
+  const chip = (list, id) => list.find((o) => o.id === id)?.label;
+  const look = [
+    [chip(DS_PALETTES, c.scoped.colour), "colour"],
+    [chip(DS_TYPE_STYLES, c.scoped.type), "type"],
+    [chip(DS_BUTTON_LOOKS, c.scoped.buttons), "buttons"]
+  ].filter(([label]) => label).map(([label, what]) => `${label} ${what}`).join(", ");
+  const both = (token) => `${light[token]} (dark mode ${dark[token]})`;
+  const size = (label, s) => `${label} ${parseInt(s.size)}/${parseInt(s.lineHeight)}`;
+  const shape = corners.buttons === "fully round" ? "pill-shaped" : `with ${corners.buttons} corners`;
+  const style = [
+    `Use the "${name}" style for everything you make.`,
+    "",
+    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}. One accent colour; generous space; the frame stays quiet so the content stands out.`,
+    "",
+    "Colours",
+    `- Page: ${both("bg")}`,
+    `- Text: ${both("fg")}; quieter text ${both("fg-muted")}`,
+    `- Accent and primary button: ${both("button")}, its text ${both("on-button")}`,
+    `- Cards and panels: ${both("surface-subtle")}; secondary buttons and pills ${both("surface")}`,
+    `- Borders: ${both("border")}`,
+    "",
+    "Type",
+    `- Headings: ${heading}. Everything else: ${body}.${googleFontsUrl ? ` Fonts: ${googleFontsUrl}` : ""}`,
+    `- Sizes (size/line height, px): ${styles.map(([label, s]) => size(label, s)).join(", ")}`,
+    "",
+    "Shape and space",
+    `- Buttons: ${shape}; ${exported.buttons.outline === "none" ? exported.buttons.fill : `outlined, ${exported.buttons.outline}`}.`,
+    `- Fields: ${exported.buttons.fieldOutline === "none" ? "no outline" : `a ${exported.buttons.fieldOutline} outline`}. Cards and panels: ${corners["cards and panels"]} corners.`,
+    `- Spacing steps: ${DS_SPACES.map((px2) => `${px2}`).join(", ")}px.`,
+    "",
+    `Voice: ${voice.tone}. ${(voice.rules.length ? voice.rules : ["Plain words and short sentences; nothing shouted."]).join(" ")}`,
+    "",
+    "How to use it",
+    ...HOW_TO_USE,
+    "",
+    MADE_WITH
+  ].join("\n");
   const css = `${googleFonts ? `@import url("${googleFonts}");
 
 ` : ""}/* ${name}, from Parabola. Light on :root, dark on .dark. */
 ${themeCss.replace(/ \.dark/, "\n.dark").replace(/; /g, ";\n  ").replace(/\{ ?/g, "{\n  ").replace(/ ?\}/g, "\n}")}
 `;
-  return { name, readme, tokens, css, theme: exported };
+  return { name, style, readme, tokens, css, theme: exported };
 }
 var SPACE_USAGE = {
   4: "Hairline gaps: an icon and its label.",

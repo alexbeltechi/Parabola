@@ -6,6 +6,17 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: **Export**, top right of every showcase page, in place of Share at
+  the foot of the theme panel. Its dialog leads with the style in words
+  (`dsBrandKit(...).style`) and a Copy style button: the look in a
+  sentence, the values, and how to use them, to paste into any agent. The
+  brand kit, design system text, commands and Parabola code are folded
+  under it. Touches `showcase/theme-section.tsx`, `showcase/ds-shell.tsx`,
+  `showcase/theme-editor.tsx`; new `showcase/theme-export.tsx`.
+- Changed: the brand guide no longer tells an agent "don't invent". It says
+  what holds (colours, fonts, sizes, spacing, corners) and what's open
+  (layout, imagery, composition, motion), and its Don'ts line is gone.
+  Touches `brand-kit.ts`.
 - Fixed: the Theme dice only draws from what the sections below offer. It
   runs each section's own dice (Colour, Typography, Buttons, Fields), so a
   font or colour that isn't among their chips no longer comes up. Touches

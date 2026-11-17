@@ -345,12 +345,12 @@ function restored(theme: DsThemeConfig, scope: "families" | "type"): DsThemeConf
  * the page's own (`leading`: Collapse all): Undo and Redo (icons), one change at a time and off
  * when there's none; Save, which keeps the changes without touching the
  * website; Publish (after a confirm), which saves them and puts the open
- * theme on the website; and, last, a ⋮ menu to restore Parabola's defaults
+ * theme on the website; `trailing` (Export, theme-export.tsx); and, last, a ⋮ menu to restore Parabola's defaults
  * for this page's part of the open theme, or all of it,
  * each after a confirm and with Undo in the toast that follows. Nothing
  * restored is live until it's published.
  */
-export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
+export function ThemeHeaderActions({ leading, trailing }: { leading?: React.ReactNode; trailing?: React.ReactNode }) {
   const { theme, setTheme, entry, dirty, unpublished, saving, canSave, save, publish, canUndo, canRedo, undo, redo, restoreTheme } =
     useThemeEditor();
   const pathname = usePathname();
@@ -392,6 +392,7 @@ export function ThemeHeaderActions({ leading }: { leading?: React.ReactNode }) {
           </DsButton>
         </>
       )}
+      {trailing}
       <DsDropdown>
         <DsDropdownTrigger asChild>
           <DsButton size="small" variant="text" iconLeft={MoreVertical} aria-label="More theme actions" disabled={saving} />

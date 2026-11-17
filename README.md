@@ -239,9 +239,16 @@ and `/parabola` publishes too.
 
 ## Sharing a theme
 
-**Share**, at the foot of the theme panel, hands the open theme over as a
-**brand kit** (`brand-kit.ts`), one source with three ways out. Nothing goes
-anywhere on its own; the maker puts it where they work.
+**Export**, top right of every `/parabola` page, hands the open theme over
+as a **brand kit** (`brand-kit.ts`), one source with several ways out.
+Nothing goes anywhere on its own; the maker puts it where they work.
+
+- **The style in words** (`kit.style`), first in the dialog with one button
+  to copy it: the look in a sentence, the colours, fonts, sizes and shapes,
+  and how to use them, to paste at the end of any prompt ("make a website,
+  in this style"). It says what holds and what's open, Parabola's "fixed
+  below, free above", and ends "Created with parabolasystem.com". The
+  guide below says the same.
 
 - **Brand kit**: a zip (`zip.ts`, no dependency) with `README.md` (the brand
   guide), `tokens.json`, `tokens.css` and `parabola-theme.json`.
