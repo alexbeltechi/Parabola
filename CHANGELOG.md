@@ -6,6 +6,10 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: the exported style's opening line says only what the theme
+  sets (its colour, type and buttons). The sentence about one accent, space
+  and a quiet frame is gone: it described Parabola's own theme, not every
+  theme. Touches `brand-kit.ts`.
 - New: **Export**, top right of every showcase page, in place of Share at
   the foot of the theme panel. Its dialog leads with the style in words
   (`dsBrandKit(...).style`) and a Copy style button: the look in a

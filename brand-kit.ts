@@ -230,7 +230,7 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
   const style = [
     `Use the "${name}" style for everything you make.`,
     "",
-    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}. One accent colour; generous space; the frame stays quiet so the content stands out.`,
+    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}.`,
     "",
     "Colours",
     `- Page: ${both("bg")}`,
