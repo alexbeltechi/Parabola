@@ -6,6 +6,10 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Fixed: the Theme dice only draws from what the sections below offer. It
+  runs each section's own dice (Colour, Typography, Buttons, Fields), so a
+  font or colour that isn't among their chips no longer comes up. Touches
+  `showcase/theme-section.tsx`.
 - Changed: a change on the Theme page goes straight into the open theme,
   Parabola included, instead of opening a copy called Custom. "Save as new
   theme" is gone; New + is how to start another theme, and Restore (it asks
