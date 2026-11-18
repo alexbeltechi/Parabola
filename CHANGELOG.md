@@ -6,6 +6,14 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: **outline**, an optional look for every button and pill. `<DsButton outline>` and
+  `<DsPill outline>` draw a line with no fill. Buttons take the fields' own line
+  (`ds-field-border`, `--ds-field-border-width`, 2px by default), so a row of outline
+  buttons sits with selects and inputs; primary takes the button colour, danger and
+  destructive take red. A pressed or current outline button fills as before, so in a row
+  of outline chips the picked one is solid. Nothing changes for a button or pill without
+  the prop. Touches `primitives/button.tsx`, `primitives/pill.tsx`,
+  `showcase/specimens.tsx`.
 - New: **Footnote** in the rich text tray. Select the words of the note and
   press it: they become `^[the words]`, the note written where it belongs.
   It's plain text, so typing it by hand works too; the site that shows the

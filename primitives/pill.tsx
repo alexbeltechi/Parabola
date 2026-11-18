@@ -13,6 +13,9 @@ import { cn } from "../cn";
  * - dark: `ds-button` with `ds-on-button` text, e.g. "Published".
  * - light: `ds-surface`, the same stone as the default button.
  * - highlight: `ds-highlight` text on its solid light tint, e.g. "Claude".
+ *
+ * `outline` draws any of them as a 1px line with no fill: dark in the button
+ * colour, light in the fields' grey line, highlight in the highlight colour.
  */
 export const dsPillVariants = cva(
   [
@@ -27,7 +30,16 @@ export const dsPillVariants = cva(
         light: "bg-ds-surface/70 text-ds-on-surface",
         highlight: "bg-(--ds-highlight-tint) text-ds-highlight",
       },
+      /** A line and no fill. */
+      outline: {
+        true: "",
+      },
     },
+    compoundVariants: [
+      { outline: true, variant: "dark", className: "bg-transparent text-ds-fg shadow-[inset_0_0_0_1px_var(--ds-button)]" },
+      { outline: true, variant: "light", className: "bg-transparent text-ds-fg shadow-[inset_0_0_0_1px_var(--ds-field-border)]" },
+      { outline: true, variant: "highlight", className: "bg-transparent text-ds-highlight shadow-[inset_0_0_0_1px_var(--ds-highlight)]" },
+    ],
     defaultVariants: { variant: "light" },
   }
 );
@@ -45,7 +57,8 @@ type DsPillProps = React.ComponentProps<"span"> &
   };
 
 export function DsPill({
-  variant,
+  variant = "light",
+  outline,
   iconLeft: IconLeft,
   leading,
   iconRight: IconRight,
@@ -58,7 +71,8 @@ export function DsPill({
     <span
       data-slot="ds-pill"
       data-variant={variant ?? "light"}
-      className={cn(dsPillVariants({ variant }), className)}
+      data-outline={outline || undefined}
+      className={cn(dsPillVariants({ variant, outline: outline || undefined }), className)}
       {...props}
     >
       {leading ?? (IconLeft && <IconLeft aria-hidden />)}
