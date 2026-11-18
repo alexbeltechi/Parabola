@@ -40,6 +40,15 @@ import { DsLink, type DsLinkProps } from "../provider";
  * it's red text on a 10% red tint, on the text variant red text; the solid
  * red button is the `danger` variant. There's no warning (yellow) style.
  *
+ * Outline (`outline` prop): any variant drawn as a line with no fill, the
+ * fields' own line (`ds-field-border`, `--ds-field-border-width`: 2px by
+ * default), so a row of outline buttons sits with selects and inputs. The
+ * default and text variants take the field's grey line and the text colour;
+ * primary takes the button colour for line and label; danger and
+ * `destructive` take red. Pressed or current, an outline button fills as any
+ * other does, so in a row of outline chips the picked one is solid. The line
+ * is drawn inside the edge, so the button's size doesn't change.
+ *
  * State (props, not variants); on the default variant both are drawn in
  * `ds-button`, as primary is; on the text variant in the default button's
  * own grey, so a picked chip and a plain button share one
@@ -92,6 +101,10 @@ export const dsButtonVariants = cva(
       destructive: {
         true: "",
       },
+      /** A line and no fill, for any variant. See the Outline note above. */
+      outline: {
+        true: "",
+      },
       iconOnly: {
         true: "px-0",
       },
@@ -131,8 +144,37 @@ export const dsButtonVariants = cva(
         inverse: true,
         className: "bg-ds-surface/70 text-ds-on-surface ds-hover",
       },
+      // Outline: no fill, the fields' line inside the edge. Listed last so it wins over the fills above;
+      // not when pressed or current, which fill as usual.
+      {
+        outline: true,
+        inverse: false,
+        variant: ["default", "text"],
+        className:
+          "bg-transparent backdrop-blur-none text-ds-fg shadow-[inset_0_0_0_var(--ds-field-border-width)_var(--ds-field-border)] hover:bg-ds-surface/40 disabled:text-ds-fg-subtle",
+      },
+      {
+        outline: true,
+        inverse: false,
+        variant: "primary",
+        className:
+          "backdrop-blur-none [background-color:transparent] [background-image:none] [text-shadow:none] [color:var(--ds-button)] [box-shadow:inset_0_0_0_var(--ds-field-border-width)_var(--ds-button)] hover:[background-image:linear-gradient(var(--ds-hover),var(--ds-hover))]",
+      },
+      {
+        outline: true,
+        inverse: false,
+        variant: "danger",
+        className: "bg-transparent backdrop-blur-none text-ds-error shadow-[inset_0_0_0_var(--ds-field-border-width)_var(--ds-error)] hover:bg-ds-error/10",
+      },
+      {
+        outline: true,
+        inverse: false,
+        destructive: true,
+        className:
+          "bg-transparent [background-color:transparent] [background-image:none] text-ds-error [color:var(--ds-error)] shadow-[inset_0_0_0_var(--ds-field-border-width)_var(--ds-error)] [box-shadow:inset_0_0_0_var(--ds-field-border-width)_var(--ds-error)] hover:bg-ds-error/10 hover:[background-image:none]",
+      },
     ],
-    defaultVariants: { variant: "default", size: "default" },
+    defaultVariants: { variant: "default", size: "default", inverse: false },
   }
 );
 
@@ -151,6 +193,8 @@ type DsButtonOwnProps = Omit<VariantProps<typeof dsButtonVariants>, "inverse"> &
   current?: boolean;
   /** Red, for deleting or discarding. See the variants note above. */
   destructive?: boolean;
+  /** A line and no fill. See the Outline note above. */
+  outline?: boolean;
 };
 
 type DsButtonAsButton = DsButtonOwnProps & { href?: undefined } & Omit<
@@ -174,6 +218,7 @@ export function DsButton({
   pressed,
   current,
   destructive,
+  outline,
   className,
   children,
   ...props
@@ -184,16 +229,17 @@ export function DsButton({
   // Meta is muted on light surfaces; on solid and inverse ones it keeps the
   // label colour, as no fade of it stays legible there.
   const metaClass =
-    !destructive && ((variant === "default" && !inverse) || variant === "text")
+    !destructive && ((variant === "default" && !inverse) || variant === "text" || (outline && !inverse && variant !== "danger"))
       ? "text-ds-fg-muted in-disabled:text-ds-fg-subtle"
       : undefined;
   const shared = {
     "data-slot": "ds-button",
     "data-variant": variant,
     "data-size": size,
+    "data-outline": outline || undefined,
     "aria-pressed": pressed,
     "aria-current": current ? ("page" as const) : undefined,
-    className: cn(dsButtonVariants({ variant, size, inverse, iconOnly, destructive: destructive || undefined }), className),
+    className: cn(dsButtonVariants({ variant, size, inverse, iconOnly, destructive: destructive || undefined, outline: outline || undefined }), className),
   };
 
   const content = (

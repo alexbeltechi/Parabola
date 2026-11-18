@@ -140,13 +140,14 @@ function Specimen({
 }
 
 export function IconOnlyButton() {
-  const [o, setO] = useState({ large: false, small: false, destructive: false, pressed: false, tooltip: true, focus: false });
+  const [o, setO] = useState({ large: false, small: false, destructive: false, outline: false, pressed: false, tooltip: true, focus: false });
   const button = (
     <DsButton
       size={o.large ? "large" : o.small ? "small" : "default"}
       destructive={o.destructive}
       iconLeft={o.destructive ? Trash2 : Filter}
       aria-label={o.destructive ? "Delete" : "Filter"}
+      outline={o.outline}
       pressed={o.pressed}
       data-focus={o.focus || undefined}
     />
@@ -157,7 +158,7 @@ export function IconOnlyButton() {
       controls={
         <Controls
           options={o}
-          labels={{ large: "Large", small: "Small", destructive: "Destructive", pressed: "Pressed", tooltip: "Tooltip", focus: "Focus" }}
+          labels={{ large: "Large", small: "Small", destructive: "Destructive", outline: "Outline", pressed: "Pressed", tooltip: "Tooltip", focus: "Focus" }}
           onChange={(next) => setO(exclusive(o, next, ["large", "small"]))}
         />
       }
@@ -172,6 +173,7 @@ export function LabelButton() {
     destructive: false,
     primary: false,
     danger: false,
+    outline: false,
     pressed: false,
     iconLeft: false,
     iconRight: false,
@@ -187,6 +189,7 @@ export function LabelButton() {
           variant={o.danger ? "danger" : o.primary ? "primary" : "default"}
           size={o.large ? "large" : o.small ? "small" : "default"}
           destructive={o.destructive}
+          outline={o.outline}
           pressed={o.pressed}
           iconLeft={o.iconLeft ? File : undefined}
           iconRight={o.iconRight ? ChevronRight : undefined}
@@ -207,6 +210,7 @@ export function LabelButton() {
             destructive: "Destructive",
             primary: "Primary",
             danger: "Danger",
+            outline: "Outline",
             pressed: "Pressed",
             iconLeft: "Icon left",
             iconRight: "Icon right",
@@ -223,7 +227,7 @@ export function LabelButton() {
 }
 
 export function TextButton() {
-  const [o, setO] = useState({ large: false, small: false, destructive: false, iconLeft: false, iconRight: false, meta: false, focus: false });
+  const [o, setO] = useState({ large: false, small: false, destructive: false, outline: false, iconLeft: false, iconRight: false, meta: false, focus: false });
   return (
     <Specimen
       preview={
@@ -231,6 +235,7 @@ export function TextButton() {
           variant="text"
           size={o.large ? "large" : o.small ? "small" : "default"}
           destructive={o.destructive}
+          outline={o.outline}
           iconLeft={o.iconLeft ? File : undefined}
           iconRight={o.iconRight ? ChevronRight : undefined}
           meta={o.meta ? 24 : undefined}
@@ -242,7 +247,7 @@ export function TextButton() {
       controls={
         <Controls
           options={o}
-          labels={{ large: "Large", small: "Small", destructive: "Destructive", iconLeft: "Icon left", iconRight: "Icon right", meta: "Meta", focus: "Focus" }}
+          labels={{ large: "Large", small: "Small", destructive: "Destructive", outline: "Outline", iconLeft: "Icon left", iconRight: "Icon right", meta: "Meta", focus: "Focus" }}
           onChange={(next) => setO(exclusive(o, next, ["large", "small"]))}
         />
       }
@@ -257,7 +262,7 @@ const PILLS = [
 ] as const;
 
 export function Pill() {
-  const [o, setO] = useState({ iconLeft: false, iconRight: false, removable: false });
+  const [o, setO] = useState({ outline: false, iconLeft: false, iconRight: false, removable: false });
   const [removed, setRemoved] = useState<string[]>([]);
   return (
     <Specimen
@@ -267,6 +272,7 @@ export function Pill() {
             <DsPill
               key={p.label}
               variant={p.variant}
+              outline={o.outline}
               iconLeft={o.iconLeft ? GripVertical : undefined}
               iconRight={o.iconRight ? ChevronRight : undefined}
               onRemove={o.removable ? () => setRemoved([...removed, p.label]) : undefined}
@@ -279,7 +285,7 @@ export function Pill() {
       controls={
         <Controls
           options={o}
-          labels={{ iconLeft: "Icon left", iconRight: "Icon right", removable: "Removable" }}
+          labels={{ outline: "Outline", iconLeft: "Icon left", iconRight: "Icon right", removable: "Removable" }}
           onChange={(next) => {
             // Turning Removable off brings removed pills back.
             if (!next.removable) setRemoved([]);
