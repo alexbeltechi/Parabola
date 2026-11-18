@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "../cn";
+import type { DsNavSurface } from "../nav-style";
 
 /**
  * Parabola top bar: the bar pinned to the top of a page, holding its title
@@ -10,14 +11,17 @@ import { cn } from "../cn";
  * - blur (the default): the nav fade (`ds-nav-fade`), content blurring
  *   softly away beneath it; clicks pass through the fade's empty space to
  *   the content. Every page's bar, admin and site, wears it.
- * - solid: the page colour, a rule under it; content scrolls away beneath it.
+ * - solid: the page colour and nothing else, no rule; content scrolls away
+ *   beneath it. A bar that wants a rule adds its own (`border-b border-ds-border`).
  * - transparent: nothing behind it, for a bar over a picture or the page's
  *   own top.
+ *
+ * A site's nav takes its surface from the theme (`theme.nav.surface`, nav-style.ts).
  */
-export type DsTopBarSurface = "solid" | "transparent" | "blur";
+export type DsTopBarSurface = DsNavSurface;
 
 const SURFACES: Record<DsTopBarSurface, string> = {
-  solid: "border-b border-ds-border bg-ds-bg",
+  solid: "bg-ds-bg",
   transparent: "",
   blur: "pointer-events-none ds-nav-fade pb-5 [&>*]:pointer-events-auto",
 };

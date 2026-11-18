@@ -225,6 +225,13 @@ export {
   type DsButtonStyle,
   type DsFieldStyle,
 } from "./button-style";
+export {
+  DS_DEFAULT_NAV_STYLE,
+  DS_NAV_SURFACES,
+  parseDsNavStyle,
+  type DsNavStyle,
+  type DsNavSurface,
+} from "./nav-style";
 export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
 export {
   DS_THEME_FILE_CONTRACT,
