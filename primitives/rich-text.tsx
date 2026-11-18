@@ -6,7 +6,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { TableKit } from "@tiptap/extension-table";
-import { Bold, Columns3, Heading2, Italic, Link2, List, ListOrdered, Rows3, Table2, Trash2 } from "lucide-react";
+import { Bold, Columns3, Heading2, Italic, Link2, List, ListOrdered, Rows3, Superscript, Table2, Trash2 } from "lucide-react";
 import { cn } from "../cn";
 import { DsButton } from "./button";
 import { DS_PROSE_CLASS } from "./prose";
@@ -19,7 +19,10 @@ import { DS_TRAY_CLASS } from "./tray";
  * looks like the published page.
  *
  * Formatting stays out of the way: select text and a small tray offers title,
- * bold, italic, link, lists and a table. In a table the tray adds a row or a
+ * bold, italic, link, lists, a footnote and a table. A footnote is text, not
+ * markup: the selected words become `^[the words]` (Pandoc's inline note),
+ * which also works typed by hand; the site that shows the text numbers the
+ * notes and lists them at the end. In a table the tray adds a row or a
  * column, or deletes the table. Markdown shortcuts work as you type
  * (`## ` for a title, `- ` or `1. ` for lists, `**bold**`, `*italic*`).
  * Reads and writes HTML; an empty field reports "".
@@ -118,6 +121,13 @@ function FormatTray({ editor }: { editor: Editor }) {
     if (href && href !== "https://") editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
   };
 
+  // The selected words become the note, where they stand: `^[the words]`.
+  const makeFootnote = () => {
+    const { from, to } = editor.state.selection;
+    const words = editor.state.doc.textBetween(from, to, " ").trim();
+    if (words) editor.chain().focus().insertContentAt({ from, to }, `^[${words}]`).run();
+  };
+
   const tools = [
     { label: "Title", icon: Heading2, on: state.heading, run: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
     { label: "Bold", icon: Bold, on: state.bold, run: () => editor.chain().focus().toggleBold().run() },
@@ -125,6 +135,7 @@ function FormatTray({ editor }: { editor: Editor }) {
     { label: "Link", icon: Link2, on: state.link, run: toggleLink },
     { label: "Bulleted list", icon: List, on: state.bullet, run: () => editor.chain().focus().toggleBulletList().run() },
     { label: "Numbered list", icon: ListOrdered, on: state.ordered, run: () => editor.chain().focus().toggleOrderedList().run() },
+    { label: "Footnote", icon: Superscript, on: false, run: makeFootnote },
     {
       label: "Table",
       icon: Table2,

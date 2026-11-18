@@ -6,6 +6,11 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: **Footnote** in the rich text tray. Select the words of the note and
+  press it: they become `^[the words]`, the note written where it belongs.
+  It's plain text, so typing it by hand works too; the site that shows the
+  text numbers the notes and lists them at the end. Touches
+  `primitives/rich-text.tsx`.
 - New: a theme picks **the nav's background**: None, Blur (the default) or
   Solid (`theme.nav.surface`, new `nav-style.ts`), three buttons under
   Navigation on the Theme page. A site passes it to its `DsTopBar` as
