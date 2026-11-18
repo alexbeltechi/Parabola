@@ -221,7 +221,7 @@ export function DsCanvas({
 }) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   const [footer, setFooter] = React.useState<HTMLElement | null>(null);
-  const { previewMode, pickedMode, setPreviewMode } = useThemeEditor();
+  const { pickedMode, setPreviewMode } = useThemeEditor();
   // Collapse all, then Expand all: every accordion on the page (the panel's sections) at once.
   const [allOpen, setAllOpen] = React.useState(true);
   const [version, setVersion] = React.useState(0);

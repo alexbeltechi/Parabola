@@ -56,7 +56,6 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsDisclosure } from "../primitives/disclosure";
 import {
