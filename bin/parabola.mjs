@@ -895,6 +895,19 @@ function dsRadiusPx(radius) {
   return (DS_RADII.find((r) => r.id === radius) ?? DS_RADII[DS_RADII.length - 1]).px;
 }
 
+// nav-style.ts
+var DS_NAV_SURFACES = [
+  { id: "transparent", label: "None" },
+  { id: "blur", label: "Blur" },
+  { id: "solid", label: "Solid" }
+];
+var DS_DEFAULT_NAV_STYLE = { surface: "blur" };
+function parseDsNavStyle(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const surface = DS_NAV_SURFACES.find((s) => s.id === raw.surface)?.id ?? DS_DEFAULT_NAV_STYLE.surface;
+  return { surface };
+}
+
 // theme.ts
 var DS_TEXT_STYLES = ["display", "h1", "h2", "h3", "p", "prose", "small"];
 var DS_BODY_FAMILY = "body";
@@ -927,6 +940,7 @@ var DS_DEFAULT_THEME = {
   pillRadius: null,
   buttons: null,
   fields: DS_DEFAULT_FIELD_STYLE,
+  nav: DS_DEFAULT_NAV_STYLE,
   icons: "lucide"
 };
 var DS_PERMANENT_FONT = "system";
@@ -1066,6 +1080,7 @@ function parseDsThemeConfig(value) {
     pillRadius,
     buttons: buttonStyle,
     fields: parseDsFieldStyle(raw.fields),
+    nav: parseDsNavStyle(raw.nav),
     icons
   };
 }

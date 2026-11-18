@@ -6,6 +6,15 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: a theme picks **the nav's background**: None, Blur (the default) or
+  Solid (`theme.nav.surface`, new `nav-style.ts`), three buttons under
+  Navigation on the Theme page. A site passes it to its `DsTopBar` as
+  `surface`. Themes stored before read as Blur. Touches `theme.ts`,
+  `theme-file.ts`, `showcase/theme-section.tsx`.
+- Changed: `DsTopBar`'s solid surface is the page colour alone, without the
+  rule under it. A bar that wants the rule adds `border-b border-ds-border`,
+  as the showcase's own header does. Touches `primitives/top-bar.tsx`,
+  `showcase/ds-shell.tsx`.
 - New: **Export**, top right of every showcase page, in place of Share at
   the foot of the theme panel. Its dialog leads with the style in words
   (`dsBrandKit(...).style`) and a Copy style button: the look in a
