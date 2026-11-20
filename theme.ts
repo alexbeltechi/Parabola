@@ -387,7 +387,10 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
   const chips = { ...parsed.scoped };
   if (!stored || typeof stored !== "object" || Array.isArray(stored) || Object.values(stored).every(Array.isArray)) {
     const c = parsed;
-    if (!chips.colour && c.colour === 0 && c.brightness === 1 && c.contrast === 0 && Object.values(colours).every((v) => !v.light && !v.dark)) chips.colour = "classic";
+    // Paper's dials (Parabola's own since 0.5.0), or the plain white Parabola had before.
+    const d = DS_DEFAULT_CHARACTER;
+    const paper = (c.colour === d.colour && c.brightness === d.brightness && c.contrast === d.contrast) || (c.colour === 0 && c.brightness === 1 && c.contrast === 0);
+    if (!chips.colour && paper && Object.values(colours).every((v) => !v.light && !v.dark)) chips.colour = "classic";
     if (!chips.type && families.find((f) => f.id === DS_BODY_FAMILY)?.font === DS_DEFAULT_FONT && families.find((f) => f.id === DS_HEADING_FAMILY)?.font === DS_DEFAULT_HEADING_FONT) chips.type = "classic";
     if (!chips.buttons && c.roundness === 1 && c.depth === 0 && radius === null && !storedButtons) chips.buttons = "soft";
   }

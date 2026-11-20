@@ -6,6 +6,13 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.5.2 — 2026-11-20
+
+- Fixed: an empty or untouched theme reads back with its Paper colour chip
+  (the check still looked for the white Parabola had before 0.5.0). Tested
+  now (`test/theme.test.ts`).
+- Fixed: the board's quote is Ilo's, not a real person's.
+
 ## 0.5.1 — 2026-11-20
 
 - Fixed: the email preview took a theme it no longer used, which a

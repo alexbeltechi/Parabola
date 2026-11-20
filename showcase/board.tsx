@@ -299,7 +299,7 @@ function HomePage({ ctx }: { ctx: Ctx }) {
       </section>
       <Section ctx={ctx} label="Words" n={2}>
         <blockquote className="text-display text-ds-fg" style={{ ...heading(ctx), maxWidth: "24ch", marginInline: centred(ctx) && c.layout !== "full" ? "auto" : undefined }}>
-          “Alex combines the eye of an eagle with the delicacy of a butterfly.”
+          “Ilo combines the eye of an eagle with the delicacy of a butterfly.”
         </blockquote>
       </Section>
       <Section ctx={ctx} label="Letters" n={3}>
