@@ -123,7 +123,6 @@ function Frame({
       style={{ containerType: "inline-size", aspectRatio: `${DS_SOCIAL_WIDTH} / ${height}`, background: ground?.bg ?? "#000000", color: ground?.fg ?? ON_PICTURE }}
     >
       {picture && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={picture} alt="" draggable={false} className="absolute inset-0 size-full object-cover" style={{ objectPosition: position }} />
       )}
       {dim && <div className="absolute inset-0" style={{ background: "rgb(0 0 0 / 0.2)" }} />}
@@ -390,7 +389,6 @@ function ReelButtons() {
       <div className="absolute flex flex-col" style={{ left: len(44), right: len(200), bottom: len(330), gap: len(34), filter: shadow }}>
         <div className="flex items-center" style={{ gap: len(26) }}>
           <span className="rounded-full" style={{ padding: len(6), background: "linear-gradient(45deg, #F9CE34, #EE2A7B 50%, #6228D7)" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${MEDIA}/ilo-portrait.jpg`} alt="" className="block rounded-full object-cover" style={{ width: len(96), height: len(96), boxShadow: `0 0 0 ${len(4)} #000000` }} />
           </span>
           <span style={{ fontSize: len(42), fontWeight: 600 }}>iloodena</span>
@@ -426,7 +424,6 @@ function ReelButtons() {
           </span>
         ))}
         <span className="grid place-items-center" style={{ width: len(150), height: len(120) }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`${MEDIA}/ilo-portrait.jpg`} alt="" className="rounded-full object-cover" style={{ width: len(72), height: len(72) }} />
         </span>
       </div>
