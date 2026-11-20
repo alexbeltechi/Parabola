@@ -6,6 +6,12 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: the floating nav takes a background too (`DsFloatingBar` `surface`:
+  None, Blur or Solid, the theme's `nav.surface`), shown under Navigation
+  for either style. Without one it keeps its faint fade.
+- Fixed: the fields' outline widths (1px, 2px, custom) are three equal
+  columns.
+
 - Changed: **one Theme rail**. Parabola's styles (Classic first), then the
   themes kept, then Custom, which shows only while a style's been changed
   (+ or naming keeps it as a theme; Delete puts the style back). The

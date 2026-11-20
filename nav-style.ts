@@ -2,9 +2,9 @@
  * A site's nav, a theme's choice. Its style: the bar (`DsTopBar`), a band
  * across the top holding the name and the links, or floating (`DsFloatingBar`,
  * the default), buttons over the page with the name in the middle as a
- * button of its own and a soft fade behind. And, for the bar, what's behind
- * it: nothing, the nav fade (the page blurring away beneath it; the default),
- * or the page colour alone (no rule), which hides what scrolls past.
+ * button of its own. And, for either, what's behind it: nothing, the nav
+ * fade (the page blurring away beneath it; the default), or the page colour
+ * alone (no rule), which hides what scrolls past.
  */
 export const DS_NAV_STYLES = [
   { id: "floating", label: "Floating" },

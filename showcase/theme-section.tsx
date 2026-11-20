@@ -953,6 +953,7 @@ function PreviewWeb({ theme, phone = false }: { theme: DsThemeConfig; phone?: bo
           // Floating, as a website wears it: her name on the left, the menu (a phone) or the links (a desktop) on the
           // right, both in line with the page under them.
           <DsFloatingBar
+            surface={theme.nav.surface}
             column={phone ? undefined : READING}
             style={{ paddingInline: side, paddingTop: phone ? PHONE.top : 20 }}
             leading={<DsFloatingTitle size="small">Ilo Odena</DsFloatingTitle>}
@@ -1694,8 +1695,9 @@ function OutlineChoice({
       </label>
       {on && (
         <>
+          {/* Three equal columns: 1px, 2px and the custom width, the field no wider than a button. */}
           <div
-            className="flex items-center gap-ds-4"
+            className="grid grid-cols-3 items-center gap-ds-4"
             role="group"
             aria-label={`${label} thickness`}
           >
@@ -1703,7 +1705,7 @@ function OutlineChoice({
               <DsButton
                 key={w}
                 size="small"
-                className="min-w-0 flex-1 px-0"
+                className="w-full min-w-0 px-0"
                 pressed={width === w}
                 onClick={() => {
                   setText("");
@@ -1713,11 +1715,12 @@ function OutlineChoice({
                 {w}px
               </DsButton>
             ))}
+            <div className="min-w-0 [&>*]:w-full [&>*]:min-w-0">
             <DsInput
               size="small"
               aria-label={`${label} thickness in pixels`}
               inputMode="numeric"
-              className="min-w-0 flex-1"
+              className="min-w-0"
               value={text}
               placeholder="Custom"
               meta="px"
@@ -1730,6 +1733,7 @@ function OutlineChoice({
                   });
               }}
             />
+            </div>
           </div>
           <DsColourBar
             label={`${label} transparency`}
@@ -2312,27 +2316,25 @@ export function ThemeSection() {
               ))}
             </div>
           </div>
-          {/* The bar's background; floating has its own soft fade. */}
-          {theme.nav.style === "bar" && (
-            <div className="flex flex-col gap-ds-8">
-              <span className="text-p text-ds-fg">Background</span>
-              <div role="group" aria-label="Navigation background" className="flex items-center gap-ds-4">
-                {DS_NAV_SURFACES.map((s) => (
-                  <DsButton
-                    key={s.id}
-                    size="small"
-                    variant="text"
-                    className="min-w-0 flex-1"
-                    iconLeft={NAV_ICONS[s.id]}
-                    pressed={theme.nav.surface === s.id}
-                    onClick={() => setTheme({ ...theme, nav: { ...theme.nav, surface: s.id } })}
-                  >
-                    {s.label}
-                  </DsButton>
-                ))}
-              </div>
+          {/* What's behind the nav, either style: nothing, the blur (the page blurring away under it) or the page colour. */}
+          <div className="flex flex-col gap-ds-8">
+            <span className="text-p text-ds-fg">Background</span>
+            <div role="group" aria-label="Navigation background" className="flex items-center gap-ds-4">
+              {DS_NAV_SURFACES.map((s) => (
+                <DsButton
+                  key={s.id}
+                  size="small"
+                  variant="text"
+                  className="min-w-0 flex-1"
+                  iconLeft={NAV_ICONS[s.id]}
+                  pressed={theme.nav.surface === s.id}
+                  onClick={() => setTheme({ ...theme, nav: { ...theme.nav, surface: s.id } })}
+                >
+                  {s.label}
+                </DsButton>
+              ))}
             </div>
-          )}
+          </div>
         </PanelSection>
 
         {/* No dice here: Lucide is the only library that works (colours.ts), so a draw has nothing to pick. */}
