@@ -147,6 +147,18 @@
    also blurs what's behind it, evenly. The
    bar should be `pointer-events-none` with its controls turned back on, so
    clicks reach the content through the fade. */
+/* A scroll area whose bar shows only while the pointer is over it: thin, in a
+   faint tint of the text, invisible otherwise (the sidebar, the side panel). */
+@utility ds-scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 150ms;
+
+  &:hover {
+    scrollbar-color: color-mix(in srgb, var(--ds-fg) 22%, transparent) transparent;
+  }
+}
+
 @utility ds-nav-fade {
   /* A positioned bar: the blur layer below sits behind its controls. */
   isolation: isolate;

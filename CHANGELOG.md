@@ -6,6 +6,10 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: `ds-scroll-quiet`, a scroll area whose bar shows only while the
+  pointer is over it, thin and faint. The showcase's sidebar, side panel and
+  page use it.
+
 - New: the floating nav takes a background too (`DsFloatingBar` `surface`:
   None, Blur or Solid, the theme's `nav.surface`), shown under Navigation
   for either style. Without one it keeps its faint fade.

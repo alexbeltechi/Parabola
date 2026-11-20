@@ -210,7 +210,7 @@ export function DsShell({
     <ThemeEditorProvider>
       {/* Frosted (`ds-frosted`), so a board running under it shows through, softly. A layer of its own
           (translateZ), so the board panning under it never paints over it for a frame. */}
-      <aside data-slot="ds-sidebar" className={`fixed inset-y-0 left-0 z-30 hidden w-[240px] [transform:translateZ(0)] flex-col gap-4 overflow-y-auto border-r border-ds-border/60 p-5 ds-frosted ${min ? "" : "md:flex"}`}>
+      <aside data-slot="ds-sidebar" className={`fixed inset-y-0 left-0 z-30 hidden w-[240px] [transform:translateZ(0)] flex-col gap-4 overflow-y-auto ds-scroll-quiet border-r border-ds-border/60 p-5 ds-frosted ${min ? "" : "md:flex"}`}>
         <div className="flex items-center justify-between">
           <ShellMenu backHref={backHref} />
           <div className="flex items-center gap-ds-4">
@@ -231,7 +231,7 @@ export function DsShell({
       {/* Below md the sections are in a menu, opened from the page's floating bar. It's modal, so it carries its own
           bar: back to the website on the left (moving between sections is the menu's job, not a back button's),
           Parabola's home in the middle, the light or dark toggle and close on the right. */}
-      <DsMenu open={menuOpen} onClose={closeMenu} className="items-stretch justify-start overflow-y-auto pb-10 md:hidden">
+      <DsMenu open={menuOpen} onClose={closeMenu} className="items-stretch justify-start overflow-y-auto ds-scroll-quiet pb-10 md:hidden">
         <DsFloatingBar
           leading={backHref ? <DsButton size="small" iconLeft={ArrowLeft} aria-label="Back to website" href={backHref} /> : null}
           title={
@@ -404,7 +404,7 @@ export function DsCanvas({
           // under the floating header (from lg). The room around the page sits on the inner box, not
           // on the canvas: a scrolling box's own padding would hold a pinned bar that far down.
           data-canvas
-          className={`${DS_THEME_SCOPE} isolate flex min-w-0 flex-col bg-ds-bg [--ds-canvas-top:var(--ds-shell-header)] lg:absolute lg:inset-0 lg:overflow-y-auto`}>
+          className={`${DS_THEME_SCOPE} isolate flex min-w-0 flex-col bg-ds-bg [--ds-canvas-top:var(--ds-shell-header)] lg:absolute lg:inset-0 lg:overflow-y-auto ds-scroll-quiet`}>
           <div className="flex min-w-0 flex-1 items-center-safe justify-center px-6 py-12 lg:pt-[calc(var(--ds-shell-header)+48px)]">
             <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
           </div>
@@ -421,7 +421,7 @@ export function DsCanvas({
           <div
             ref={setSlot}
             data-panel-slot
-            className={`flex min-w-0 flex-col gap-ds-16 overflow-x-hidden p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:p-ds-20 [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16 ${folded ? "lg:hidden" : ""}`}
+            className={`flex min-w-0 flex-col gap-ds-16 overflow-x-hidden p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto ds-scroll-quiet lg:p-ds-20 [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16 ${folded ? "lg:hidden" : ""}`}
           />
           <div ref={setFooter} className={`sticky bottom-0 border-t border-ds-border p-ds-16 empty:hidden ${folded ? "lg:hidden" : ""} ${PANEL_CARD}`} />
         </aside>
