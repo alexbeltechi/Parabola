@@ -21,6 +21,28 @@ files a change touches when a project is likely to have edited them.
   (`starting-points.ts`: Parabola, Swiss, Institute, Storefront, Startup,
   Onchain, Studio), holds the brief and sets the composition. `DsCanvas`
   takes `board`.
+- New: **outline**, an optional look for every button and pill. `<DsButton outline>` and
+  `<DsPill outline>` draw a line with no fill. Buttons take the fields' own line
+  (`ds-field-border`, `--ds-field-border-width`, 2px by default), so a row of outline
+  buttons sits with selects and inputs; primary takes the button colour, danger and
+  destructive take red. A pressed or current outline button fills as before, so in a row
+  of outline chips the picked one is solid. Nothing changes for a button or pill without
+  the prop. Touches `primitives/button.tsx`, `primitives/pill.tsx`,
+  `showcase/specimens.tsx`.
+- New: **Footnote** in the rich text tray. Select the words of the note and
+  press it: they become `^[the words]`, the note written where it belongs.
+  It's plain text, so typing it by hand works too; the site that shows the
+  text numbers the notes and lists them at the end. Touches
+  `primitives/rich-text.tsx`.
+- New: a theme picks **the nav's background**: None, Blur (the default) or
+  Solid (`theme.nav.surface`, new `nav-style.ts`), three buttons under
+  Navigation on the Theme page. A site passes it to its `DsTopBar` as
+  `surface`. Themes stored before read as Blur. Touches `theme.ts`,
+  `theme-file.ts`, `showcase/theme-section.tsx`.
+- Changed: `DsTopBar`'s solid surface is the page colour alone, without the
+  rule under it. A bar that wants the rule adds `border-b border-ds-border`,
+  as the showcase's own header does. Touches `primitives/top-bar.tsx`,
+  `showcase/ds-shell.tsx`.
 - New: **Export**, top right of every showcase page, in place of Share at
   the foot of the theme panel. Its dialog leads with the style in words
   (`dsBrandKit(...).style`) and a Copy style button: the look in a

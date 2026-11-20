@@ -205,6 +205,10 @@ A theme is data (`theme.ts`), much as shadcn's create page sets a style:
   (`pillRadius`, `--ds-radius-chip`, `rounded-ds-chip`). Fields have their
   own outline (`fields`: on, 2px, solid by default; `--ds-field-border-width`;
   an invalid field's red outline, `DS_FIELD_INVALID_CLASS`, is always 2px).
+- **Navigation** (`nav-style.ts`, `theme.nav.surface`): what's behind the
+  site's pinned nav, one of three (`DS_NAV_SURFACES`): None, Blur (the nav
+  fade, the default) or Solid (the page colour alone, hiding what scrolls
+  under it). A site passes it to its `DsTopBar` as `surface`.
 - **Radius** (`radius.ts`): None, Small (2px), Medium, Large (the default) or a
   custom number of pixels (the cards' and pills' corner, the rest scaled),
   for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill

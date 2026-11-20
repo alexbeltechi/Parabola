@@ -52,6 +52,7 @@ import {
   type DsButtonStyle,
   type DsFieldStyle,
 } from "./button-style";
+import { DS_DEFAULT_NAV_STYLE, parseDsNavStyle, type DsNavStyle } from "./nav-style";
 
 /**
  * A Parabola theme: the choices that change how everything looks, stored as
@@ -139,6 +140,8 @@ export type DsThemeConfig = {
   buttons: DsButtonStyle | null;
   /** The fields' outline: on or off, its width and opacity (button-style.ts). */
   fields: DsFieldStyle;
+  /** What's behind the site's nav: nothing, blur or solid (nav-style.ts). */
+  nav: DsNavStyle;
   /** The icon library, by id (colours.ts). */
   icons: string;
   /** Where things sit, how big, how sections are marked (composition.ts): the part of a style that isn't a value. */
@@ -166,6 +169,7 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   pillRadius: null,
   buttons: null,
   fields: DS_DEFAULT_FIELD_STYLE,
+  nav: DS_DEFAULT_NAV_STYLE,
   icons: "lucide",
   composition: DS_DEFAULT_COMPOSITION,
   brief: DS_DEFAULT_BRIEF,
@@ -400,6 +404,7 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     pillRadius,
     buttons: buttonStyle,
     fields: parseDsFieldStyle(raw.fields),
+    nav: parseDsNavStyle(raw.nav),
     icons,
     composition: parseDsComposition(raw.composition),
     brief: parseDsBrief(raw.brief),

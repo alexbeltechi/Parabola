@@ -56,7 +56,6 @@ import {
   Type,
   type LucideIcon,
 } from "lucide-react";
-import { DsAccordion } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsDisclosure } from "../primitives/disclosure";
 import {
@@ -98,12 +97,14 @@ import { DsScrollRow } from "../primitives/scroll-row";
 import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
+import { DsTopBar } from "../primitives/top-bar";
 import {
   DS_DEFAULT_FIELD_STYLE,
   DS_OUTLINE_MAX,
   DS_OUTLINE_WIDTHS,
   type DsButtonStyle,
 } from "../button-style";
+import { DS_DEFAULT_NAV_STYLE, DS_NAV_SURFACES } from "../nav-style";
 import { DsAngleDial } from "../components/angle-dial";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
@@ -1978,17 +1979,21 @@ export function ThemeSection() {
     // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
       <PreviewPart title="Web" className="gap-ds-40">
-        <div className="flex items-center justify-between gap-ds-16">
-          <span className="text-p text-ds-fg">Ilo Odena</span>
-          <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
-            <DsButton variant="text">Work</DsButton>
-            <DsButton variant="text" current>
-              Writing
-            </DsButton>
-            <DsButton variant="text">About</DsButton>
-            <DsThemeToggle variant="text" />
-          </nav>
-        </div>
+        {/* The nav as a site pins it, on the background the theme picks (Navigation): scroll the preview and the page goes under it. */}
+        {/* Pinned right under the showcase's header (--ds-canvas-top, ds-shell), so nothing shows above it. */}
+        <DsTopBar surface={theme.nav.surface} className="top-(--ds-canvas-top)">
+          <div className="flex items-center justify-between gap-ds-16 py-ds-12">
+            <span className="text-p text-ds-fg">Ilo Odena</span>
+            <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
+              <DsButton variant="text">Work</DsButton>
+              <DsButton variant="text" current>
+                Writing
+              </DsButton>
+              <DsButton variant="text">About</DsButton>
+              <DsThemeToggle variant="text" />
+            </nav>
+          </div>
+        </DsTopBar>
 
         <article className="flex flex-col gap-ds-20">
           <div className="flex flex-wrap items-center gap-ds-8">
@@ -2379,6 +2384,35 @@ export function ThemeSection() {
               setTheme({ ...theme, fields: { ...theme.fields, ...next } })
             }
           />
+        </PanelSection>
+
+        <PanelSection
+          title="Navigation"
+          actions={
+            <SectionRestore
+              section="Navigation"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => ({ ...t, nav: DS_DEFAULT_NAV_STYLE })}
+            />
+          }
+        >
+          <div className="flex flex-col gap-ds-8">
+            <span className="text-p text-ds-fg">Background</span>
+            <div className="flex items-center gap-ds-4" role="group" aria-label="Navigation background">
+              {DS_NAV_SURFACES.map((s) => (
+                <DsButton
+                  key={s.id}
+                  size="small"
+                  className="min-w-0 flex-1 px-0"
+                  pressed={theme.nav.surface === s.id}
+                  onClick={() => setTheme({ ...theme, nav: { surface: s.id } })}
+                >
+                  {s.label}
+                </DsButton>
+              ))}
+            </div>
+          </div>
         </PanelSection>
 
         {/* No dice here: Lucide is the only library that works (colours.ts), so a draw has nothing to pick. */}

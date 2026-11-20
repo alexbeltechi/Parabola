@@ -224,10 +224,21 @@ export function DsCanvas({
 }) {
   const [slot, setSlot] = React.useState<HTMLElement | null>(null);
   const [footer, setFooter] = React.useState<HTMLElement | null>(null);
-  const { previewMode, pickedMode, setPreviewMode } = useThemeEditor();
+  const { pickedMode, setPreviewMode } = useThemeEditor();
   // Collapse all, then Expand all: every accordion on the page (the panel's sections) at once.
   const [allOpen, setAllOpen] = React.useState(true);
   const [version, setVersion] = React.useState(0);
+  // How tall the pinned header is, for anything on the page that pins itself under it (--ds-canvas-top below).
+  const [header, setHeader] = React.useState<HTMLElement | null>(null);
+  const [headerHeight, setHeaderHeight] = React.useState(0);
+  React.useEffect(() => {
+    if (!header) return;
+    const measure = () => setHeaderHeight(header.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [header]);
   return (
     <PanelSlotContext.Provider value={slot}>
       <PanelFooterSlotContext.Provider value={footer}>
@@ -238,12 +249,14 @@ export function DsCanvas({
           lg the header runs across the page and the panel, a rule under it, and
           the two scroll on their own beneath it, the panel a column on the right
           only while the page puts something in it (otherwise the page takes the width). */}
-      <div className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:[&:has(>aside>div:first-child:not(:empty))]:grid-cols-[minmax(0,1fr)_400px]">
+      <div
+        style={{ "--ds-shell-header": `${headerHeight}px` } as React.CSSProperties}
+        className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:[&:has(>aside>div:first-child:not(:empty))]:grid-cols-[minmax(0,1fr)_400px]">
         {/* Pinned on the page colour (as the panel is; the sidebar sits on the surface), so the page never shows through behind
             the title and the theme's actions. Below md it sits right under the fixed
             nav bar (76px, its colour reaching up behind the bar), with no padding of
             its own above. */}
-        <DsTopBar surface="solid" className="top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
+        <DsTopBar ref={setHeader} surface="solid" className="border-b border-ds-border top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
           <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
             <div className="flex min-w-0 flex-col">
               <p className="text-small text-ds-fg-subtle">{group}</p>
@@ -279,8 +292,15 @@ export function DsCanvas({
           // Only once a mode is picked: until then the canvas follows the page's own
           // .dark class, set before the first paint, so it never flashes light.
           data-ds-mode={pickedMode ?? undefined}
-          className={`${DS_THEME_SCOPE} flex min-w-0 items-center-safe justify-center bg-ds-bg px-6 py-12 lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto`}>
-          <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
+          // --ds-canvas-top: where a bar on the page pins itself (`top-(--ds-canvas-top)`), right
+          // under this header. Below lg the whole page scrolls, so that's the header's height
+          // (plus the fixed nav bar's 76px below md); from lg the canvas scrolls on its own, so
+          // it's the canvas's own top. The room around the page sits on the inner box, not on
+          // the canvas: a scrolling box's own padding would hold a pinned bar that far down.
+          className={`${DS_THEME_SCOPE} flex min-w-0 flex-col bg-ds-bg [--ds-canvas-top:calc(76px+var(--ds-shell-header))] md:[--ds-canvas-top:var(--ds-shell-header)] lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto lg:[--ds-canvas-top:0px]`}>
+          <div className="flex min-w-0 flex-1 items-center-safe justify-center px-6 py-12">
+            <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
+          </div>
         </div>
         )}
         {/* The page's properties; hidden while it has none. A rule between sections,
