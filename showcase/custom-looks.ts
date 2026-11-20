@@ -151,3 +151,14 @@ export function dsUnhidePresets(scopes: readonly DsLookScope[]): () => void {
   write({ ...store, hidden: after });
   return () => write({ ...store, hidden: before });
 }
+
+/**
+ * Factory settings for the rows (Restore all): every preset back, under its own name, and the looks kept here
+ * gone, as the kept themes are. Returns what undoes it.
+ */
+export function dsResetLooks(): () => void {
+  load();
+  const before = store;
+  write(EMPTY);
+  return () => write(before);
+}

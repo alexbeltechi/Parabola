@@ -2385,16 +2385,7 @@ export function ThemeSection() {
         onConfirm={() => {
           setRestoring(false);
           const undoIt = restoreTheme();
-          const rehide = dsUnhidePresets(["style", "colour", "type", "buttons"]);
-          dsToast(RESTORE.all.done, {
-            action: {
-              label: "Undo",
-              onClick: () => {
-                undoIt();
-                rehide();
-              },
-            },
-          });
+          dsToast(RESTORE.all.done, { action: { label: "Undo", onClick: undoIt } });
         }}
       />
 

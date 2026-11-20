@@ -11,6 +11,7 @@ import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownSeparator, DsD
 import { dsToast } from "../primitives/toast";
 import { ThemeExportDialog } from "./theme-export";
 import { useDsThemeLibrary } from "../provider";
+import { dsResetLooks } from "./custom-looks";
 import {
   DS_DEFAULT_LIBRARY,
   DS_DEFAULT_THEME,
@@ -250,8 +251,8 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         change({ ...library, themes: library.themes.filter((t) => t.id !== id) });
         if (selected === id) setSelected(library.active);
       },
-      // Back to the start: Classic, as Parabola makes it, and the kept themes gone (all but the one the website
-      // wears), the styles hidden here shown again (theme-section). Undo puts every theme and the open one back.
+      // Factory settings: Classic, as Parabola makes it, the kept themes gone (all but the one the website wears),
+      // and every row's presets back as Parabola names them (custom-looks). Undo puts all of it back.
       restoreTheme: () => {
         const before = library;
         const open = entry.id;
@@ -268,7 +269,12 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
           setHistory((h) => ({ past: [...h.past, h.present].slice(-100), present: lib, future: [] }));
         };
         put(after, first.id);
-        return () => put(before, open);
+        // The rows as Parabola makes them too: the presets deleted here back, renamed ones under their own names.
+        const looksBack = dsResetLooks();
+        return () => {
+          put(before, open);
+          looksBack();
+        };
       },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
       unpublished: published.id !== entry.id || JSON.stringify(published.theme) !== JSON.stringify(entry.theme),
@@ -402,7 +408,7 @@ export const RESTORE: Record<RestoreScope, { item: string; title: string; descri
   all: {
     item: "Restore all settings",
     title: "Restore all settings?",
-    description: "Back to Classic as Parabola makes it, and the themes you kept are taken out (not the one your website wears). Undo brings them all back.",
+    description: "Everything as Parabola makes it: Classic, every style and preset back under its own name, and the themes and looks you kept taken out (not the theme your website wears). Undo brings it all back.",
     done: "All settings restored",
   },
 };
