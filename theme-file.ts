@@ -47,6 +47,9 @@ const THEME_KEYS = [
   "fields",
   "nav",
   "icons",
+  "composition",
+  "brief",
+  "social",
 ] as const;
 const FILE_KEYS = ["format", "version", "name", "description", "theme"] as const;
 
@@ -258,6 +261,12 @@ function checkTheme(theme: Obj, errors: string[]) {
         errors.push(`theme.nav.surface: must be one of ${list(DS_THEME_FILE_CONTRACT.navSurfaces)}`);
       }
     }
+  }
+
+  // Composition, the brief and the social rules are read leniently (parseDsComposition, parseDsBrief,
+  // parseDsSocial put anything unknown back to Parabola's own), so the file only has to give objects.
+  for (const key of ["composition", "brief", "social"] as const) {
+    if (theme[key] !== undefined && !isObj(theme[key])) errors.push(`theme.${key}: must be an object`);
   }
 
   if (theme.icons !== undefined && !DS_THEME_FILE_CONTRACT.icons.some((i) => i === theme.icons)) {
