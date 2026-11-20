@@ -6,95 +6,81 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
-- New: `ds-scroll-quiet`, a scroll area whose bar shows only while the
-  pointer is over it, thin and faint. The showcase's sidebar, side panel and
-  page use it.
+## 0.5.0 — 2026-11-20
 
-- New: the floating nav takes a background too (`DsFloatingBar` `surface`:
-  None, Blur or Solid, the theme's `nav.surface`), shown under Navigation
-  for either style. Without one it keeps its faint fade.
-- Fixed: the fields' outline widths (1px, 2px, custom) are three equal
-  columns.
+The Theme panel as one rail of looks, colours named for what they colour,
+and social posts that follow the theme.
 
-- Changed: **one Theme rail**. Parabola's styles (Classic first), then the
-  themes kept, then Custom, which shows only while a style's been changed
-  (+ or naming keeps it as a theme; Delete puts the style back). The
-  separate Theme and Style rows are gone, and changing Classic no longer
-  makes a "Custom" theme by itself. Restore all, from the panel or the top
-  menu, is factory settings: Classic, every preset back under its own name,
-  the kept themes and looks taken out (not the website's theme), with Undo. Custom themes
-  have no icon. Deleting the picked chip picks the one after it; the last
-  chip in a row can't be deleted. The page's title says the look picked.
+**Theme panel**
+
+- Changed: **one Theme rail**. Parabola's styles (Classic, the default,
+  then Minimal, Elegant, Tech, Natural), the themes kept, and Custom, which
+  shows only while a style's been changed: + or naming it keeps it as a
+  theme, Delete puts the style back. The page's title says the look picked.
   `setTheme(theme, into?)` and `addTheme(name, from?)` take a theme to open
   or copy (`showcase/theme-look.ts`).
+- New: **custom looks** on the Colour, Typography and Buttons rows: change
+  a value a preset set and the row shows Custom; + keeps it as a chip of its
+  own (`showcase/custom-looks.ts`).
+- New: every chip has its own **⋮** (on the picked one, and on hover):
+  Rename, Duplicate, Delete. Right-click opens it too, and a double-click
+  renames in place (`DsButton` `onRename`, `renaming`, `onRenameEnd`; the
+  field keeps the label's width). A deleted preset is only hidden; deleting
+  the picked chip picks its neighbour; the last chip in a row stays.
+- Changed: **Restore all** is factory settings, from the panel or the top
+  menu: Classic, every preset back under its own name, the kept themes and
+  looks taken out (not the theme the website wears), with Undo. A section's
+  Restore brings its own presets back.
+- Changed: the default theme is **Classic**, its colour the Paper palette
+  (`DS_DEFAULT_CHARACTER`: hue 38, colour 0.36, brightness 0.96, contrast
+  0.05).
 
-- Changed: Typography's chips are Classic, **Swiss** (was Startup),
-  Elegant, **Humanist** (was Friendly: Source Sans 3, Fira Sans, Open Sans,
-  Alegreya Sans), Funky, Quirky, Retro, Futurist. Editorial is gone (too
-  near Classic). Elegant's sans is Jost (then Montserrat); Retro opens on
-  Fraunces, lighter. Stored ids `startup`, `friendly` and `editorial` read
-  as `swiss`, `humanist` and `classic`.
-- Fixed: renaming a chip keeps its width; the field is as wide as the name.
-- New: the unsaved Custom chip's ⋮ has Delete (back to the preset it came
-  from) and Duplicate.
+**Colour**
 
 - Changed: the colours are **Text primary** (`text`), **Text secondary**
   (`muted`), **Primary** (`accent`: the main button, calls to action) and
   **Secondary** (`buttonSecondary`: the quiet buttons and pills). Stored
   names unchanged; the exported style says so.
-- New: the social style's **Text colours**, Monochrome (default) or
-  Two-tone: a word or line said louder in Text secondary (`tone`).
-- Changed: the colour chips Classic and Neutral are called **Paper** and
-  **Black and white** (ids unchanged).
-- Changed: the email preview's Gmail is near black in dark.
+- Changed: the chips Classic and Neutral are **Paper** and **Black and
+  white** (ids unchanged).
+- Fixed: a text or button colour picked while viewing dark shows in light
+  too, moved only as far as it needs to read there (`colours.ts`).
 
-- Fixed: a text or button colour picked while viewing dark now shows in
-  light too, moved only as far as it needs to read on the light page
-  (`colours.ts`). Before, light fell back to black.
-- Changed: the post sizes are **3:4, 1:1 and 4:3** (1080 × 810, landscape).
-  4:5 was too near 3:4; a stored 4:5 reads as 3:4 (`social.ts`).
+**Typography**
+
+- Changed: the chips are Classic, **Swiss** (was Startup), Elegant,
+  **Humanist** (was Friendly: Source Sans 3, Fira Sans, Open Sans, Alegreya
+  Sans), Funky, Quirky, Retro, Futurist. Editorial is gone (too near
+  Classic). Elegant's sans is Jost; Retro opens on Fraunces. Stored ids
+  `startup`, `friendly` and `editorial` read as `swiss`, `humanist` and
+  `classic`.
+
+**Social**
+
+- Changed: post sizes are **3:4, 1:1 and 4:3** (1080 × 810). A stored 4:5
+  reads as 3:4.
 - New: a **Custom** edge, a number in px at 1080 wide (`edgeSize`,
-  `dsSocialEdge`).
-- Changed: the Social section's choices are one row each: sharing its width
-  where they fit, scrolling sideways where they don't (Text on pictures).
-- Changed: the email preview's letter is in the theme's own colours, and
-  Gmail around it goes dark when the preview does.
-- New: every chip on the Theme panel (themes, styles, colours, typography,
-  buttons) has its own ⋮, on the picked one and on hover: Rename, Duplicate,
-  Delete. A deleted preset is only hidden; its section's Restore, or
-  Restore all, brings it back. Right-click opens the same menu.
-- Fixed: pressing + on a row while a preset is picked selects the new look,
-  and clicking a kept look that matches a preset picks it.
+  `dsSocialEdge`, `DS_SOCIAL_EDGE_RANGE`).
+- New: **Text colours**, Monochrome (default) or Two-tone: one word or line
+  a slide, written `plain *loud*`, in Text secondary (`tone`).
+- Changed: text straight on a picture is the light one of the theme's pair:
+  the page colour in light, Text primary in dark (was always white).
+- Changed: the Social section's choices share their row where they fit and
+  scroll sideways where they don't.
 
-- New: **Emphasis** in social text. Star a word or a line (`plain *loud*`)
-  and, two-tone, it wears Text secondary, one per slide; on a picture it's
-  lifted light enough to read.
-- Changed: text on a picture is the light one of the theme's pair: the page
-  colour in light mode, Primary in dark (was always white).
+**Elsewhere**
+
+- New: the floating nav takes a background too (`DsFloatingBar` `surface`:
+  None, Blur or Solid, the theme's `nav.surface`).
+- New: `ds-scroll-quiet`, a scroll area whose bar shows only while the
+  pointer is over it.
 - Changed: the theme toggle hands the page back to the system's mode when
-  the pick matches it, so a later system change is followed again.
-  `useDsSetTheme` and `onThemeChange` take `"system"` too.
-- Fixed: on the Theme board, content panned under the sidebar no longer
-  flickers above it.
-- Changed: the app preview (Hollow) shows its strongest line first.
-
-- Changed: the colours are named by rank, Primary (the text), **Secondary**
-  (the brand's second colour, which the main button and calls to action
-  wear; was "Button: primary") and **Tertiary** (quieter text; was
-  "Secondary"). The theme's stored names (`text`, `accent`, `muted`) are
-  unchanged. The exported style says so.
-- Changed: the default theme is **Classic**, and its colour is the Classic
-  palette's paper (`DS_DEFAULT_CHARACTER`: hue 38, colour 0.36, brightness
-  0.96, contrast 0.05). Changing any value of an untouched Classic makes a
-  theme of its own, Custom, to rename and keep. Touches `character.ts`,
-  `theme.ts`.
-- New: **Custom looks** on the Theme panel's rows (Style, Colour,
-  Typography, Buttons): change a value a preset set and the row shows Custom;
-  name it, or press + at the row's end, and it's kept as a chip of its own
-  (in the browser, `showcase/custom-looks.ts`). Any chip renames on a
-  double-click.
-- New: `DsButton` takes `onRename`: a double-click turns its label into a
-  field in place (`renaming` opens it, `onRenameEnd` says it closed).
+  the pick matches it; `useDsSetTheme` and `onThemeChange` take `"system"`.
+- Changed: the email preview's letter is in the theme's colours, and Gmail
+  around it goes dark with the preview. The app preview shows its strongest
+  line first.
+- Fixed: the fields' outline widths are three equal columns; content panned
+  under the Theme board's sidebar no longer flickers above it.
 
 ## 0.4.0 — 2026-11-20
 
