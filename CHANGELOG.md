@@ -13,8 +13,8 @@ files a change touches when a project is likely to have edited them.
   4:5 was too near 3:4; a stored 4:5 reads as 3:4 (`social.ts`).
 - New: a **Custom** edge, a number in px at 1080 wide (`edgeSize`,
   `dsSocialEdge`).
-- Changed: the Social section's choices are one sideways-scrolling row each,
-  as the panel's other rows are.
+- Changed: the Social section's choices are one row each: sharing its width
+  where they fit, scrolling sideways where they don't (Text on pictures).
 - Changed: the email preview's letter is in the theme's own colours, and
   Gmail around it goes dark when the preview does.
 - New: right-click a custom theme or a kept look to rename or delete it.

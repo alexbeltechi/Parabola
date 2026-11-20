@@ -565,8 +565,9 @@ export function SocialSettings({ social: s, onChange }: { social: DsSocial; onCh
   return (
     <>
       {DS_SOCIAL_CHOICES.map((choice) => (
-        // A rail of the panel's light pills (as Colour's Classic, Neutral…), an icon each, no fill at rest and a soft
-        // one when picked; one line that scrolls sideways when there are more than fit, as every row on the panel does.
+        // The panel's light pills (as Colour's Classic, Neutral…), an icon each, no fill at rest and a soft one when
+        // picked. One line: where they fit they share its whole width; where they don't (Text on pictures), they keep
+        // their own width and the row scrolls sideways.
         <div key={choice.key} className="flex flex-col gap-ds-4">
           <span className="text-p text-ds-fg">{choice.label}</span>
           <DsScrollRow role="group" aria-label={choice.label} className="-mx-2 min-w-0 px-2">
@@ -575,6 +576,7 @@ export function SocialSettings({ social: s, onChange }: { social: DsSocial; onCh
                 key={o.id}
                 size="small"
                 variant="text"
+                className="shrink-0 grow px-2"
                 iconLeft={ICONS[choice.key][o.id]}
                 pressed={s[choice.key] === o.id}
                 title={o.says.replace("{edge}", String(s.edgeSize))}
