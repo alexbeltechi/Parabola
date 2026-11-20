@@ -17,18 +17,21 @@
  */
 
 import * as React from "react";
-import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
+import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Sparkles, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
 import {
   DS_SOCIAL_CHOICES,
-  DS_SOCIAL_EDGES,
+  DS_SOCIAL_EDGE_RANGE,
   DS_SOCIAL_FRAMES,
   DS_SOCIAL_GAP,
   DS_SOCIAL_REEL,
   DS_SOCIAL_TYPE,
   DS_SOCIAL_WIDTH,
   type DsSocial,
+  dsSocialEdge,
 } from "../social";
 import { DsButton } from "../primitives/button";
+import { DsNumberInput } from "../primitives/field";
+import { DsScrollRow } from "../primitives/scroll-row";
 import { BoardOutline } from "./board";
 
 const MEDIA = "/parabola/preview";
@@ -143,7 +146,7 @@ function Frame({
   children: React.ReactNode;
 }) {
   const { s } = ctx;
-  const edge = DS_SOCIAL_EDGES[s.edge];
+  const edge = dsSocialEdge(s);
   const inset = { top: len(Math.max(edge, safe?.top ?? 0)), right: len(Math.max(edge, safe?.right ?? 0)), bottom: len(Math.max(edge, safe?.bottom ?? 0)), left: len(edge) };
   const across = ACROSS[s.align];
   return (
@@ -257,7 +260,7 @@ function OnPicture({ ctx, as, children }: { ctx: Ctx; as: TypeName; children: Re
   if (s.text === "boxed" || s.text === "mixed") {
     return (
       <Hug
-        dep={`${as} ${s.fonts} ${s.edge} ${s.frame} ${s.align}`}
+        dep={`${as} ${s.fonts} ${dsSocialEdge(s)} ${s.frame} ${s.align}`}
         style={{ ...type(ctx, as), background: "var(--ds-bg)", color: "var(--ds-fg)", padding: len(DS_SOCIAL_GAP), borderRadius: s.corners === "rounded" ? len(DS_SOCIAL_GAP) : 0 }}
       >
         {children}
@@ -537,7 +540,7 @@ export function socialFrames(social: DsSocial): { slides: React.ReactNode[]; sce
   };
 }
 
-/** A frame of a given shape, drawn as an icon: 3:4, 4:5, 1:1 or 1.91:1. */
+/** A frame of a given shape, drawn as an icon: 3:4, 1:1 or 4:3. */
 const shape = (name: string, w: number, h: number) =>
   createLucideIcon(name, [["rect", { x: `${(24 - w) / 2}`, y: `${(24 - h) / 2}`, width: `${w}`, height: `${h}`, rx: "2", key: "frame" }]]);
 /** A frame with its edge line inside it, close to the edge or far in. */
@@ -547,9 +550,9 @@ const edge = (name: string, inset: number) =>
     ["rect", { x: `${3 + inset}`, y: `${3 + inset}`, width: `${18 - inset * 2}`, height: `${18 - inset * 2}`, rx: "0.5", strokeDasharray: "2 2", key: "edge" }],
   ]);
 /** Each choice's icon, by option (social.ts holds the choices, the panel the pictures). */
-const ICONS: Record<keyof DsSocial, Record<string, LucideIcon>> = {
-  frame: { "3:4": shape("Frame34", 13.5, 18), "4:5": shape("Frame45", 14.4, 18), "1:1": shape("Frame11", 16, 16), "1.91:1": shape("Frame191", 19, 10) },
-  edge: { tight: edge("EdgeTight", 2), regular: edge("EdgeRegular", 3.5), wide: edge("EdgeWide", 5.5) },
+const ICONS: Record<(typeof DS_SOCIAL_CHOICES)[number]["key"], Record<string, LucideIcon>> = {
+  frame: { "3:4": shape("Frame34", 13.5, 18), "1:1": shape("Frame11", 16, 16), "4:3": shape("Frame43", 18, 13.5) },
+  edge: { tight: edge("EdgeTight", 2), regular: edge("EdgeRegular", 3.5), wide: edge("EdgeWide", 5.5), custom: Sparkles },
   text: { mixed: Shapes, boxed: Captions, wrapped: WrapText, plain: Type, shadow: Layers2 },
   corners: { square: Square, rounded: Squircle },
   fonts: { two: ALargeSmall, one: Baseline },
@@ -562,18 +565,45 @@ export function SocialSettings({ social: s, onChange }: { social: DsSocial; onCh
   return (
     <>
       {DS_SOCIAL_CHOICES.map((choice) => (
-        // The panel's light pills (as Colour's Classic, Neutral…), an icon each, no fill at rest and a soft one when
-        // picked; here they share the row's whole width, the icon and the word centred together, and go onto a second
-        // row when there are too many for one, so nothing scrolls or pushes the panel wider.
+        // A rail of the panel's light pills (as Colour's Classic, Neutral…), an icon each, no fill at rest and a soft
+        // one when picked; one line that scrolls sideways when there are more than fit, as every row on the panel does.
         <div key={choice.key} className="flex flex-col gap-ds-4">
           <span className="text-p text-ds-fg">{choice.label}</span>
-          <div role="group" aria-label={choice.label} className="flex flex-wrap items-center gap-ds-4">
+          <DsScrollRow role="group" aria-label={choice.label} className="-mx-2 min-w-0 px-2">
             {(choice.options as readonly { id: string; label: string; says: string }[]).map((o) => (
-              <DsButton key={o.id} size="small" variant="text" className="min-w-0 grow px-2" iconLeft={ICONS[choice.key][o.id]} pressed={s[choice.key] === o.id} title={o.says} onClick={() => onChange({ ...s, [choice.key]: o.id })}>
+              <DsButton
+                key={o.id}
+                size="small"
+                variant="text"
+                iconLeft={ICONS[choice.key][o.id]}
+                pressed={s[choice.key] === o.id}
+                title={o.says.replace("{edge}", String(s.edgeSize))}
+                onClick={() =>
+                  onChange({
+                    ...s,
+                    [choice.key]: o.id,
+                    // Custom starts where the edge was, so nothing moves until the number does.
+                    ...(choice.key === "edge" && o.id === "custom" && s.edge !== "custom" ? { edgeSize: dsSocialEdge(s) } : {}),
+                  })
+                }
+              >
                 {o.label}
               </DsButton>
             ))}
-          </div>
+          </DsScrollRow>
+          {choice.key === "edge" && s.edge === "custom" && (
+            <div className="flex items-center gap-ds-8">
+              <DsNumberInput
+                aria-label="Edge in px"
+                className="w-24"
+                min={DS_SOCIAL_EDGE_RANGE.min}
+                max={DS_SOCIAL_EDGE_RANGE.max}
+                value={s.edgeSize}
+                onValueChange={(edgeSize) => onChange({ ...s, edgeSize })}
+              />
+              <span className="text-small text-ds-fg-muted">px at 1080 wide</span>
+            </div>
+          )}
         </div>
       ))}
     </>

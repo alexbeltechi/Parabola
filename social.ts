@@ -18,9 +18,11 @@
 
 export type DsSocial = {
   /** The shape of a post and of every slide in a carousel. A reel is always 9:16. */
-  frame: "3:4" | "4:5" | "1:1" | "1.91:1";
+  frame: "3:4" | "1:1" | "4:3";
   /** How far text and marks stay from the frame's edge. */
-  edge: "tight" | "regular" | "wide";
+  edge: "tight" | "regular" | "wide" | "custom";
+  /** The edge, in px at 1080 wide, when it's custom. */
+  edgeSize: number;
   /** How text sits on a picture: in one box, in a band behind each line, straight on it, or straight on it with a shadow. */
   text: "mixed" | "boxed" | "wrapped" | "plain" | "shadow";
   /** The corners of a box or of the bands behind the lines. */
@@ -35,6 +37,7 @@ export type DsSocial = {
 export const DS_DEFAULT_SOCIAL: DsSocial = {
   frame: "3:4",
   edge: "regular",
+  edgeSize: 54,
   text: "mixed",
   corners: "square",
   fonts: "two",
@@ -46,10 +49,16 @@ export const DS_DEFAULT_SOCIAL: DsSocial = {
 export const DS_SOCIAL_WIDTH = 1080;
 
 /** A post's height at 1080 wide, by frame. */
-export const DS_SOCIAL_FRAMES: Record<DsSocial["frame"], number> = { "3:4": 1440, "4:5": 1350, "1:1": 1080, "1.91:1": 566 };
+export const DS_SOCIAL_FRAMES: Record<DsSocial["frame"], number> = { "3:4": 1440, "1:1": 1080, "4:3": 810 };
 
 /** The edge distance at 1080 wide, by choice. */
-export const DS_SOCIAL_EDGES: Record<DsSocial["edge"], number> = { tight: 36, regular: 54, wide: 90 };
+export const DS_SOCIAL_EDGES: Record<Exclude<DsSocial["edge"], "custom">, number> = { tight: 36, regular: 54, wide: 90 };
+
+/** How far in the edge line is, in px at 1080 wide: the choice's, or the custom size. */
+export const dsSocialEdge = (s: DsSocial): number => (s.edge === "custom" ? s.edgeSize : DS_SOCIAL_EDGES[s.edge]);
+
+/** The custom edge's range, in px at 1080 wide. */
+export const DS_SOCIAL_EDGE_RANGE = { min: 0, max: 200 } as const;
 
 /** A text box's padding, and the room between things stacked at one anchor, at 1080 wide. */
 export const DS_SOCIAL_GAP = 18;
@@ -72,7 +81,7 @@ export const DS_SOCIAL_TYPE = {
  */
 export const DS_SOCIAL_REEL = { height: 1920, top: 220, bottom: 500, right: 240, left: 100 } as const;
 
-type Choice<K extends keyof DsSocial> = {
+type Choice<K extends Exclude<keyof DsSocial, "edgeSize">> = {
   key: K;
   label: string;
   options: readonly { id: DsSocial[K]; label: string; says: string }[];
@@ -93,9 +102,8 @@ export const DS_SOCIAL_CHOICES: readonly [
     label: "Post size",
     options: [
       { id: "3:4", label: "3:4", says: "A post and every slide of a carousel is 3:4, 1080 × 1440px, the shape Instagram's grid shows." },
-      { id: "4:5", label: "4:5", says: "A post and every slide of a carousel is 4:5, 1080 × 1350px." },
       { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 × 1080px." },
-      { id: "1.91:1", label: "1.91:1", says: "A post and every slide of a carousel is landscape, 1.91:1, 1080 × 566px, the widest Instagram keeps." },
+      { id: "4:3", label: "4:3", says: "A post and every slide of a carousel is landscape, 4:3, 1080 × 810px." },
     ],
   },
   {
@@ -105,6 +113,7 @@ export const DS_SOCIAL_CHOICES: readonly [
       { id: "tight", label: "Tight", says: "No text or mark comes closer to the frame's edge than 36px (at 1080 wide). Things sit on that line, not somewhere inside it." },
       { id: "regular", label: "Regular", says: "No text or mark comes closer to the frame's edge than 54px (at 1080 wide). Things sit on that line, not somewhere inside it." },
       { id: "wide", label: "Wide", says: "No text or mark comes closer to the frame's edge than 90px (at 1080 wide). Things sit on that line, not somewhere inside it." },
+      { id: "custom", label: "Custom", says: "No text or mark comes closer to the frame's edge than {edge}px (at 1080 wide). Things sit on that line, not somewhere inside it." },
     ],
   },
   {
@@ -177,6 +186,11 @@ export function parseDsSocial(value: unknown): DsSocial {
   for (const choice of DS_SOCIAL_CHOICES) {
     if ((choice.options as readonly { id: string }[]).some((o) => o.id === raw[choice.key])) out[choice.key] = raw[choice.key];
   }
+  // Sizes taken out: 4:5 was too near 3:4, the widest landscape too thin a strip.
+  if (raw.frame === "4:5") out.frame = "3:4";
+  if (raw.frame === "1.91:1") out.frame = "4:3";
+  const size = Number(raw.edgeSize);
+  if (Number.isFinite(size)) out.edgeSize = Math.round(Math.min(DS_SOCIAL_EDGE_RANGE.max, Math.max(DS_SOCIAL_EDGE_RANGE.min, size)));
   return out as DsSocial;
 }
 
@@ -198,7 +212,7 @@ export function dsSocialWords(s: DsSocial): string[] {
   // Corners say nothing when text has no box or band.
   const lines = DS_SOCIAL_CHOICES.filter((choice) => !(choice.key === "corners" && (s.text === "plain" || s.text === "shadow"))).map((choice) => {
     const option = (choice.options as readonly { id: string; says: string }[]).find((o) => o.id === s[choice.key]);
-    return option ? `${choice.label}: ${option.says}` : "";
+    return option ? `${choice.label}: ${option.says.replace("{edge}", String(s.edgeSize))}` : "";
   });
   return [...lines.filter(Boolean), ...FIXED];
 }

@@ -9,8 +9,12 @@ files a change touches when a project is likely to have edited them.
 - Fixed: a text or button colour picked while viewing dark now shows in
   light too, moved only as far as it needs to read on the light page
   (`colours.ts`). Before, light fell back to black.
-- New: a landscape post size, **1.91:1** (1080 × 566), the widest Instagram
-  keeps (`social.ts`).
+- Changed: the post sizes are **3:4, 1:1 and 4:3** (1080 × 810, landscape).
+  4:5 was too near 3:4; a stored 4:5 reads as 3:4 (`social.ts`).
+- New: a **Custom** edge, a number in px at 1080 wide (`edgeSize`,
+  `dsSocialEdge`).
+- Changed: the Social section's choices are one sideways-scrolling row each,
+  as the panel's other rows are.
 - Changed: the email preview's letter is in the theme's own colours, and
   Gmail around it goes dark when the preview does.
 - New: right-click a custom theme or a kept look to rename or delete it.

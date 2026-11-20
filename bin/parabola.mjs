@@ -682,12 +682,14 @@ function dsCompositionWords(c) {
 var DS_DEFAULT_SOCIAL = {
   frame: "3:4",
   edge: "regular",
+  edgeSize: 54,
   text: "mixed",
   corners: "square",
   fonts: "two",
   align: "centre",
   signature: "ends"
 };
+var DS_SOCIAL_EDGE_RANGE = { min: 0, max: 200 };
 var DS_SOCIAL_TYPE = {
   display: { size: 126, leading: 1.05, heading: true },
   h1: { size: 90, leading: 1.1, heading: true },
@@ -704,9 +706,8 @@ var DS_SOCIAL_CHOICES = [
     label: "Post size",
     options: [
       { id: "3:4", label: "3:4", says: "A post and every slide of a carousel is 3:4, 1080 \xD7 1440px, the shape Instagram's grid shows." },
-      { id: "4:5", label: "4:5", says: "A post and every slide of a carousel is 4:5, 1080 \xD7 1350px." },
       { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 \xD7 1080px." },
-      { id: "1.91:1", label: "1.91:1", says: "A post and every slide of a carousel is landscape, 1.91:1, 1080 \xD7 566px, the widest Instagram keeps." }
+      { id: "4:3", label: "4:3", says: "A post and every slide of a carousel is landscape, 4:3, 1080 \xD7 810px." }
     ]
   },
   {
@@ -715,7 +716,8 @@ var DS_SOCIAL_CHOICES = [
     options: [
       { id: "tight", label: "Tight", says: "No text or mark comes closer to the frame's edge than 36px (at 1080 wide). Things sit on that line, not somewhere inside it." },
       { id: "regular", label: "Regular", says: "No text or mark comes closer to the frame's edge than 54px (at 1080 wide). Things sit on that line, not somewhere inside it." },
-      { id: "wide", label: "Wide", says: "No text or mark comes closer to the frame's edge than 90px (at 1080 wide). Things sit on that line, not somewhere inside it." }
+      { id: "wide", label: "Wide", says: "No text or mark comes closer to the frame's edge than 90px (at 1080 wide). Things sit on that line, not somewhere inside it." },
+      { id: "custom", label: "Custom", says: "No text or mark comes closer to the frame's edge than {edge}px (at 1080 wide). Things sit on that line, not somewhere inside it." }
     ]
   },
   {
@@ -786,6 +788,10 @@ function parseDsSocial(value) {
   for (const choice of DS_SOCIAL_CHOICES) {
     if (choice.options.some((o) => o.id === raw[choice.key])) out[choice.key] = raw[choice.key];
   }
+  if (raw.frame === "4:5") out.frame = "3:4";
+  if (raw.frame === "1.91:1") out.frame = "4:3";
+  const size = Number(raw.edgeSize);
+  if (Number.isFinite(size)) out.edgeSize = Math.round(Math.min(DS_SOCIAL_EDGE_RANGE.max, Math.max(DS_SOCIAL_EDGE_RANGE.min, size)));
   return out;
 }
 var FIXED = [
@@ -800,7 +806,7 @@ var FIXED = [
 function dsSocialWords(s) {
   const lines = DS_SOCIAL_CHOICES.filter((choice) => !(choice.key === "corners" && (s.text === "plain" || s.text === "shadow"))).map((choice) => {
     const option = choice.options.find((o) => o.id === s[choice.key]);
-    return option ? `${choice.label}: ${option.says}` : "";
+    return option ? `${choice.label}: ${option.says.replace("{edge}", String(s.edgeSize))}` : "";
   });
   return [...lines.filter(Boolean), ...FIXED];
 }
