@@ -1145,6 +1145,8 @@ type Pill = {
   onRename?: (name: string) => void;
   onDuplicate?: () => void;
   onRemove?: () => void;
+  /** The unsaved Custom: deleting it puts back the look it came from, so the row picks nothing else. */
+  restores?: boolean;
 };
 
 function PillRow({
@@ -1174,6 +1176,13 @@ function PillRow({
   const row = React.useRef<HTMLDivElement>(null);
   const [menu, setMenu] = React.useState<string | null>(null);
   const [naming, setNaming] = React.useState<string | null>(null);
+  // Deleting the chip picked picks the one after it (or before, at the end), as closing a tab opens its neighbour.
+  const remove = (o: Pill) => {
+    const at = options.indexOf(o);
+    const next = picked.includes(o.id) && !o.restores ? (options[at + 1] ?? options[at - 1]) : undefined;
+    o.onRemove?.();
+    if (next) onToggle(next.id);
+  };
   React.useEffect(() => {
     if (!renaming) return;
     const scroller = row.current?.querySelector<HTMLElement>("[role=group]");
@@ -1243,7 +1252,8 @@ function PillRow({
                     </DsDropdownItem>
                   )}
                   {o.onRemove && (
-                    <DsDropdownItem tone="danger" iconLeft={Trash2} onSelect={o.onRemove}>
+                    // The last chip in a row stays: there'd be nothing to pick.
+                    <DsDropdownItem tone="danger" iconLeft={Trash2} disabled={options.length === 1} onSelect={() => remove(o)}>
                       Delete
                     </DsDropdownItem>
                   )}
@@ -1332,6 +1342,7 @@ function LookRail({
             icon: Sparkles,
             onRename: (name: string) => setChosen(custom.add(scope, name, snap)),
             onDuplicate: () => duplicate(dsCustomName(taken), snap),
+            restores: true,
             // Not kept yet: deleting it puts the row back on the preset it came from (the first, if none).
             onRemove: () => {
               const back = presets.find((p) => p.id === current) ?? presets[0];
@@ -1420,6 +1431,7 @@ function ThemeRail() {
               addTheme(unique);
             },
             onDuplicate: () => keep(`${dsCustomName(names)} copy`),
+            restores: true,
             // Not kept: deleting it puts the style it came from back (Classic, if none).
             onRemove: () => setTheme(fresh(STYLES.find((p) => p.id === current)?.id ?? STYLES[0].id)),
           },

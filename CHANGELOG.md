@@ -12,7 +12,8 @@ files a change touches when a project is likely to have edited them.
   separate Theme and Style rows are gone, and changing Classic no longer
   makes a "Custom" theme by itself. Restore all goes back to Classic and
   takes the kept themes out (not the website's), with Undo. Custom themes
-  have no icon. The page's title says the look picked.
+  have no icon. Deleting the picked chip picks the one after it; the last
+  chip in a row can't be deleted. The page's title says the look picked.
   `setTheme(theme, into?)` and `addTheme(name, from?)` take a theme to open
   or copy (`showcase/theme-look.ts`).
 
