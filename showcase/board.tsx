@@ -146,7 +146,6 @@ function Items({ ctx, cols, children }: { ctx: Ctx; cols: number; children: Reac
 }
 
 function Photo({ src, ratio, className = "" }: { src: string; ratio: string; className?: string }) {
-  // eslint-disable-next-line @next/next/no-img-element
   return <img src={src} alt="" className={`block w-full object-cover ${className}`} style={{ aspectRatio: ratio }} />;
 }
 
@@ -339,7 +338,7 @@ function ArticlePage({ ctx }: { ctx: Ctx }) {
         Fine looks like a decision someone made, and nobody did.
       </blockquote>
       <p className="text-prose text-ds-fg" style={{ ...text(ctx), lineHeight: 1.6 }}>
-        None of this is against the tools. It's the opposite. The more they can do, the more it matters that someone, somewhere, chose.
+        None of this is against the tools. It&apos;s the opposite. The more they can do, the more it matters that someone, somewhere, chose.
       </p>
     </div>
   );
@@ -504,7 +503,7 @@ function Newsletter({ ctx }: { ctx: Ctx }) {
       <DsButton variant="primary" iconRight={ArrowRight}>
         Read it on the site
       </DsButton>
-      <div className="w-full border-t border-ds-border pt-4 text-small text-ds-fg-muted">You're getting this because you subscribed. Unsubscribe any time.</div>
+      <div className="w-full border-t border-ds-border pt-4 text-small text-ds-fg-muted">You&apos;re getting this because you subscribed. Unsubscribe any time.</div>
     </div>
   );
 }
@@ -904,7 +903,7 @@ export function BoardSection() {
 
       <InPanel>
         <PanelSection title="Starting points">
-          <p className="text-small text-ds-fg-muted">A whole style to begin from. Picking one replaces this theme's look; Undo brings it back.</p>
+          <p className="text-small text-ds-fg-muted">A whole style to begin from. Picking one replaces this theme&apos;s look; Undo brings it back.</p>
           <div className="flex flex-col gap-ds-4" role="group" aria-label="Starting points">
             {DS_STARTING_POINTS.map((p) => (
               <button

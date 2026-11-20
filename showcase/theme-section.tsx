@@ -1078,7 +1078,7 @@ function PreviewWeb({ theme, phone = false }: { theme: DsThemeConfig; phone?: bo
 }
 
 /**
- * Ilo's own app: Hollow's (Y3K, the Humans: Ilo made Hollow, a palm-sized
+ * Ilo's own app: Hollow's (Ilo made Hollow, a palm-sized
  * stone left in the lake overnight that answers a question as pulse and
  * warmth). The app is the voice beside it: it listened to the lake all night
  * and tells you what it heard. The stone's dish, big in the middle and
