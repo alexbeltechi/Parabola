@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DsCanvas } from "@beltechi/parabola/showcase/ds-shell";
-import { DS_GROUPS, findDsPage } from "@beltechi/parabola/showcase/registry";
+import { DS_GROUPS, dsHref, findDsPage } from "@beltechi/parabola/showcase/registry";
 
 type Params = { params: Promise<{ group: string; page: string }> };
 
@@ -20,6 +20,8 @@ export default async function ShowcasePage({ params }: Params) {
   const { group, page } = await params;
   const found = findDsPage(group, page);
   if (!found) notFound();
+  // A one-page group lives at its own name now (/parabola/theme); its old address (/parabola/theme/fonts) goes there.
+  if (found.group.single) redirect(dsHref(found.group, found.page));
   const Page = found.page.component;
   return (
     <DsCanvas group={found.group.label} title={found.page.label} themeTitle={found.group.slug === "theme"} board={found.page.board}>
