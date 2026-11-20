@@ -686,6 +686,7 @@ var DS_DEFAULT_SOCIAL = {
   text: "mixed",
   corners: "square",
   fonts: "two",
+  tone: "mono",
   align: "centre",
   signature: "ends"
 };
@@ -764,6 +765,18 @@ var DS_SOCIAL_CHOICES = [
     ]
   },
   {
+    key: "tone",
+    label: "Text colours",
+    options: [
+      { id: "mono", label: "Monochrome", says: "Text is in one colour: the text colour (Text primary), or on a picture the light one of the theme's pair." },
+      {
+        id: "two",
+        label: "Two-tone",
+        says: "One word or one line of a statement may be said louder in the second text colour (Text secondary); on a picture, kept light enough to read. One a slide at most; the rest in Text primary."
+      }
+    ]
+  },
+  {
     key: "align",
     label: "Alignment",
     options: [
@@ -797,8 +810,7 @@ function parseDsSocial(value) {
 var FIXED = [
   `Type (size/line height at 1080 wide): ${Object.entries(DS_SOCIAL_TYPE).map(([name, t]) => `${name} ${t.size}/${Math.round(t.size * t.leading)}`).join(", ")}. Use these sizes and no others; one display or h1 statement a slide at most.`,
   `Reels and stories: 9:16, 1080 \xD7 ${DS_SOCIAL_REEL.height}px. Keep text out of the top ${DS_SOCIAL_REEL.top}px, the bottom ${DS_SOCIAL_REEL.bottom}px and the left ${DS_SOCIAL_REEL.left}px, and, in the lower half only, the right ${DS_SOCIAL_REEL.right}px: a tall phone crops the sides, and the app's own name, caption and tab bar sit at the bottom, its buttons down the right of the lower half. In the upper half, text is centred on the whole screen. Captions are short, one thought a scene, all in the caption size and the body font, aligned as the style aligns. A caption sits in one of three places and nowhere else: on the top line of the clear area, in its middle, or on its bottom line. Pick the one where the picture is calm, never over a face. A reel may open on a title instead: h1, in the heading font, straight on the picture in the page colour with no box, where the picture is calm.`,
-  "Text straight on a picture or a video takes the light one of the theme's pair: the page colour in a light theme, the text colour (Primary) in a dark one. Never pure white unless that colour is white.",
-  "Emphasis: one word or one line of a statement may be said louder in Tertiary, the theme's third colour (on a picture, kept light enough to read). One emphasis a slide at most; the rest in the slide's own colour.",
+  "Text straight on a picture or a video takes the light one of the theme's pair: the page colour in a light theme, the text colour (Text primary) in a dark one. Never pure white unless that colour is white.",
   "Colour: pictures aside, a carousel uses the page colour, the text colour and the accent, and opens on the page colour. The accent is a ground for one slide at most.",
   "Every length is a share of the frame's width: scale them together for another size.",
   "Text, marks, pictures and video only. Nothing that looks like a button."
@@ -823,9 +835,9 @@ var AXES = ":wght@400..700";
 var DS_PALETTES = [
   // Paper: warm off-whites, stone ink. Black buttons, or one deep red.
   // Its own look's button (the middle, at a balanced mood) is the text's own colour.
-  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: ["#1C1917", null, "#B0182B"], contrast: [0, 0.1] },
+  { id: "classic", label: "Paper", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: ["#1C1917", null, "#B0182B"], contrast: [0, 0.1] },
   // No colour at all: white, greys, black.
-  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
+  { id: "neutral", label: "Black and white", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
   // Clay, sand and moss, muted.
   { id: "earthy", label: "Earthy", backgrounds: ["#F3EEE3", "#EAE4D3", "#E3E7DA", "#2B3328"], buttons: ["#3D4A36", "#8A5A2B", "#A4492B"], contrast: [-0.1, 0.15] },
   // A faint tint of one colour, and a soft mid-tone of it for the buttons. Never bright.
@@ -1661,10 +1673,11 @@ function dsBrandKit(theme, name) {
     "",
     "Colours",
     `- Page: ${both("bg")}`,
-    `- Primary, the text: ${both("fg")}`,
-    `- Secondary, the brand's second colour: ${both("button")}, its text ${both("on-button")}. Use it with intent: the main button and calls to action, a highlight, the ground of one slide in a carousel.`,
-    `- Tertiary, quieter text: ${both("fg-muted")}`,
-    `- Cards and panels: ${both("surface-subtle")}; secondary buttons and pills ${both("surface")}`,
+    `- Text primary: ${both("fg")}`,
+    `- Text secondary, quieter text and, in a two-tone post, the word said louder: ${both("fg-muted")}`,
+    `- Primary, the brand's colour: ${both("button")}, its text ${both("on-button")}. Use it with intent: the main button and calls to action, a highlight, the ground of one slide in a carousel.`,
+    `- Secondary, the quiet buttons and pills: ${both("surface")}`,
+    `- Cards and panels: ${both("surface-subtle")}`,
     `- Borders: ${both("border")}`,
     "",
     "Type",

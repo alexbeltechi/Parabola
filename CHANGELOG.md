@@ -6,6 +6,16 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: the colours are **Text primary** (`text`), **Text secondary**
+  (`muted`), **Primary** (`accent`: the main button, calls to action) and
+  **Secondary** (`buttonSecondary`: the quiet buttons and pills). Stored
+  names unchanged; the exported style says so.
+- New: the social style's **Text colours**, Monochrome (default) or
+  Two-tone: a word or line said louder in Text secondary (`tone`).
+- Changed: the colour chips Classic and Neutral are called **Paper** and
+  **Black and white** (ids unchanged).
+- Changed: the email preview's Gmail is near black in dark.
+
 - Fixed: a text or button colour picked while viewing dark now shows in
   light too, moved only as far as it needs to read on the light page
   (`colours.ts`). Before, light fell back to black.
@@ -22,8 +32,8 @@ files a change touches when a project is likely to have edited them.
   and clicking a kept look that matches a preset picks it.
 
 - New: **Emphasis** in social text. Star a word or a line (`plain *loud*`)
-  and it wears Tertiary, one per slide; on a picture it's lifted light
-  enough to read. The rule is in `social.ts`'s fixed words.
+  and, two-tone, it wears Text secondary, one per slide; on a picture it's
+  lifted light enough to read.
 - Changed: text on a picture is the light one of the theme's pair: the page
   colour in light mode, Primary in dark (was always white).
 - Changed: the theme toggle hands the page back to the system's mode when

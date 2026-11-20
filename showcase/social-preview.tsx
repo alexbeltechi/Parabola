@@ -17,7 +17,7 @@
  */
 
 import * as React from "react";
-import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Sparkles, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
+import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Circle, Contrast, Sparkles, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
 import {
   DS_SOCIAL_CHOICES,
   DS_SOCIAL_EDGE_RANGE,
@@ -60,14 +60,15 @@ const PAGE_ON_PICTURE = "var(--ds-on-picture)";
  */
 const ON_PICTURE_VARS = "[--ds-on-picture:var(--ds-bg)] dark:[--ds-on-picture:var(--ds-fg)]";
 /**
- * Emphasis: a word or a line said louder, in Tertiary. On a colour, Tertiary as it is; on a picture, kept
+ * Emphasis (two-tone): a word or a line said louder, in Text secondary. On a colour, as it is; on a picture, kept
  * light enough to read (its lightness lifted, its hue held).
  */
 const EMPHASIS = "var(--ds-fg-muted)";
 const EMPHASIS_ON_PICTURE = "oklch(from var(--ds-fg-muted) max(l, 0.82) c h)";
 
-/** A line with its emphasised part, written `plain *loud*`: the starred part in Tertiary. */
-function Said({ text, picture }: { text: string; picture?: boolean }) {
+/** A line with its emphasised part, written `plain *loud*`: the starred part in Text secondary (two-tone only). */
+function Said({ text, picture, two }: { text: string; picture?: boolean; two: boolean }) {
+  if (!two) return <>{text.replace(/\*/g, "")}</>;
   const parts = text.split(/\*([^*]+)\*/);
   return (
     <>
@@ -260,7 +261,7 @@ function OnPicture({ ctx, as, children }: { ctx: Ctx; as: TypeName; children: Re
   if (s.text === "boxed" || s.text === "mixed") {
     return (
       <Hug
-        dep={`${as} ${s.fonts} ${dsSocialEdge(s)} ${s.frame} ${s.align}`}
+        dep={`${as} ${s.fonts} ${dsSocialEdge(s)} ${s.frame} ${s.align} ${s.tone}`}
         style={{ ...type(ctx, as), background: "var(--ds-bg)", color: "var(--ds-fg)", padding: len(DS_SOCIAL_GAP), borderRadius: s.corners === "rounded" ? len(DS_SOCIAL_GAP) : 0 }}
       >
         {children}
@@ -326,7 +327,7 @@ function slide(ctx: Ctx, index: number): React.ReactNode {
       return (
         <Frame ctx={ctx} height={height} ground={first} anchor={statement} foot={sign()}>
           <span className="block" style={type(ctx, "h1")}>
-            <Said text="The hard part isn't *what AI can do.*" />
+            <Said text="The hard part isn't *what AI can do.*" two={s.tone === "two"} />
           </span>
         </Frame>
       );
@@ -485,7 +486,7 @@ function scene(ctx: Ctx, index: number): React.ReactNode {
             title || plain ? (
               ctx.s.text === "mixed" ? (
                 <span key={line} className="block max-w-[82%]" style={{ ...type(ctx, "h1"), color: PAGE_ON_PICTURE }}>
-                  <Said text={line} picture />
+                  <Said text={line} picture two={ctx.s.tone === "two"} />
                 </span>
               ) : (
                 <OnPicture key={line} ctx={ctx} as="h1">
@@ -556,6 +557,7 @@ const ICONS: Record<(typeof DS_SOCIAL_CHOICES)[number]["key"], Record<string, Lu
   text: { mixed: Shapes, boxed: Captions, wrapped: WrapText, plain: Type, shadow: Layers2 },
   corners: { square: Square, rounded: Squircle },
   fonts: { two: ALargeSmall, one: Baseline },
+  tone: { mono: Circle, two: Contrast },
   align: { left: AlignLeft, centre: AlignCenter, right: AlignRight },
   signature: { none: CircleSlash, ends: PenLine, every: SignatureIcon },
 };

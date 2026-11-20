@@ -156,12 +156,12 @@ import {
 /** The theme's colours on the wheel, in the order they're picked, named for what they colour. */
 const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Background" },
-  // The brand's colours by rank: the text first, then the one that carries the brand (buttons, calls to action, a
-  // slide's ground), then the quieter text. Their stored names stay text, accent and muted.
-  { kind: "text", label: "Primary" },
-  { kind: "accent", label: "Secondary" },
-  { kind: "muted", label: "Tertiary" },
-  { kind: "buttonSecondary", label: "Button: secondary" },
+  // The text's two colours, then the brand's by rank: Primary carries the brand (the main button, calls to action,
+  // a slide's ground), Secondary the quiet buttons and pills. Stored as text, muted, accent and buttonSecondary.
+  { kind: "text", label: "Text primary" },
+  { kind: "muted", label: "Text secondary" },
+  { kind: "accent", label: "Primary" },
+  { kind: "buttonSecondary", label: "Secondary" },
   { kind: "field", label: "Field" },
   { kind: "surface", label: "Surface" },
 ];
@@ -801,7 +801,7 @@ const PLATFORM = {
 /** Gmail's own look, light, or dark when the preview is: its page, inks and the grey of its label chips. */
 const GMAIL =
   "[--gm-bg:white] [--gm-ink:rgb(31_31_31)] [--gm-muted:rgb(94_94_94)] [--gm-chip:rgb(233_235_238)] " +
-  "dark:[--gm-bg:rgb(31_31_31)] dark:[--gm-ink:rgb(227_227_227)] dark:[--gm-muted:rgb(168_168_168)] dark:[--gm-chip:rgb(60_64_67)]";
+  "dark:[--gm-bg:rgb(18_18_18)] dark:[--gm-ink:rgb(227_227_227)] dark:[--gm-muted:rgb(160_160_160)] dark:[--gm-chip:rgb(48_48_48)]";
 
 /**
  * Her newsletter as a reader opens it in Gmail ("create a
@@ -1093,7 +1093,7 @@ function PreviewApp() {
           <div className="absolute inset-8 rounded-full bg-ds-surface" />
           <div className="relative size-3 rounded-full bg-ds-fg" />
         </div>
-        {/* What it says now first, strongest; what it heard before under it, in Tertiary. */}
+        {/* What it says now first, strongest; what it heard before under it, in Text secondary. */}
         <div className="flex flex-col items-center gap-ds-8">
           <p className="text-h3 text-ds-fg">Rain by noon. Bring the stone in before then.</p>
           {heard.map((line) => (

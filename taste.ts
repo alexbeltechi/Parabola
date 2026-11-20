@@ -80,9 +80,9 @@ export type DsPalette = {
 export const DS_PALETTES: readonly DsPalette[] = [
   // Paper: warm off-whites, stone ink. Black buttons, or one deep red.
   // Its own look's button (the middle, at a balanced mood) is the text's own colour.
-  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: ["#1C1917", null, "#B0182B"], contrast: [0, 0.1] },
+  { id: "classic", label: "Paper", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: ["#1C1917", null, "#B0182B"], contrast: [0, 0.1] },
   // No colour at all: white, greys, black.
-  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
+  { id: "neutral", label: "Black and white", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
   // Clay, sand and moss, muted.
   { id: "earthy", label: "Earthy", backgrounds: ["#F3EEE3", "#EAE4D3", "#E3E7DA", "#2B3328"], buttons: ["#3D4A36", "#8A5A2B", "#A4492B"], contrast: [-0.1, 0.15] },
   // A faint tint of one colour, and a soft mid-tone of it for the buttons. Never bright.
