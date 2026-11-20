@@ -748,13 +748,13 @@ export function dsSameLook(a: DsThemeConfig, b: DsThemeConfig): boolean {
 /** A named theme in a library. */
 export type DsThemeEntry = { id: string; name: string; theme: DsThemeConfig };
 
-/** Parabola, the default (always first, can't go), and any themes added; `active` is the one the site wears. */
+/** Classic, the default (always first, can't go), and any themes added; `active` is the one the site wears. */
 export type DsThemeLibrary = { themes: DsThemeEntry[]; active: string };
 
 export const DS_DEFAULT_THEME_ID = "default";
 
 export const DS_DEFAULT_LIBRARY: DsThemeLibrary = {
-  themes: [{ id: DS_DEFAULT_THEME_ID, name: "Parabola", theme: DS_DEFAULT_THEME }],
+  themes: [{ id: DS_DEFAULT_THEME_ID, name: "Classic", theme: DS_DEFAULT_THEME }],
   active: DS_DEFAULT_THEME_ID,
 };
 
@@ -786,14 +786,14 @@ export function parseDsThemeLibrary(value: unknown, legacy?: unknown): DsThemeLi
         if (!id || seen.has(id)) return [];
         seen.add(id);
         const named = typeof entry.name === "string" && entry.name.trim() ? entry.name.trim().slice(0, 60) : id;
-        // The default theme was called Default before it was Parabola.
-        const name = id === DS_DEFAULT_THEME_ID && named === "Default" ? "Parabola" : named;
+        // The default theme was called Default, then Parabola, before it was Classic.
+        const name = id === DS_DEFAULT_THEME_ID && (named === "Default" || named === "Parabola") ? "Classic" : named;
         return [{ id, name, theme: parseDsThemeConfig(entry.theme) }];
       })
     : [];
   const fallbackDefault: DsThemeEntry = {
     id: DS_DEFAULT_THEME_ID,
-    name: "Parabola",
+    name: "Classic",
     theme: legacy !== undefined ? parseDsThemeConfig(legacy) : DS_DEFAULT_THEME,
   };
   const first = themes.find((t) => t.id === DS_DEFAULT_THEME_ID) ?? fallbackDefault;

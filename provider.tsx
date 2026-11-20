@@ -26,10 +26,12 @@ export type DsLinkComponent = React.ComponentType<DsLinkProps>;
 export type DsLinkProps = Omit<React.ComponentProps<"a">, "href"> & { href: string };
 
 type DsTheme = "light" | "dark";
+/** A page-wide pick: light, dark, or back to following the system. */
+type DsThemeChoice = DsTheme | "system";
 
 type DsConfig = {
   link: DsLinkComponent | "a";
-  onThemeChange?: (theme: DsTheme) => void;
+  onThemeChange?: (theme: DsThemeChoice) => void;
   themeLibrary?: DsThemeLibrary;
   /** The theme the website wears, as published. */
   publishedTheme?: DsThemeEntry;
@@ -62,7 +64,11 @@ export function DsProvider({
  */
 export function DsModeScope({ onThemeChange, children }: { onThemeChange: (theme: DsTheme) => void; children: React.ReactNode }) {
   const parent = React.useContext(DsConfigContext);
-  const config = React.useMemo(() => ({ ...parent, onThemeChange }), [parent, onThemeChange]);
+  // A part of the page has no system to follow: "system" there means nothing to do.
+  const config = React.useMemo(
+    () => ({ ...parent, onThemeChange: (theme: DsThemeChoice) => theme !== "system" && onThemeChange(theme) }),
+    [parent, onThemeChange],
+  );
   return <DsConfigContext.Provider value={config}>{children}</DsConfigContext.Provider>;
 }
 
@@ -82,12 +88,16 @@ export function useDsThemeLibrary(): Pick<DsConfig, "themeLibrary" | "publishedT
 }
 
 /** Switches the theme: through the provider when set, else the `dark` class on <html>. */
-export function useDsSetTheme(): (theme: DsTheme) => void {
+export function useDsSetTheme(): (theme: DsThemeChoice) => void {
   const { onThemeChange } = React.useContext(DsConfigContext);
   return React.useCallback(
-    (theme: DsTheme) => {
+    (theme: DsThemeChoice) => {
       if (onThemeChange) onThemeChange(theme);
-      else document.documentElement.classList.toggle("dark", theme === "dark");
+      else
+        document.documentElement.classList.toggle(
+          "dark",
+          theme === "system" ? window.matchMedia("(prefers-color-scheme: dark)").matches : theme === "dark",
+        );
     },
     [onThemeChange]
   );

@@ -17,18 +17,21 @@
  */
 
 import * as React from "react";
-import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
+import { ALargeSmall, AlignCenter, AlignRight, Shapes, BatteryFull, Equal, Heart, House, MessageCircle, Repeat2, Search, Send, Signal, SquarePlay, Wifi, AlignLeft, Baseline, Captions, CircleSlash, Layers2, PenLine, Signature as SignatureIcon, Circle, Contrast, Sparkles, Square, Squircle, Type, WrapText, createLucideIcon, type LucideIcon } from "lucide-react";
 import {
   DS_SOCIAL_CHOICES,
-  DS_SOCIAL_EDGES,
+  DS_SOCIAL_EDGE_RANGE,
   DS_SOCIAL_FRAMES,
   DS_SOCIAL_GAP,
   DS_SOCIAL_REEL,
   DS_SOCIAL_TYPE,
   DS_SOCIAL_WIDTH,
   type DsSocial,
+  dsSocialEdge,
 } from "../social";
 import { DsButton } from "../primitives/button";
+import { DsNumberInput } from "../primitives/field";
+import { DsScrollRow } from "../primitives/scroll-row";
 import { BoardOutline } from "./board";
 
 const MEDIA = "/parabola/preview";
@@ -50,7 +53,37 @@ const ON_PICTURE = "#FFFFFF";
  * Text straight on a picture: the page colour, not pure white (paper on a paper theme, white only on a white one).
  * Kept light whatever the page is, a dark one included: its lightness is lifted and its colour held faint.
  */
-const PAGE_ON_PICTURE = "oklch(from var(--ds-bg) max(l, 0.9) min(c, 0.05) h)";
+const PAGE_ON_PICTURE = "var(--ds-on-picture)";
+/**
+ * Which of the theme's colours text on a picture takes: the light one of the pair, so it reads. In the light
+ * mode the page colour (paper on a paper theme), in the dark the text colour (Primary). Set on every frame.
+ */
+const ON_PICTURE_VARS = "[--ds-on-picture:var(--ds-bg)] dark:[--ds-on-picture:var(--ds-fg)]";
+/**
+ * Emphasis (two-tone): a word or a line said louder, in Text secondary. On a colour, as it is; on a picture, kept
+ * light enough to read (its lightness lifted, its hue held).
+ */
+const EMPHASIS = "var(--ds-fg-muted)";
+const EMPHASIS_ON_PICTURE = "oklch(from var(--ds-fg-muted) max(l, 0.82) c h)";
+
+/** A line with its emphasised part, written `plain *loud*`: the starred part in Text secondary (two-tone only). */
+function Said({ text, picture, two }: { text: string; picture?: boolean; two: boolean }) {
+  if (!two) return <>{text.replace(/\*/g, "")}</>;
+  const parts = text.split(/\*([^*]+)\*/);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 ? (
+          <span key={i} style={{ color: picture ? EMPHASIS_ON_PICTURE : EMPHASIS }}>
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
 /** How a frame's content lines up across it, by the style's alignment. */
 const ACROSS = { left: "items-start text-left", centre: "items-center text-center", right: "items-end text-right" } as const;
 const ITEMS = { left: "items-start", centre: "items-center", right: "items-end" } as const;
@@ -114,12 +147,12 @@ function Frame({
   children: React.ReactNode;
 }) {
   const { s } = ctx;
-  const edge = DS_SOCIAL_EDGES[s.edge];
+  const edge = dsSocialEdge(s);
   const inset = { top: len(Math.max(edge, safe?.top ?? 0)), right: len(Math.max(edge, safe?.right ?? 0)), bottom: len(Math.max(edge, safe?.bottom ?? 0)), left: len(edge) };
   const across = ACROSS[s.align];
   return (
     <div
-      className={`relative overflow-hidden ${flush ? "" : "rounded-ds-lg"}`}
+      className={`relative overflow-hidden ${ON_PICTURE_VARS} ${flush ? "" : "rounded-ds-lg"}`}
       style={{ containerType: "inline-size", aspectRatio: `${DS_SOCIAL_WIDTH} / ${height}`, background: ground?.bg ?? "#000000", color: ground?.fg ?? ON_PICTURE }}
     >
       {picture && (
@@ -228,7 +261,7 @@ function OnPicture({ ctx, as, children }: { ctx: Ctx; as: TypeName; children: Re
   if (s.text === "boxed" || s.text === "mixed") {
     return (
       <Hug
-        dep={`${as} ${s.fonts} ${s.edge} ${s.frame} ${s.align}`}
+        dep={`${as} ${s.fonts} ${dsSocialEdge(s)} ${s.frame} ${s.align} ${s.tone}`}
         style={{ ...type(ctx, as), background: "var(--ds-bg)", color: "var(--ds-fg)", padding: len(DS_SOCIAL_GAP), borderRadius: s.corners === "rounded" ? len(DS_SOCIAL_GAP) : 0 }}
       >
         {children}
@@ -294,7 +327,7 @@ function slide(ctx: Ctx, index: number): React.ReactNode {
       return (
         <Frame ctx={ctx} height={height} ground={first} anchor={statement} foot={sign()}>
           <span className="block" style={type(ctx, "h1")}>
-            The hard part isn&apos;t what AI can do.
+            <Said text="The hard part isn't *what AI can do.*" two={s.tone === "two"} />
           </span>
         </Frame>
       );
@@ -344,10 +377,10 @@ function slide(ctx: Ctx, index: number): React.ReactNode {
  * never over her face.
  */
 const SCENES: { picture: string; position?: string; place: Place; title?: boolean; plain?: boolean; lines: string[] }[] = [
-  { picture: "ilo-black-sand.jpg", place: "top", title: true, lines: ["The hard part isn't what AI can do."] },
+  { picture: "ilo-black-sand.jpg", place: "top", title: true, lines: ["The hard part isn't *what AI can do.*"] },
   { picture: "ilo-portrait.jpg", place: "bottom", lines: ["It's knowing which decisions to hand over."] },
   // Straight on the picture, with no box: the lake is calm enough to carry it.
-  { picture: "ilo-lake.jpg", place: "middle", plain: true, lines: ["And which ones have to stay mine."] },
+  { picture: "ilo-lake.jpg", place: "middle", plain: true, lines: ["And which ones *have to stay mine.*"] },
   { picture: "ilo-lake-day.jpg", place: "top", lines: ["The ones I keep are the ones people recognise me by."] },
   { picture: "ilo-portrait.jpg", position: "50% 0%", place: "bottom", lines: ["Pick three you never hand over."] },
 ];
@@ -453,11 +486,11 @@ function scene(ctx: Ctx, index: number): React.ReactNode {
             title || plain ? (
               ctx.s.text === "mixed" ? (
                 <span key={line} className="block max-w-[82%]" style={{ ...type(ctx, "h1"), color: PAGE_ON_PICTURE }}>
-                  {line}
+                  <Said text={line} picture two={ctx.s.tone === "two"} />
                 </span>
               ) : (
                 <OnPicture key={line} ctx={ctx} as="h1">
-                  {line}
+                  {line.replace(/\*/g, "")}
                 </OnPicture>
               )
             ) : (
@@ -508,7 +541,7 @@ export function socialFrames(social: DsSocial): { slides: React.ReactNode[]; sce
   };
 }
 
-/** A frame of a given shape, drawn as an icon: 3:4, 4:5 or 1:1. */
+/** A frame of a given shape, drawn as an icon: 3:4, 1:1 or 4:3. */
 const shape = (name: string, w: number, h: number) =>
   createLucideIcon(name, [["rect", { x: `${(24 - w) / 2}`, y: `${(24 - h) / 2}`, width: `${w}`, height: `${h}`, rx: "2", key: "frame" }]]);
 /** A frame with its edge line inside it, close to the edge or far in. */
@@ -518,12 +551,13 @@ const edge = (name: string, inset: number) =>
     ["rect", { x: `${3 + inset}`, y: `${3 + inset}`, width: `${18 - inset * 2}`, height: `${18 - inset * 2}`, rx: "0.5", strokeDasharray: "2 2", key: "edge" }],
   ]);
 /** Each choice's icon, by option (social.ts holds the choices, the panel the pictures). */
-const ICONS: Record<keyof DsSocial, Record<string, LucideIcon>> = {
-  frame: { "3:4": shape("Frame34", 13.5, 18), "4:5": shape("Frame45", 14.4, 18), "1:1": shape("Frame11", 16, 16) },
-  edge: { tight: edge("EdgeTight", 2), regular: edge("EdgeRegular", 3.5), wide: edge("EdgeWide", 5.5) },
+const ICONS: Record<(typeof DS_SOCIAL_CHOICES)[number]["key"], Record<string, LucideIcon>> = {
+  frame: { "3:4": shape("Frame34", 13.5, 18), "1:1": shape("Frame11", 16, 16), "4:3": shape("Frame43", 18, 13.5) },
+  edge: { tight: edge("EdgeTight", 2), regular: edge("EdgeRegular", 3.5), wide: edge("EdgeWide", 5.5), custom: Sparkles },
   text: { mixed: Shapes, boxed: Captions, wrapped: WrapText, plain: Type, shadow: Layers2 },
   corners: { square: Square, rounded: Squircle },
   fonts: { two: ALargeSmall, one: Baseline },
+  tone: { mono: Circle, two: Contrast },
   align: { left: AlignLeft, centre: AlignCenter, right: AlignRight },
   signature: { none: CircleSlash, ends: PenLine, every: SignatureIcon },
 };
@@ -534,17 +568,46 @@ export function SocialSettings({ social: s, onChange }: { social: DsSocial; onCh
     <>
       {DS_SOCIAL_CHOICES.map((choice) => (
         // The panel's light pills (as Colour's Classic, Neutral…), an icon each, no fill at rest and a soft one when
-        // picked; here they share the row's whole width, the icon and the word centred together, and go onto a second
-        // row when there are too many for one, so nothing scrolls or pushes the panel wider.
+        // picked. One line: where they fit they share its whole width; where they don't (Text on pictures), they keep
+        // their own width and the row scrolls sideways.
         <div key={choice.key} className="flex flex-col gap-ds-4">
           <span className="text-p text-ds-fg">{choice.label}</span>
-          <div role="group" aria-label={choice.label} className="flex flex-wrap items-center gap-ds-4">
+          <DsScrollRow role="group" aria-label={choice.label} className="-mx-2 min-w-0 px-2">
             {(choice.options as readonly { id: string; label: string; says: string }[]).map((o) => (
-              <DsButton key={o.id} size="small" variant="text" className="min-w-0 grow px-2" iconLeft={ICONS[choice.key][o.id]} pressed={s[choice.key] === o.id} title={o.says} onClick={() => onChange({ ...s, [choice.key]: o.id })}>
+              <DsButton
+                key={o.id}
+                size="small"
+                variant="text"
+                className="shrink-0 grow px-2"
+                iconLeft={ICONS[choice.key][o.id]}
+                pressed={s[choice.key] === o.id}
+                title={o.says.replace("{edge}", String(s.edgeSize))}
+                onClick={() =>
+                  onChange({
+                    ...s,
+                    [choice.key]: o.id,
+                    // Custom starts where the edge was, so nothing moves until the number does.
+                    ...(choice.key === "edge" && o.id === "custom" && s.edge !== "custom" ? { edgeSize: dsSocialEdge(s) } : {}),
+                  })
+                }
+              >
                 {o.label}
               </DsButton>
             ))}
-          </div>
+          </DsScrollRow>
+          {choice.key === "edge" && s.edge === "custom" && (
+            <div className="flex items-center gap-ds-8">
+              <DsNumberInput
+                aria-label="Edge in px"
+                className="w-24"
+                min={DS_SOCIAL_EDGE_RANGE.min}
+                max={DS_SOCIAL_EDGE_RANGE.max}
+                value={s.edgeSize}
+                onValueChange={(edgeSize) => onChange({ ...s, edgeSize })}
+              />
+              <span className="text-small text-ds-fg-muted">px at 1080 wide</span>
+            </div>
+          )}
         </div>
       ))}
     </>

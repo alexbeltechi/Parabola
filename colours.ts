@@ -448,12 +448,16 @@ function hexIn(
   colour: DsThemeColour,
   mode: "light" | "dark",
   auto: () => string,
-  counterpart: (hex: string) => string = dsCounterpart
+  counterpart: (hex: string) => string = dsCounterpart,
+  // Text and button colours picked in dark only: the light theme takes them too, moved as far as they need to read
+  // ("If the text is orange in dark theme, the text should be orange in the bright theme too"). Pages and cards don't.
+  back?: (hex: string) => string
 ): string | null {
   const light = dsIsHex(colour.light) ? colour.light : null;
   if (mode === "light" && light) return light;
   if (mode === "dark" && colour.dark) return colour.dark;
-  const based = mode === "dark" && light ? counterpart(light) : null;
+  const dark = dsIsHex(colour.dark) ? colour.dark : null;
+  const based = mode === "dark" && light ? counterpart(light) : mode === "light" && dark && back ? back(dark) : null;
   const shift = (mode === "light" ? colour.lightShift : colour.darkShift) ?? 0;
   return shift ? dsShift(based ?? auto(), shift) : based;
 }
@@ -489,7 +493,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
     mode,
     () => (dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE),
     // Text in dark reads well clear of the page (7:1), so its quieter steps, mixed toward the page, still read.
-    (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7)
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7),
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg)
   );
   if (page || text || contrast !== 0) {
     const bg = page ?? tokens.bg;
@@ -534,7 +539,8 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
   }
   // Type: secondary, the quieter text: its own colour (in dark, moved to read on the page), a fainter step drawn
   // from it; or the primary type mixed toward the page.
-  const muted = hexIn(colours.muted, mode, () => tokens["fg-muted"], (hex) => dsInkCounterpart(hex, tokens.bg));
+  const onPage = (hex: string) => dsInkCounterpart(hex, tokens.bg);
+  const muted = hexIn(colours.muted, mode, () => tokens["fg-muted"], onPage, onPage);
   if (muted) {
     tokens["fg-muted"] = muted;
     tokens["fg-subtle"] = dsMix(muted, tokens.bg, 0.75);
@@ -560,7 +566,7 @@ export function dsColourTokens(colours: DsThemeColours, mode: "light" | "dark", 
   // The tertiary colour, the highlight: an older theme's preset; else its own colour or the text's, its tint a
   // wash of it on the page.
   const preset = colours.accent.light && !dsIsHex(colours.accent.light) && !(mode === "dark" && colours.accent.dark);
-  const accent = preset ? null : hexIn(colours.accent, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg));
+  const accent = preset ? null : hexIn(colours.accent, mode, () => tokens.fg, onPage, (hex) => hex);
   if (preset) {
     const old = dsAccentTokens(colours.accent.light!, mode);
     tokens.highlight = old.highlight;

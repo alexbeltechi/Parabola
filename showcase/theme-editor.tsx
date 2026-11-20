@@ -11,6 +11,7 @@ import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownSeparator, DsD
 import { dsToast } from "../primitives/toast";
 import { ThemeExportDialog } from "./theme-export";
 import { useDsThemeLibrary } from "../provider";
+import { dsResetLooks } from "./custom-looks";
 import {
   DS_DEFAULT_LIBRARY,
   DS_DEFAULT_THEME,
@@ -46,18 +47,18 @@ type ThemeEditor = {
   /** The theme open for editing. */
   entry: DsThemeEntry;
   theme: DsThemeConfig;
-  /** Change the open theme, whichever it is. */
-  setTheme: (theme: DsThemeConfig) => void;
+  /** Change the open theme; `into` opens that theme first and changes it. */
+  setTheme: (theme: DsThemeConfig, into?: string) => void;
   /** Whether the open theme is Parabola or one of the themes made. */
   status: "parabola" | "theme";
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
-  /** Add a theme called `name`, a copy of the open one, and open it. */
-  addTheme: (name: string) => void;
+  /** Add a theme called `name`, a copy of the open one (or of `from`: another theme's id, or a theme), and open it. */
+  addTheme: (name: string, from?: string | DsThemeConfig) => void;
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
-  /** The open theme back to Parabola's own look. Other themes stay. Returns what undoes it. */
+  /** Back to the start: Classic as Parabola makes it, the kept themes gone (not the website's). Returns what undoes it. */
   restoreTheme: () => () => void;
   /** Changes not saved yet. */
   dirty: boolean;
@@ -148,7 +149,14 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const selectedRef = React.useRef(selected);
   selectedRef.current = selected;
 
-  const setTheme = React.useCallback((theme: DsThemeConfig) => {
+  // A change goes into the open theme. The first one (DS_DEFAULT_THEME_ID) is where a style picked on the Theme rail
+  // is worn, Custom while it's changed; + keeps it as a theme of its own (theme-section's ThemeRail). `into` opens
+  // another theme first and puts the change there (a style picked while a kept theme is open).
+  const setTheme = React.useCallback((theme: DsThemeConfig, into?: string) => {
+    if (into && into !== selectedRef.current) {
+      selectedRef.current = into;
+      setSelected(into);
+    }
     setHistory((h) => {
       const lib = h.present;
       const open = lib.themes.find((t) => t.id === selectedRef.current) ?? lib.themes[0];
@@ -231,9 +239,10 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       setTheme,
       status,
       select: setSelected,
-      addTheme: (name) => {
+      addTheme: (name, from) => {
         const id = dsThemeEntryId(library, name);
-        change({ ...library, themes: [...library.themes, { id, name, theme: entry.theme }] });
+        const theme = typeof from === "object" ? from : (library.themes.find((t) => t.id === from) ?? entry).theme;
+        change({ ...library, themes: [...library.themes, { id, name, theme }] });
         setSelected(id);
       },
       renameTheme: (id, name) => change({ ...library, themes: library.themes.map((t) => (t.id === id ? { ...t, name } : t)) }),
@@ -242,17 +251,30 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         change({ ...library, themes: library.themes.filter((t) => t.id !== id) });
         if (selected === id) setSelected(library.active);
       },
+      // Factory settings: Classic, as Parabola makes it, the kept themes gone (all but the one the website wears),
+      // and every row's presets back as Parabola names them (custom-looks). Undo puts all of it back.
       restoreTheme: () => {
-        const id = entry.id;
-        const before = entry.theme;
-        const put = (theme: DsThemeConfig) =>
-          setHistory((h) => ({
-            past: [...h.past, h.present].slice(-100),
-            present: { ...h.present, themes: h.present.themes.map((t) => (t.id === id ? { ...t, theme } : t)) },
-            future: [],
-          }));
-        put(DS_DEFAULT_THEME);
-        return () => put(before);
+        const before = library;
+        const open = entry.id;
+        const first = library.themes.find((t) => t.id === DS_DEFAULT_THEME_ID) ?? library.themes[0];
+        const after: DsThemeLibrary = {
+          ...library,
+          themes: library.themes
+            .filter((t) => t.id === first.id || t.id === library.active)
+            .map((t) => (t.id === first.id ? { ...t, theme: DS_DEFAULT_THEME } : t)),
+        };
+        const put = (lib: DsThemeLibrary, id: string) => {
+          selectedRef.current = id;
+          setSelected(id);
+          setHistory((h) => ({ past: [...h.past, h.present].slice(-100), present: lib, future: [] }));
+        };
+        put(after, first.id);
+        // The rows as Parabola makes them too: the presets deleted here back, renamed ones under their own names.
+        const looksBack = dsResetLooks();
+        return () => {
+          put(before, open);
+          looksBack();
+        };
       },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
       unpublished: published.id !== entry.id || JSON.stringify(published.theme) !== JSON.stringify(entry.theme),
@@ -353,6 +375,14 @@ export type ShellSides = { left: boolean; right: boolean };
 
 /** Every section of the panel open or folded at once (the canvas holds it; the first section has its button). */
 export const PanelAllContext = React.createContext<{ open: boolean; toggle: () => void } | null>(null);
+/** "Custom", or "Custom 2" and on when that's taken. */
+export function dsCustomName(taken: readonly string[], base = "Custom"): string {
+  if (!taken.includes(base)) return base;
+  let n = 2;
+  while (taken.includes(`${base} ${n}`)) n += 1;
+  return `${base} ${n}`;
+}
+
 export const ShellSidesContext = React.createContext<{ collapsed: ShellSides; toggle: (side: keyof ShellSides) => void }>({
   collapsed: { left: false, right: false },
   toggle: () => {},
@@ -378,7 +408,7 @@ export const RESTORE: Record<RestoreScope, { item: string; title: string; descri
   all: {
     item: "Restore all settings",
     title: "Restore all settings?",
-    description: "Every setting of this theme goes back to Parabola's own. Undo brings them back.",
+    description: "Everything as Parabola makes it: Classic, every style and preset back under its own name, and the themes and looks you kept taken out (not the theme your website wears). Undo brings it all back.",
     done: "All settings restored",
   },
 };

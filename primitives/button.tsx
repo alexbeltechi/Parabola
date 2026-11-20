@@ -195,6 +195,16 @@ type DsButtonOwnProps = Omit<VariantProps<typeof dsButtonVariants>, "inverse"> &
   destructive?: boolean;
   /** A line and no fill. See the Outline note above. */
   outline?: boolean;
+  /**
+   * Renamable: a double-click turns the label into a field in place, the
+   * button's own size and look; Enter or leaving it keeps the new name,
+   * Escape keeps the old one. Given the name, trimmed and not empty.
+   */
+  onRename?: (name: string) => void;
+  /** Start in the field, as a new item that's named first does. */
+  renaming?: boolean;
+  /** The field closed, renamed or not. */
+  onRenameEnd?: () => void;
 };
 
 type DsButtonAsButton = DsButtonOwnProps & { href?: undefined } & Omit<
@@ -219,10 +229,19 @@ export function DsButton({
   current,
   destructive,
   outline,
+  onRename,
+  renaming,
+  onRenameEnd,
   className,
   children,
   ...props
 }: DsButtonProps) {
+  const [editing, setEditing] = React.useState(false);
+  // The name as it's typed while renaming (null: not changed yet, the label as it was).
+  const [typed, setTyped] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (renaming) setEditing(true);
+  }, [renaming]);
   // Inferred from an icon with no label; pass it explicitly for custom icon children.
   const iconOnly = iconOnlyProp ?? (!children && meta == null && !!(IconLeft || IconRight));
   const inverse = Boolean(pressed || current);
@@ -251,6 +270,45 @@ export function DsButton({
     </>
   );
 
+  if (onRename && editing) {
+    const start = typeof children === "string" ? children : "";
+    const draft = typed ?? start;
+    const setDraft = setTyped;
+    const finish = (value: string | null) => {
+      setEditing(false);
+      setTyped(null);
+      const name = value?.trim();
+      if (name && name !== start) onRename(name);
+      onRenameEnd?.();
+    };
+    return (
+      <span {...shared} aria-pressed={undefined}>
+        {IconLeft && <IconLeft aria-hidden />}
+        {/* The field as wide as its words, as the label was: a hidden copy of them sizes it, so the button keeps its
+            width until the name does change. */}
+        <span className="inline-grid">
+          <span aria-hidden className="invisible whitespace-pre [grid-area:1/1]">
+            {draft || " "}
+          </span>
+          <input
+            autoFocus
+            defaultValue={start}
+            aria-label="Name"
+            size={1}
+            onFocus={(e) => e.currentTarget.select()}
+            onInput={(e) => setDraft(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") finish(e.currentTarget.value);
+              if (e.key === "Escape") finish(null);
+            }}
+            onBlur={(e) => finish(e.currentTarget.value)}
+            className="w-full min-w-0 bg-transparent p-0 text-inherit outline-none [font:inherit] [grid-area:1/1]"
+          />
+        </span>
+      </span>
+    );
+  }
+
   if (props.href !== undefined) {
     return (
       <DsLink {...props} {...shared}>
@@ -263,6 +321,14 @@ export function DsButton({
     <button
       type="button"
       {...props}
+      onDoubleClick={
+        onRename
+          ? (e) => {
+              props.onDoubleClick?.(e);
+              setEditing(true);
+            }
+          : props.onDoubleClick
+      }
       disabled={props.disabled || loading}
       aria-busy={loading || undefined}
       {...shared}

@@ -20,6 +20,11 @@ import { DsButton } from "./button";
  * with the page under them. A site puts its name in `leading` and leaves the
  * middle empty; an app's page puts its title in the middle.
  *
+ * `surface`: what's behind the buttons, as the bar's (`DsTopBar`): nothing,
+ * the blur (`ds-nav-fade`, the page blurring away beneath) or the page
+ * colour. A site's nav passes `theme.nav.surface`; without one it keeps the
+ * faint fade above.
+ *
  * The title shrinks first: on a narrow screen it truncates, the sides keep
  * their buttons. A site's nav takes it as `theme.nav.style: "floating"`
  * (nav-style.ts); the other style is the bar, `DsTopBar`.
@@ -29,9 +34,12 @@ export function DsFloatingBar({
   title,
   trailing,
   column,
+  surface,
   className,
   ...props
 }: Omit<React.ComponentProps<"header">, "title"> & {
+  /** What's behind the buttons: nothing, the blur, or the page colour. Without it, the faint fade. */
+  surface?: "transparent" | "blur" | "solid";
   /** The page's content width, in px: the buttons keep to a centred column that wide. */
   column?: number;
   /** Left: back, when the page sits under another. */
@@ -44,7 +52,15 @@ export function DsFloatingBar({
   return (
     <header
       data-slot="ds-floating-bar"
-      className={cn("pointer-events-none sticky top-0 z-20 block px-4 pt-3 pb-5 ds-nav-float", className)}
+      data-surface={surface}
+      className={cn(
+        "pointer-events-none sticky top-0 z-20 block px-4 pt-3",
+        surface === undefined && "pb-5 ds-nav-float",
+        surface === "blur" && "pb-5 ds-nav-fade",
+        surface === "solid" && "bg-ds-bg pb-3",
+        surface === "transparent" && "pb-3",
+        className,
+      )}
       {...props}
     >
       <div className="mx-auto grid w-full grid-cols-[1fr_minmax(0,max-content)_1fr] items-center gap-ds-8" style={{ maxWidth: column }}>
