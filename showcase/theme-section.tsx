@@ -59,8 +59,6 @@ import { DsButton } from "../primitives/button";
 import { DsDisclosure } from "../primitives/disclosure";
 import {
   DsConfirmDialog,
-  DsDialog,
-  DsDialogActions,
 } from "../primitives/dialog";
 import {
   DsDropdown,
@@ -98,6 +96,7 @@ import { DsTopBar } from "../primitives/top-bar";
 import { DsFloatingBar, DsFloatingTitle } from "../primitives/floating-bar";
 import { BoardOutline, BoardSurface, type BoardRow } from "./board";
 import { socialFrames, SocialSettings } from "./social-preview";
+import { STYLES, useThemeLook } from "./theme-look";
 import { dsLookSnapshot, dsSameLook, dsUnhidePresets, dsWithLook, useCustomLooks, type DsLookScope, type DsLookSnapshot } from "./custom-looks";
 import { dsCustomName } from "./theme-editor";
 import {
@@ -130,13 +129,10 @@ import {
   dsTasteVoice,
   dsTypeStyleFonts,
   type DsTone,
-  DS_TASTES,
-  dsShuffleTaste,
 } from "../taste";
 import {
   DS_BODY_FAMILY,
   DS_DEFAULT_THEME,
-  DS_DEFAULT_THEME_ID,
   DS_HEADING_FAMILY,
   dsThemeButtons,
   dsThemeColourTokens,
@@ -541,24 +537,6 @@ const SECTION = {
   },
 } as const;
 
-/** The styles the Theme section offers: whole looks, a palette, a kind of type and a kind of button each (taste.ts). */
-const STYLES = DS_TASTES.filter((t) => ["classic", "minimal", "elegant", "tech", "natural"].includes(t.id));
-
-/** A style, applied: one look, the same every time (its first palette, type and buttons). The dice is for chance. */
-function withStyle(t: DsThemeConfig, id: string): DsThemeConfig {
-  const drawn = dsShuffleTaste([id], t.character, "first");
-  return dsThemeWithFonts(
-    {
-      ...t,
-      character: drawn.character,
-      colours: { ...DS_DEFAULT_COLOURS, accent: { light: drawn.button, dark: null } },
-      radius: null,
-      pillRadius: null,
-      buttons: drawn.buttonStyle,
-    },
-    drawn.fonts,
-  );
-}
 
 /**
  * The whole look again, at random: each section's own dice, one after the
@@ -1388,6 +1366,84 @@ function LookRail({
   );
 }
 
+/**
+ * The Theme rail, one row for every look: Parabola's styles (Classic first,
+ * the default), then the themes kept, then Custom. A style is worn by the
+ * first theme, the one a maker starts on; change anything and Custom takes
+ * its place, picked, until it's kept (+, or naming it), deleted (back to the
+ * style) or another chip is picked. A kept theme is picked to open it, and
+ * changes go into it. Each chip's ⋮ renames, duplicates and deletes it; a
+ * style deleted is only hidden, and Restore all brings it back.
+ */
+function ThemeRail() {
+  const { library, entry, setTheme, select, addTheme, renameTheme, removeTheme } = useThemeEditor();
+  const { first, kept, onFirst, style, live, fresh, current } = useThemeLook();
+  const custom = useCustomLooks();
+  const [renaming, setRenaming] = React.useState<string | null>(null);
+  const names = library.themes.map((t) => t.name);
+  // Keep a look as a theme of its own, opened, its name ready to change.
+  const keep = (name: string, from?: string | DsThemeConfig) => {
+    const unique = dsCustomName(names, name);
+    setRenaming(dsThemeEntryId(library, unique));
+    addTheme(unique, from);
+  };
+  const options: Pill[] = [
+    ...STYLES.filter((p) => p.id === style?.id || !custom.hidden("style", p.id)).map((p) => {
+      const name = custom.name("style", p.id, p.label);
+      return {
+        id: p.id,
+        label: name,
+        onRename: (next: string) => custom.renamePreset("style", p.id, next),
+        onDuplicate: () => keep(`${name} copy`, fresh(p.id)),
+        onRemove: () => custom.hide("style", p.id),
+      };
+    }),
+    ...kept.map((t) => ({
+      id: t.id,
+      label: t.name,
+      icon: Sparkles,
+      onRename: (name: string) => renameTheme(t.id, name),
+      onDuplicate: () => keep(`${t.name} copy`, t.id),
+      // The theme the website wears stays.
+      onRemove: t.id === library.active ? undefined : () => removeTheme(t.id),
+    })),
+    ...(live
+      ? [
+          {
+            id: "custom",
+            label: "Custom",
+            icon: Sparkles,
+            onRename: (name: string) => {
+              const unique = dsCustomName(names, name);
+              addTheme(unique);
+            },
+            onDuplicate: () => keep("Custom"),
+            // Not kept: deleting it puts the style it came from back (Classic, if none).
+            onRemove: () => setTheme(fresh(STYLES.find((p) => p.id === current)?.id ?? STYLES[0].id)),
+          },
+        ]
+      : []),
+  ];
+  return (
+    <PillRow
+      label="Theme"
+      options={options}
+      picked={[onFirst ? (style?.id ?? "custom") : entry.id]}
+      renaming={renaming}
+      onRenameEnd={() => setRenaming(null)}
+      addLabel="Keep this theme"
+      onAdd={() => keep("Custom")}
+      onToggle={(id) => {
+        if (id === "custom") return;
+        if (STYLES.some((p) => p.id === id)) {
+          if (onFirst && id === style?.id) return;
+          setTheme(fresh(id), first.id);
+        } else if (id !== entry.id) select(id);
+      }}
+    />
+  );
+}
+
 /** A section's fine-tuning, folded: the pills come first, and "Show advanced options" opens the sliders and fields under them. */
 function AdvancedOptions({ children }: { children: React.ReactNode }) {
   return <DsDisclosure label="advanced options">{children}</DsDisclosure>;
@@ -1880,56 +1936,6 @@ function RadiusChoice({
   );
 }
 
-/** A theme's name in a dialog: for a new theme (a copy of the open one) or to rename one. */
-function ThemeNameDialog({
-  title,
-  description,
-  initial,
-  action,
-  onClose,
-  onSave,
-}: {
-  title: string;
-  description: string;
-  initial: string;
-  action: string;
-  onClose: () => void;
-  onSave: (name: string) => void;
-}) {
-  const [name, setName] = React.useState(initial);
-  return (
-    <DsDialog
-      open
-      onOpenChange={(open) => !open && onClose()}
-      title={title}
-      description={description}
-    >
-      <form
-        className="flex flex-col gap-ds-20"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (name.trim()) onSave(name.trim());
-        }}
-      >
-        <DsField label="Name">
-          <DsInput
-            autoFocus
-            value={name}
-            maxLength={60}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Evening"
-          />
-        </DsField>
-        <DsDialogActions>
-          <DsButton type="submit" variant="primary" disabled={!name.trim()}>
-            {action}
-          </DsButton>
-        </DsDialogActions>
-      </form>
-    </DsDialog>
-  );
-}
-
 /**
  * Theme: Parabola's home screen for making a theme, in the manner of
  * shadcn's create page. The page is a site's page
@@ -1946,25 +1952,14 @@ function ThemeNameDialog({
  */
 export function ThemeSection() {
   const {
-    library,
-    entry,
     theme,
     setTheme,
-    select,
-    addTheme,
-    renameTheme,
-    removeTheme,
     restoreTheme,
     previewMode: mode,
     pickedMode,
     setPreviewMode,
   } = useThemeEditor();
-  const [naming, setNaming] = React.useState<
-    "add" | "rename" | null
-  >(null);
   const [restoring, setRestoring] = React.useState(false);
-  // The theme being named, its pill a field: a new one, from +.
-  const [renamingTheme, setRenamingTheme] = React.useState<string | null>(null);
 
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({
@@ -2066,82 +2061,13 @@ export function ThemeSection() {
                 title="Restore"
                 onClick={() => setRestoring(true)}
               />
-              <DsDropdown>
-                <DsDropdownTrigger asChild>
-                  <DsButton
-                    size="small"
-                    variant="text"
-                    iconLeft={MoreVertical}
-                    aria-label={`More for ${entry.name}`}
-                  />
-                </DsDropdownTrigger>
-                <DsDropdownContent align="end">
-                  <DsDropdownItem
-                    iconLeft={Pencil}
-                    disabled={entry.id === DS_DEFAULT_THEME_ID}
-                    onSelect={() => setNaming("rename")}
-                  >
-                    Rename
-                  </DsDropdownItem>
-                  <DsDropdownItem
-                    iconLeft={Copy}
-                    onSelect={() => addTheme(`${entry.name} copy`)}
-                  >
-                    Duplicate
-                  </DsDropdownItem>
-                  <DsDropdownItem
-                    tone="danger"
-                    iconLeft={Trash2}
-                    disabled={
-                      entry.id === DS_DEFAULT_THEME_ID ||
-                      entry.id === library.active
-                    }
-                    onSelect={() => removeTheme(entry.id)}
-                  >
-                    Delete
-                  </DsDropdownItem>
-                </DsDropdownContent>
-              </DsDropdown>
             </div>
           }
         >
-          {/* The themes, as text: Parabola first (its own, never changed), then any made from it.
-              A change goes into the open theme, Parabola included (Restore puts it back); New +, the last tab, adds a copy. */}
-          {/* The themes, and on the right the preview's light or dark, one button as the sidebar's own toggle is. */}
+          {/* One rail for every look (ThemeRail), and on the right the preview's light or dark. */}
           <div className="flex items-center gap-ds-8">
             <div className="min-w-0 flex-1">
-          {/* The themes: double-click one to rename it; + makes a new one, a copy of the open one, named Custom
-              and ready to rename. Changing Classic, untouched, makes one too (theme-editor). */}
-              <PillRow
-                plain
-                label="Theme"
-                options={library.themes.map((t) => ({
-                  id: t.id,
-                  label: t.name,
-                  onRename: (name: string) => renameTheme(t.id, name),
-                  onDuplicate: () => {
-                    const name = dsCustomName(library.themes.map((x) => x.name), `${t.name} copy`);
-                    const id = dsThemeEntryId(library, name);
-                    addTheme(name, t.id);
-                    setRenamingTheme(id);
-                  },
-                  onRemove: t.id === DS_DEFAULT_THEME_ID || t.id === library.active ? undefined : () => removeTheme(t.id),
-                }))}
-                picked={[entry.id]}
-                onToggle={(id) => {
-                  if (id === entry.id) return;
-                  select(id);
-                }}
-                renaming={renamingTheme}
-                onRenameEnd={() => setRenamingTheme(null)}
-                addLabel="New theme"
-                onAdd={() => {
-                  const name = dsCustomName(library.themes.map((t) => t.name));
-                  const id = dsThemeEntryId(library, name);
-                  addTheme(name);
-                  setRenamingTheme(id);
-                }}
-              />
+              <ThemeRail />
             </div>
             <DsButton
               size="small"
@@ -2151,12 +2077,6 @@ export function ThemeSection() {
               title={mode === "dark" ? "Light" : "Dark"}
               onClick={() => setPreviewMode(mode === "dark" ? "light" : "dark")}
             />
-          </div>
-          {/* A whole look in one pick: a palette, a kind of type and a kind of button together, the same each time. The
-              sections below tune what it set. */}
-          <div className="flex flex-col gap-ds-4">
-            <span className="text-p text-ds-fg">Style</span>
-            <LookRail scope="style" label="Style" presets={STYLES} theme={theme} onTheme={setTheme} apply={(id, t) => withStyle(t, id)} />
           </div>
         </PanelSection>
 
@@ -2464,32 +2384,6 @@ export function ThemeSection() {
         }}
       />
 
-      {naming === "add" && (
-        <ThemeNameDialog
-          title="Add a theme"
-          description={`A copy of ${entry.name}, to change as you like.`}
-          initial=""
-          action="Add theme"
-          onClose={() => setNaming(null)}
-          onSave={(name) => {
-            addTheme(name);
-            setNaming(null);
-          }}
-        />
-      )}
-      {naming === "rename" && (
-        <ThemeNameDialog
-          title={`Rename ${entry.name}`}
-          description="What it's called here and wherever a site picks it."
-          initial={entry.name}
-          action="Rename"
-          onClose={() => setNaming(null)}
-          onSave={(name) => {
-            renameTheme(entry.id, name);
-            setNaming(null);
-          }}
-        />
-      )}
     </>
   );
 }

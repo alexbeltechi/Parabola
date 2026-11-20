@@ -6,6 +6,14 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: **one Theme rail**. Parabola's styles (Classic first), then the
+  themes kept, then Custom, which shows only while a style's been changed
+  (+ or naming keeps it as a theme; Delete puts the style back). The
+  separate Theme and Style rows are gone, and changing Classic no longer
+  makes a "Custom" theme by itself. The page's title says the look picked.
+  `setTheme(theme, into?)` and `addTheme(name, from?)` take a theme to open
+  or copy (`showcase/theme-look.ts`).
+
 - Changed: Typography's chips are Classic, **Swiss** (was Startup),
   Elegant, **Humanist** (was Friendly: Source Sans 3, Fira Sans, Open Sans,
   Alegreya Sans), Funky, Quirky, Retro, Futurist. Editorial is gone (too

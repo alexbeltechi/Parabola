@@ -46,14 +46,14 @@ type ThemeEditor = {
   /** The theme open for editing. */
   entry: DsThemeEntry;
   theme: DsThemeConfig;
-  /** Change the open theme, whichever it is. */
-  setTheme: (theme: DsThemeConfig) => void;
+  /** Change the open theme; `into` opens that theme first and changes it. */
+  setTheme: (theme: DsThemeConfig, into?: string) => void;
   /** Whether the open theme is Parabola or one of the themes made. */
   status: "parabola" | "theme";
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
-  /** Add a theme called `name`, a copy of the open one (or of `from`), and open it. */
-  addTheme: (name: string, from?: string) => void;
+  /** Add a theme called `name`, a copy of the open one (or of `from`: another theme's id, or a theme), and open it. */
+  addTheme: (name: string, from?: string | DsThemeConfig) => void;
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
@@ -148,20 +148,18 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const selectedRef = React.useRef(selected);
   selectedRef.current = selected;
 
-  const setTheme = React.useCallback((theme: DsThemeConfig) => {
+  // A change goes into the open theme. The first one (DS_DEFAULT_THEME_ID) is where a style picked on the Theme rail
+  // is worn, Custom while it's changed; + keeps it as a theme of its own (theme-section's ThemeRail). `into` opens
+  // another theme first and puts the change there (a style picked while a kept theme is open).
+  const setTheme = React.useCallback((theme: DsThemeConfig, into?: string) => {
+    if (into && into !== selectedRef.current) {
+      selectedRef.current = into;
+      setSelected(into);
+    }
     setHistory((h) => {
       const lib = h.present;
       const open = lib.themes.find((t) => t.id === selectedRef.current) ?? lib.themes[0];
       if (JSON.stringify(theme) === JSON.stringify(open.theme)) return h;
-      // Classic, untouched, is a preset: changing any value makes a theme of its own, Custom, at the end of the row,
-      // to rename, keep and publish. (A Classic already edited before this stays edited in place.)
-      if (open.id === DS_DEFAULT_THEME_ID && JSON.stringify(open.theme) === JSON.stringify(DS_DEFAULT_THEME)) {
-        const name = dsCustomName(lib.themes.map((t) => t.name));
-        const id = dsThemeEntryId(lib, name);
-        selectedRef.current = id;
-        queueMicrotask(() => setSelected(id));
-        return { past: [...h.past, lib].slice(-100), present: { ...lib, themes: [...lib.themes, { id, name, theme }] }, future: [] };
-      }
       return {
         past: [...h.past, lib].slice(-100),
         present: { ...lib, themes: lib.themes.map((t) => (t.id === open.id ? { ...t, theme } : t)) },
@@ -242,8 +240,8 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       select: setSelected,
       addTheme: (name, from) => {
         const id = dsThemeEntryId(library, name);
-        const source = library.themes.find((t) => t.id === from) ?? entry;
-        change({ ...library, themes: [...library.themes, { id, name, theme: source.theme }] });
+        const theme = typeof from === "object" ? from : (library.themes.find((t) => t.id === from) ?? entry).theme;
+        change({ ...library, themes: [...library.themes, { id, name, theme }] });
         setSelected(id);
       },
       renameTheme: (id, name) => change({ ...library, themes: library.themes.map((t) => (t.id === id ? { ...t, name } : t)) }),

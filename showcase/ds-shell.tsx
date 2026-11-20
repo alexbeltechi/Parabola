@@ -16,6 +16,7 @@ import { DS_THEME_SCOPE } from "../theme";
 import { DsModeScope } from "../provider";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
 import { ThemeExport } from "./theme-export";
+import { useThemeLook } from "./theme-look";
 import { PanelAllContext, PanelFooterSlotContext, PanelSlotContext, ShellSidesContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor, type ShellSides } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
@@ -268,9 +269,9 @@ export function DsShell({
  * properties panel: collapsible sections of controls; under the content below
  * `lg`). Pages put things there with `InPanel` (theme-editor.tsx).
  */
-/** The open theme's name, as the Theme page's title. */
+/** What the open theme is, as the Theme page's title: its style, Custom, or a kept theme's name (theme-look.ts). */
 function ThemeTitle() {
-  return <>{useThemeEditor().entry.name}</>;
+  return <>{useThemeLook().name}</>;
 }
 
 /** The panel card's colour: the page colour in both modes, white on the grey canvas in the light and the darkest
