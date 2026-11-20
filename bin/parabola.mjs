@@ -493,12 +493,13 @@ var DS_CHARACTER_DIALS = [
   { id: "depth", label: "Depth", min: 0, max: 1, low: "Flat", high: "Deep" }
 ];
 var clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+var RENAMED_TYPES = { startup: "swiss", friendly: "humanist", editorial: "classic" };
 function parseScoped(value) {
   const raw = value && typeof value === "object" ? value : {};
   const out = {};
   for (const scope of ["colour", "type", "buttons"]) {
     const id = Array.isArray(raw[scope]) ? raw[scope][0] : raw[scope];
-    if (typeof id === "string") out[scope] = id;
+    if (typeof id === "string") out[scope] = scope === "type" ? RENAMED_TYPES[id] ?? id : id;
   }
   return out;
 }
@@ -856,19 +857,10 @@ var DS_TYPE_STYLES = [
       pair2("Shrikhand", "", "Instrument Sans", AXES)
     ]
   },
+  // Swiss: the grotesques of the International style, set tight. (Was Startup; Editorial, too near Classic, went.)
   {
-    id: "editorial",
-    label: "Editorial",
-    fonts: [
-      pair2("Newsreader", AXES, "Inter", AXES),
-      pair2("Instrument Serif", "", "Instrument Sans", AXES),
-      pair2("Young Serif", "", "Work Sans", AXES),
-      pair2("Alfa Slab One", "", "Work Sans", AXES)
-    ]
-  },
-  {
-    id: "startup",
-    label: "Startup",
+    id: "swiss",
+    label: "Swiss",
     fonts: [
       pair2("Inter Tight", AXES, "Inter", AXES),
       pair2("Geist", AXES, "Geist", AXES),
@@ -880,20 +872,21 @@ var DS_TYPE_STYLES = [
     id: "elegant",
     label: "Elegant",
     fonts: [
-      pair2("EB Garamond", AXES, "Inter", AXES),
-      pair2("Cormorant Garamond", AXES, "Jost", AXES),
+      pair2("EB Garamond", AXES, "Jost", AXES),
+      pair2("Cormorant Garamond", AXES, "Montserrat", AXES),
       pair2("Marcellus", "", "Jost", AXES),
       pair2("Cinzel Decorative", ":wght@400;700", "Jost", AXES)
     ]
   },
+  // Humanist: sans serifs drawn from handwriting, open and warm, the popular Google Fonts ones. (Was Friendly.)
   {
-    id: "friendly",
-    label: "Friendly",
+    id: "humanist",
+    label: "Humanist",
     fonts: [
-      pair2("Work Sans", AXES, "Work Sans", AXES),
-      pair2("DM Sans", AXES, "DM Sans", AXES),
-      pair2("Fredoka", AXES, "Nunito", AXES),
-      pair2("Bagel Fat One", "", "Nunito", AXES)
+      pair2("Source Sans 3", AXES, "Source Sans 3", AXES),
+      pair2("Fira Sans", ":wght@400;500;600;700", "Fira Sans", ":wght@400;500;600;700"),
+      pair2("Open Sans", AXES, "Open Sans", AXES),
+      pair2("Alegreya Sans", ":wght@400;500;700", "Alegreya Sans", ":wght@400;500;700")
     ]
   },
   {
@@ -920,10 +913,11 @@ var DS_TYPE_STYLES = [
     id: "retro",
     label: "Retro",
     fonts: [
+      // A soft, lighter seventies serif first; the heavier display faces further along.
+      pair2("Fraunces", AXES, "DM Sans", AXES),
+      pair2("Young Serif", "", "Work Sans", AXES),
       pair2("DM Serif Display", "", "DM Sans", AXES),
-      pair2("Alfa Slab One", "", "Work Sans", AXES),
-      pair2("Righteous", "", "Nunito", AXES),
-      pair2("Bagel Fat One", "", "Nunito", AXES)
+      pair2("Righteous", "", "Nunito", AXES)
     ]
   },
   {
@@ -957,7 +951,7 @@ var DS_TASTES = [
     ink: [1, 1],
     // Paper first (its fonts, its round buttons), then an earthier page, serif and square.
     palettes: ["classic", "earthy"],
-    types: ["classic", "editorial"],
+    types: ["classic"],
     buttons: ["soft", "product"],
     people: "initials",
     story: "boxed",
@@ -969,7 +963,7 @@ var DS_TASTES = [
     ink: [0.9, 1],
     // As little as it takes: white or grey, one grotesque, square buttons (Text is there to pick by hand).
     palettes: ["classic", "neutral"],
-    types: ["startup"],
+    types: ["swiss"],
     buttons: ["sharp", "outline"],
     people: "initials",
     story: "boxed",
@@ -993,7 +987,7 @@ var DS_TASTES = [
     ink: [0.9, 1],
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
-    types: ["startup", "startup", "futurist"],
+    types: ["swiss", "swiss", "futurist"],
     // Fully round, now and then a product's small radius (square is Minimal's).
     buttons: ["soft", "soft", "product"],
     people: "initials",
@@ -1005,7 +999,7 @@ var DS_TASTES = [
     label: "Natural",
     ink: [0.45, 0.75],
     palettes: ["earthy"],
-    types: ["editorial", "friendly"],
+    types: ["classic", "humanist"],
     buttons: ["soft"],
     people: "photo",
     story: "plain",

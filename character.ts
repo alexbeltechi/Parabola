@@ -166,12 +166,15 @@ export type DsCharacterDial = (typeof DS_CHARACTER_DIALS)[number]["id"];
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 /** The pick on each section's rail, from stored data (a list of pills for a day: its first). */
+/** Typography's chips renamed or taken out (2026-11-20): Startup is Swiss, Friendly Humanist, Editorial went into Classic. */
+const RENAMED_TYPES: Record<string, string> = { startup: "swiss", friendly: "humanist", editorial: "classic" };
+
 function parseScoped(value: unknown): Partial<Record<DsTasteScope, string>> {
   const raw = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
   const out: Partial<Record<DsTasteScope, string>> = {};
   for (const scope of ["colour", "type", "buttons"] as const) {
     const id = Array.isArray(raw[scope]) ? (raw[scope] as unknown[])[0] : raw[scope];
-    if (typeof id === "string") out[scope] = id;
+    if (typeof id === "string") out[scope] = scope === "type" ? (RENAMED_TYPES[id] ?? id) : id;
   }
   return out;
 }

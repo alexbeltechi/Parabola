@@ -110,19 +110,10 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
       pair("Shrikhand", "", "Instrument Sans", AXES),
     ],
   },
+  // Swiss: the grotesques of the International style, set tight. (Was Startup; Editorial, too near Classic, went.)
   {
-    id: "editorial",
-    label: "Editorial",
-    fonts: [
-      pair("Newsreader", AXES, "Inter", AXES),
-      pair("Instrument Serif", "", "Instrument Sans", AXES),
-      pair("Young Serif", "", "Work Sans", AXES),
-      pair("Alfa Slab One", "", "Work Sans", AXES),
-    ],
-  },
-  {
-    id: "startup",
-    label: "Startup",
+    id: "swiss",
+    label: "Swiss",
     fonts: [
       pair("Inter Tight", AXES, "Inter", AXES),
       pair("Geist", AXES, "Geist", AXES),
@@ -134,20 +125,21 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     id: "elegant",
     label: "Elegant",
     fonts: [
-      pair("EB Garamond", AXES, "Inter", AXES),
-      pair("Cormorant Garamond", AXES, "Jost", AXES),
+      pair("EB Garamond", AXES, "Jost", AXES),
+      pair("Cormorant Garamond", AXES, "Montserrat", AXES),
       pair("Marcellus", "", "Jost", AXES),
       pair("Cinzel Decorative", ":wght@400;700", "Jost", AXES),
     ],
   },
+  // Humanist: sans serifs drawn from handwriting, open and warm, the popular Google Fonts ones. (Was Friendly.)
   {
-    id: "friendly",
-    label: "Friendly",
+    id: "humanist",
+    label: "Humanist",
     fonts: [
-      pair("Work Sans", AXES, "Work Sans", AXES),
-      pair("DM Sans", AXES, "DM Sans", AXES),
-      pair("Fredoka", AXES, "Nunito", AXES),
-      pair("Bagel Fat One", "", "Nunito", AXES),
+      pair("Source Sans 3", AXES, "Source Sans 3", AXES),
+      pair("Fira Sans", ":wght@400;500;600;700", "Fira Sans", ":wght@400;500;600;700"),
+      pair("Open Sans", AXES, "Open Sans", AXES),
+      pair("Alegreya Sans", ":wght@400;500;700", "Alegreya Sans", ":wght@400;500;700"),
     ],
   },
   {
@@ -174,10 +166,11 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     id: "retro",
     label: "Retro",
     fonts: [
+      // A soft, lighter seventies serif first; the heavier display faces further along.
+      pair("Fraunces", AXES, "DM Sans", AXES),
+      pair("Young Serif", "", "Work Sans", AXES),
       pair("DM Serif Display", "", "DM Sans", AXES),
-      pair("Alfa Slab One", "", "Work Sans", AXES),
       pair("Righteous", "", "Nunito", AXES),
-      pair("Bagel Fat One", "", "Nunito", AXES),
     ],
   },
   {
@@ -254,7 +247,7 @@ export const DS_TASTES: DsTaste[] = [
     ink: [1, 1],
     // Paper first (its fonts, its round buttons), then an earthier page, serif and square.
     palettes: ["classic", "earthy"],
-    types: ["classic", "editorial"],
+    types: ["classic"],
     buttons: ["soft", "product"],
     people: "initials",
     story: "boxed",
@@ -266,7 +259,7 @@ export const DS_TASTES: DsTaste[] = [
     ink: [0.9, 1],
     // As little as it takes: white or grey, one grotesque, square buttons (Text is there to pick by hand).
     palettes: ["classic", "neutral"],
-    types: ["startup"],
+    types: ["swiss"],
     buttons: ["sharp", "outline"],
     people: "initials",
     story: "boxed",
@@ -290,7 +283,7 @@ export const DS_TASTES: DsTaste[] = [
     ink: [0.9, 1],
     // A product's look, as shadcn's is, and now and then a further-out, sci-fi one.
     palettes: ["neutral", "neutral", "neon"],
-    types: ["startup", "startup", "futurist"],
+    types: ["swiss", "swiss", "futurist"],
     // Fully round, now and then a product's small radius (square is Minimal's).
     buttons: ["soft", "soft", "product"],
     people: "initials",
@@ -302,7 +295,7 @@ export const DS_TASTES: DsTaste[] = [
     label: "Natural",
     ink: [0.45, 0.75],
     palettes: ["earthy"],
-    types: ["editorial", "friendly"],
+    types: ["classic", "humanist"],
     buttons: ["soft"],
     people: "photo",
     story: "plain",

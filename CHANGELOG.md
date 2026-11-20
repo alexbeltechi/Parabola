@@ -6,6 +6,16 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: Typography's chips are Classic, **Swiss** (was Startup),
+  Elegant, **Humanist** (was Friendly: Source Sans 3, Fira Sans, Open Sans,
+  Alegreya Sans), Funky, Quirky, Retro, Futurist. Editorial is gone (too
+  near Classic). Elegant's sans is Jost (then Montserrat); Retro opens on
+  Fraunces, lighter. Stored ids `startup`, `friendly` and `editorial` read
+  as `swiss`, `humanist` and `classic`.
+- Fixed: renaming a chip keeps its width; the field is as wide as the name.
+- New: the unsaved Custom chip's ⋮ has Delete (back to the preset it came
+  from) and Duplicate.
+
 - Changed: the colours are **Text primary** (`text`), **Text secondary**
   (`muted`), **Primary** (`accent`: the main button, calls to action) and
   **Secondary** (`buttonSecondary`: the quiet buttons and pills). Stored

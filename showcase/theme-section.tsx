@@ -24,7 +24,7 @@ import {
   Trophy,
   Disc3,
   Feather,
-  Laptop,
+  Grid3x3,
   Layers,
   MousePointerClick,
   Orbit,
@@ -1137,9 +1137,9 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
   vintage: Film,
   neon: Lightbulb,
   // Typography's rail.
-  friendly: Hand,
+  humanist: Hand,
   futurist: Orbit,
-  startup: Laptop,
+  swiss: Grid3x3,
   elegant: Feather,
   funky: Disc3,
   quirky: Shapes,
@@ -1347,7 +1347,21 @@ function LookRail({
       onRemove: () => custom.remove(scope, l.id),
     })),
     ...(live
-      ? [{ id: "custom", label: dsCustomName(taken), icon: Sparkles, onRename: (name: string) => setChosen(custom.add(scope, name, snap)) }]
+      ? [
+          {
+            id: "custom",
+            label: dsCustomName(taken),
+            icon: Sparkles,
+            onRename: (name: string) => setChosen(custom.add(scope, name, snap)),
+            onDuplicate: () => duplicate(dsCustomName(taken), snap),
+            // Not kept yet: deleting it puts the row back on the preset it came from (the first, if none).
+            onRemove: () => {
+              const back = presets.find((p) => p.id === current) ?? presets[0];
+              setChosen(null);
+              onTheme(apply(back.id, marked(back.id, theme)));
+            },
+          },
+        ]
       : []),
   ];
   return (

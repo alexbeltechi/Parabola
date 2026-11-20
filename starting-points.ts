@@ -83,7 +83,7 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
     page: "#FFFFFF",
     button: "#000000",
     fonts: fonts("Inter Tight", "Inter Tight"),
-    chips: { colour: "neutral", type: "startup", buttons: "sharp" },
+    chips: { colour: "neutral", type: "swiss", buttons: "sharp" },
     composition: { layout: "full", align: "left", scale: "loud", density: "airy", structure: "ruled", labels: "bracket", numbered: true, hero: "statement" },
     brief: {
       reference: "A Swiss poster from the 1960s, set as a website: one grotesque, very large, on a strict grid with most of the page left empty.",
@@ -94,7 +94,7 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
     page: "#F3EFE4",
     button: "#1F1E1D",
     fonts: fonts("Newsreader", "Inter"),
-    chips: { colour: "earthy", type: "editorial", buttons: "product" },
+    chips: { colour: "earthy", type: "classic", buttons: "product" },
     composition: { layout: "hybrid", align: "left", scale: "regular", density: "airy", structure: "plain", labels: "eyebrow", numbered: false, hero: "split" },
     brief: {
       reference: "A research institute's site: warm paper, a serif for ideas and a sans for facts, wide when it presents and narrow when it explains.",
@@ -105,7 +105,7 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
     page: "#FAFAFA",
     button: "#18181B",
     fonts: fonts("DM Sans", "DM Sans"),
-    chips: { colour: "neutral", type: "friendly", buttons: "soft" },
+    chips: { colour: "neutral", type: "humanist", buttons: "soft" },
     composition: { layout: "hybrid", align: "centre", scale: "regular", density: "regular", structure: "cards", labels: "tag", numbered: false, hero: "poster" },
     brief: {
       reference: "A well-run shop: the product photo is the loudest thing on the page, and everything around it is tidy, rounded and easy to tap.",
@@ -116,7 +116,7 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
     page: "#FFFFFF",
     button: "#2563EB",
     fonts: fonts("Geist", "Geist"),
-    chips: { colour: "neutral", type: "startup", buttons: "product" },
+    chips: { colour: "neutral", type: "swiss", buttons: "product" },
     composition: { layout: "hybrid", align: "centre", scale: "regular", density: "regular", structure: "cards", labels: "eyebrow", numbered: false, hero: "statement" },
     brief: {
       reference: "A software launch page: a confident sans, one bright colour for the thing to click, and features in neat cards.",
@@ -138,7 +138,7 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
     page: "#FFFFFF",
     button: "#000000",
     fonts: fonts("Work Sans", "Work Sans"),
-    chips: { colour: "neutral", type: "friendly", buttons: "text" },
+    chips: { colour: "neutral", type: "humanist", buttons: "text" },
     composition: { layout: "full", align: "left", scale: "small", density: "tight", structure: "plain", labels: "none", numbered: false, hero: "poster" },
     brief: {
       reference: "An artist's portfolio: tiny type tucked in a corner, pictures filling everything else.",

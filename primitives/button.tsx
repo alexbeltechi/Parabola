@@ -237,6 +237,8 @@ export function DsButton({
   ...props
 }: DsButtonProps) {
   const [editing, setEditing] = React.useState(false);
+  // The name as it's typed while renaming (null: not changed yet, the label as it was).
+  const [typed, setTyped] = React.useState<string | null>(null);
   React.useEffect(() => {
     if (renaming) setEditing(true);
   }, [renaming]);
@@ -270,8 +272,11 @@ export function DsButton({
 
   if (onRename && editing) {
     const start = typeof children === "string" ? children : "";
+    const draft = typed ?? start;
+    const setDraft = setTyped;
     const finish = (value: string | null) => {
       setEditing(false);
+      setTyped(null);
       const name = value?.trim();
       if (name && name !== start) onRename(name);
       onRenameEnd?.();
@@ -279,20 +284,27 @@ export function DsButton({
     return (
       <span {...shared} aria-pressed={undefined}>
         {IconLeft && <IconLeft aria-hidden />}
-        <input
-          autoFocus
-          defaultValue={start}
-          aria-label="Name"
-          size={Math.max(4, start.length + 1)}
-          onFocus={(e) => e.currentTarget.select()}
-          onInput={(e) => (e.currentTarget.size = Math.max(4, e.currentTarget.value.length + 1))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") finish(e.currentTarget.value);
-            if (e.key === "Escape") finish(null);
-          }}
-          onBlur={(e) => finish(e.currentTarget.value)}
-          className="min-w-0 bg-transparent p-0 text-inherit outline-none [font:inherit]"
-        />
+        {/* The field as wide as its words, as the label was: a hidden copy of them sizes it, so the button keeps its
+            width until the name does change. */}
+        <span className="inline-grid">
+          <span aria-hidden className="invisible whitespace-pre [grid-area:1/1]">
+            {draft || " "}
+          </span>
+          <input
+            autoFocus
+            defaultValue={start}
+            aria-label="Name"
+            size={1}
+            onFocus={(e) => e.currentTarget.select()}
+            onInput={(e) => setDraft(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") finish(e.currentTarget.value);
+              if (e.key === "Escape") finish(null);
+            }}
+            onBlur={(e) => finish(e.currentTarget.value)}
+            className="w-full min-w-0 bg-transparent p-0 text-inherit outline-none [font:inherit] [grid-area:1/1]"
+          />
+        </span>
       </span>
     );
   }
