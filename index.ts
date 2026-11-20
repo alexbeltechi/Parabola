@@ -162,6 +162,7 @@ export { DsSelect, type DsSelectOption } from "./primitives/select";
 export { DsSidePanel } from "./primitives/side-panel";
 export { DsSwitch } from "./primitives/switch";
 export { DsTopBar, type DsTopBarSurface } from "./primitives/top-bar";
+export { DsFloatingBar, DsFloatingTitle } from "./primitives/floating-bar";
 export { DsThemeToggle } from "./primitives/theme-toggle";
 export { DsToaster, DsToast, DsToastAction, dsToast } from "./primitives/toast";
 export { DsCopyButton } from "./primitives/copy-button";
@@ -227,9 +228,11 @@ export {
 } from "./button-style";
 export {
   DS_DEFAULT_NAV_STYLE,
+  DS_NAV_STYLES,
   DS_NAV_SURFACES,
   parseDsNavStyle,
   type DsNavStyle,
+  type DsNavLook,
   type DsNavSurface,
 } from "./nav-style";
 export { DsColourWheel, type DsWheelPoint } from "./components/colour-wheel";
@@ -247,3 +250,28 @@ export {
 } from "./theme-file";
 export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";
+export {
+  DS_COMPOSITION_CHOICES,
+  DS_DEFAULT_BRIEF,
+  DS_DEFAULT_COMPOSITION,
+  dsCompositionLabel,
+  dsCompositionWords,
+  parseDsBrief,
+  parseDsComposition,
+  type DsBrief,
+  type DsComposition,
+} from "./composition";
+export {
+  DS_DEFAULT_SOCIAL,
+  DS_SOCIAL_CHOICES,
+  DS_SOCIAL_EDGES,
+  DS_SOCIAL_FRAMES,
+  DS_SOCIAL_GAP,
+  DS_SOCIAL_REEL,
+  DS_SOCIAL_TYPE,
+  DS_SOCIAL_WIDTH,
+  dsSocialWords,
+  parseDsSocial,
+  type DsSocial,
+} from "./social";
+export { DS_STARTING_POINTS, type DsStartingPoint } from "./starting-points";

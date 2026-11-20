@@ -28,25 +28,31 @@ const CLAUDE_URL = "https://claude.ai/new";
  * applies at once.
  */
 export function ThemeExport() {
-  const { theme, entry, setTheme } = useThemeEditor();
   const [open, setOpen] = React.useState(false);
   return (
     <>
       <DsButton size="small" onClick={() => setOpen(true)}>
         Export
       </DsButton>
-      {open && (
-        <DsDialog
-          open
-          onOpenChange={setOpen}
-          title={`Export ${entry.name}`}
-          description="The style in words. Paste it into any agent, after what you want made."
-          className="max-h-[calc(100dvh-32px)] w-[min(560px,calc(100vw-32px))] overflow-y-auto"
-        >
-          <ExportBody theme={theme} name={entry.name} setTheme={setTheme} />
-        </DsDialog>
-      )}
+      <ThemeExportDialog open={open} onOpenChange={setOpen} />
     </>
+  );
+}
+
+/** The Export dialog on its own, for a menu item that opens it (the ⋮ menu on a phone). */
+export function ThemeExportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { theme, entry, setTheme } = useThemeEditor();
+  if (!open) return null;
+  return (
+    <DsDialog
+      open
+      onOpenChange={onOpenChange}
+      title={`Export ${entry.name}`}
+      description="The style in words. Paste it into any agent, after what you want made."
+      className="max-h-[calc(100dvh-32px)] w-[min(560px,calc(100vw-32px))] overflow-y-auto"
+    >
+      <ExportBody theme={theme} name={entry.name} setTheme={setTheme} />
+    </DsDialog>
   );
 }
 

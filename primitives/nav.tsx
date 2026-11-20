@@ -89,7 +89,7 @@ export function DsMenu({
             returnFocus.current?.focus();
           }}
           className={cn(
-            "fixed inset-0 z-(--ds-z-menu) flex flex-col items-center justify-center gap-1 bg-ds-bg/80 outline-none backdrop-blur-[24px] backdrop-saturate-150",
+            "fixed inset-0 z-(--ds-z-menu) flex flex-col items-center justify-center gap-1 outline-none ds-frosted",
             className
           )}
         >

@@ -20,6 +20,8 @@
  * values hold, and everything built on them is open (`HOW_TO_USE`).
  */
 import { dsMoodLabel } from "./character";
+import { dsCompositionWords } from "./composition";
+import { dsSocialWords } from "./social";
 import { DS_SPACES } from "./spacing";
 import { DS_BUTTON_LOOKS, DS_PALETTES, DS_TYPE_STYLES, dsTasteNames, dsTasteVoice } from "./taste";
 import { dsThemeColourTokens, dsThemeCss, dsThemeExport, parseDsThemeConfig, type DsThemeConfig } from "./theme";
@@ -51,8 +53,8 @@ const styleName = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, 
  * open. The one place this is worded, for the style text and the guide.
  */
 const HOW_TO_USE = [
-  "Keep what's listed here as it is: the colours and what each is for, the fonts, the type sizes, the spacing steps and the corners. They are what makes everything you make read as one thing.",
-  "Everything above that is yours: the layout, how a page opens, imagery, composition, motion, and sections nobody has made before. Experiment there, and build it from these values.",
+  "Keep the values as they are: the colours and what each is for, the fonts, the spacing steps and the corners. Follow the composition and the signature moves: they are what makes this style this style, and not another with the same colours.",
+  "Everything else is yours: what goes on a page, the sections it needs, imagery, motion, and things nobody has made before. Experiment there, and build it from these values.",
 ];
 
 /** Where a style made here says it came from. */
@@ -227,10 +229,12 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
   const both = (token: string) => `${light[token]} (dark mode ${dark[token]})`;
   const size = (label: string, s: { size: string; lineHeight: string }) => `${label} ${parseInt(s.size)}/${parseInt(s.lineHeight)}`;
   const shape = corners.buttons === "fully round" ? "pill-shaped" : `with ${corners.buttons} corners`;
+  const brief = { ...theme.brief, moves: theme.brief.moves.map((m) => m.trim()).filter(Boolean) };
   const style = [
     `Use the "${name}" style for everything you make.`,
     "",
-    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}. One accent colour; generous space; the frame stays quiet so the content stands out.`,
+    ...(brief.reference ? [brief.reference, ""] : []),
+    `The look: ${look ? `${look}. ` : ""}${pageInWords(light.bg)[0].toUpperCase()}${pageInWords(light.bg).slice(1)}, headings in ${heading}${heading === body ? "" : ` and everything else in ${body}`}, buttons ${shape}.`,
     "",
     "Colours",
     `- Page: ${both("bg")}`,
@@ -241,12 +245,19 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
     "",
     "Type",
     `- Headings: ${heading}. Everything else: ${body}.${googleFontsUrl ? ` Fonts: ${googleFontsUrl}` : ""}`,
-    `- Sizes (size/line height, px): ${styles.map(([label, s]) => size(label, s)).join(", ")}`,
+    `- Base sizes (size/line height, px; Scale, under Composition, says how far pages go from them): ${styles.map(([label, s]) => size(label, s)).join(", ")}`,
     "",
     "Shape and space",
     `- Buttons: ${shape}; ${exported.buttons.outline === "none" ? exported.buttons.fill : `outlined, ${exported.buttons.outline}`}.`,
     `- Fields: ${exported.buttons.fieldOutline === "none" ? "no outline" : `a ${exported.buttons.fieldOutline} outline`}. Cards and panels: ${corners["cards and panels"]} corners.`,
     `- Spacing steps: ${DS_SPACES.map((px) => `${px}`).join(", ")}px.`,
+    "",
+    "Composition",
+    ...dsCompositionWords(theme.composition).map((line) => `- ${line}`),
+    "",
+    ...(brief.moves.length ? ["Signature moves", ...brief.moves.map((m) => `- ${m}`), ""] : []),
+    "Social (posts, carousels, reels)",
+    ...dsSocialWords(theme.social).map((line) => `- ${line}`),
     "",
     `Voice: ${voice.tone}. ${(voice.rules.length ? voice.rules : ["Plain words and short sentences; nothing shouted."]).join(" ")}`,
     "",

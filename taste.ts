@@ -70,26 +70,24 @@ export type DsPalette = {
   contrast: Range;
 };
 
+/**
+ * Five, each a page that is nearly neutral with one colour that carries it
+ * (as the sites that last are built: a cream page with one deep red, a faint
+ * lavender page with black buttons), never several loud colours at once. A
+ * palette's first background and first button are its own look, what picking
+ * it gives; the rest are what picking it again, or the dice, draws.
+ */
 export const DS_PALETTES: readonly DsPalette[] = [
-  // Parabola's own: white, black buttons.
-  { id: "classic", label: "Classic", backgrounds: [null], buttons: [null], contrast: [0, 0] },
-  // A startup's: whites and zinc greys, near-black or one clear blue.
-  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#09090B"], buttons: ["#18181B", null, "#2563EB"], contrast: [0.05, 0.3] },
-  { id: "earthy", label: "Earthy", backgrounds: ["#F3EFE4", "#E7EDDF", "#D9C9A8", "#2E5E3A"], buttons: ["#2E5E3A", "#8A5A2B", "#B5532E"], contrast: [-0.15, 0.15] },
-  { id: "pastel", label: "Pastel", backgrounds: ["#FFF4E8", "#F2F0FF", "#EEF6F1", "#FDEFF4"], buttons: ["#2F6FEB", "#00A37A", "#7C5CFF", "#FF7A59"], contrast: [-0.25, 0] },
-  { id: "vibrant", label: "Vibrant", backgrounds: ["#FFE600", "#FF4F00", "#0F766E", "#FF3EA5", "#3D5AFE"], buttons: ["#111111", "#2F2BFF", "#FFFFFF"], contrast: [0.3, 0.7] },
-  // A team's: white or black, one loud primary, hard contrast.
-  // A team's and a track's: volt, black, electric blue, blaze orange, a court green; one loud colour on it.
-  {
-    id: "sport",
-    label: "Sport",
-    backgrounds: ["#C6FF3D", "#0B0B0B", "#1F3BFF", "#FF5A1F", "#00C46A", "#FF2E63", null],
-    buttons: ["#0B0B0B", "#FFFFFF", "#C6FF3D", "#FF5A1F", "#1F3BFF"],
-    contrast: [0.4, 0.8],
-  },
-  { id: "rich", label: "Rich", backgrounds: ["#F5F1EA", "#121212", "#1E2A24", "#3B2F2A", "#7A1F2B"], buttons: ["#111111", "#8C6A43", "#C9A96E"], contrast: [0.1, 0.4] },
-  { id: "vintage", label: "Vintage", backgrounds: ["#F4E9D8", "#F2D7A6", "#E9C46A", "#3B2A20"], buttons: ["#3B2A20", "#2A9D8F", "#D1495B", "#E76F51"], contrast: [-0.1, 0.25] },
-  { id: "neon", label: "Neon", backgrounds: ["#05070D", "#0E1A2B", "#2A1B4D", "#1B1035"], buttons: ["#00E5FF", "#B388FF", "#39FF88", "#FF5F1F"], contrast: [0.3, 0.7] },
+  // Paper: warm off-whites, stone ink. Black buttons, or one deep red.
+  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: [null, "#1C1917", "#B0182B"], contrast: [0, 0.1] },
+  // No colour at all: white, greys, black.
+  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
+  // Clay, sand and moss, muted.
+  { id: "earthy", label: "Earthy", backgrounds: ["#F3EEE3", "#EAE4D3", "#E3E7DA", "#2B3328"], buttons: ["#3D4A36", "#8A5A2B", "#A4492B"], contrast: [-0.1, 0.15] },
+  // A faint tint of one colour, and a soft mid-tone of it for the buttons. Never bright.
+  { id: "pastel", label: "Pastel", backgrounds: ["#F3F1FB", "#FBF0F1", "#EEF5F0", "#FAF3E3", "#EDF3FA"], buttons: ["#6F63B8", "#B5677C", "#4F8F7B", "#5B7FB5", null], contrast: [-0.2, 0] },
+  // Dark, with one bright colour on it.
+  { id: "neon", label: "Neon", backgrounds: ["#0B0B10", "#0E1420", "#15111F"], buttons: ["#C6FF3D", "#00E5FF", "#FF5F1F", "#B388FF"], contrast: [0.3, 0.6] },
 ];
 
 /**
@@ -253,7 +251,7 @@ export const DS_TASTES: DsTaste[] = [
     id: "classic",
     label: "Classic",
     ink: [1, 1],
-    // Parabola's own first (its white, its fonts, its round buttons), then an editorial paper, serif and square.
+    // Paper first (its fonts, its round buttons), then an earthier page, serif and square.
     palettes: ["classic", "earthy"],
     types: ["classic", "editorial"],
     buttons: ["soft", "product"],
@@ -278,7 +276,7 @@ export const DS_TASTES: DsTaste[] = [
     label: "Elegant",
     ink: [0.55, 0.85],
     // A refined serif, rich colour, square buttons (briefly called Fashion, which it isn't).
-    palettes: ["rich", "classic"],
+    palettes: ["classic", "earthy"],
     types: ["elegant"],
     buttons: ["sharp", "outline"],
     people: "photo",
@@ -314,7 +312,7 @@ export const DS_TASTES: DsTaste[] = [
     label: "Retro",
     ink: [0.4, 0.7],
     // Seventies print and old packaging.
-    palettes: ["vintage"],
+    palettes: ["earthy", "pastel"],
     types: ["retro"],
     buttons: ["chunky", "soft"],
     people: "photo",
@@ -326,7 +324,7 @@ export const DS_TASTES: DsTaste[] = [
     label: "Sport",
     ink: [1, 1],
     // Vibrant, athletic: volt, black, electric blue; neon on dark now and then.
-    palettes: ["sport", "sport", "neon", "vibrant"],
+    palettes: ["neon", "neutral"],
     types: ["funky"],
     buttons: ["sharp", "chunky"],
     people: "initials",

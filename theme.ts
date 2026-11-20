@@ -1,3 +1,5 @@
+import { DS_DEFAULT_SOCIAL, parseDsSocial, type DsSocial } from "./social";
+import { DS_DEFAULT_BRIEF, DS_DEFAULT_COMPOSITION, parseDsBrief, parseDsComposition, type DsBrief, type DsComposition } from "./composition";
 import {
   DS_ACCENT_COLOURS,
   DS_BASE_COLOURS,
@@ -143,6 +145,12 @@ export type DsThemeConfig = {
   nav: DsNavStyle;
   /** The icon library, by id (colours.ts). */
   icons: string;
+  /** Where things sit, how big, how sections are marked (composition.ts): the part of a style that isn't a value. */
+  composition: DsComposition;
+  /** The style in the maker's words: a reference in a sentence, and its signature moves (composition.ts). */
+  brief: DsBrief;
+  /** The style as a post, a carousel slide or a reel (social.ts): the frame, its edge, text on pictures, how few colours. */
+  social: DsSocial;
 };
 
 export const DS_DEFAULT_THEME: DsThemeConfig = {
@@ -166,6 +174,9 @@ export const DS_DEFAULT_THEME: DsThemeConfig = {
   fields: DS_DEFAULT_FIELD_STYLE,
   nav: DS_DEFAULT_NAV_STYLE,
   icons: "lucide",
+  composition: DS_DEFAULT_COMPOSITION,
+  brief: DS_DEFAULT_BRIEF,
+  social: DS_DEFAULT_SOCIAL,
 };
 
 /** The font no theme can take out: every stack ends in it. */
@@ -399,6 +410,9 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
     fields: parseDsFieldStyle(raw.fields),
     nav: parseDsNavStyle(raw.nav),
     icons,
+    composition: parseDsComposition(raw.composition),
+    brief: parseDsBrief(raw.brief),
+    social: parseDsSocial(raw.social),
   };
 }
 

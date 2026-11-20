@@ -2,21 +2,21 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft, Bookmark, ChevronsDownUp, ChevronsUpDown, House, Menu } from "lucide-react";
+import { ArrowLeft, Bookmark, House, Menu, PanelLeftClose, PanelLeftOpen, PanelRightOpen, X } from "lucide-react";
 import { DsAccordionGroup } from "../primitives/accordion";
 import { DsButton } from "../primitives/button";
 import { DsDropdown, DsDropdownContent, DsDropdownItem, DsDropdownTrigger } from "../primitives/dropdown";
 import { DsSearch } from "../primitives/field";
-import { DsMenu, DsNavBar } from "../primitives/nav";
+import { DsMenu } from "../primitives/nav";
+import { DsFloatingBar, DsFloatingTitle } from "../primitives/floating-bar";
 import { DsNavGroup, DsNavItem } from "../primitives/nav-item";
 import { DsThemeToggle } from "../primitives/theme-toggle";
 import { DsToaster } from "../primitives/toast";
-import { DsTopBar } from "../primitives/top-bar";
 import { DS_THEME_SCOPE } from "../theme";
 import { DsModeScope } from "../provider";
 import { DS_GROUPS, DS_TIERS, dsHref, type DsGroup } from "./registry";
 import { ThemeExport } from "./theme-export";
-import { PanelFooterSlotContext, PanelSlotContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor } from "./theme-editor";
+import { PanelAllContext, PanelFooterSlotContext, PanelSlotContext, ShellSidesContext, ThemeEditorProvider, ThemeHeaderActions, useThemeEditor, type ShellSides } from "./theme-editor";
 
 /** Sidebar contents: search, then each tier's label and its collapsible groups. */
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -67,10 +67,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         iconLeft={group.icon}
         selected={pathname === dsHref(group, group.pages[0])}
         onClick={onNavigate}
-        // The chevron the group rows carry, dimmed: there's nothing to open, but
-        // it keeps the row from reading as a sub-item of the group above.
+        size="small"
+        // The chevron the group rows carry, barely there: there's nothing to open, but
+        // it keeps the row lined up with the groups around it.
         expandable
-        className="[&>svg:first-child]:opacity-40"
+        className="[&>svg:first-child]:opacity-10"
       >
         {group.label}
       </DsNavItem>
@@ -80,6 +81,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         label={group.label}
         iconLeft={group.icon}
         meta={group.pages.length}
+        size="small"
         // While searching, every group with a match stays open.
         open={q ? true : open.has(group.slug)}
         onOpenChange={(isOpen) => {
@@ -143,6 +145,12 @@ function ShellMenu({ backHref }: { backHref: string | null }) {
   );
 }
 
+/** Opens the sections menu, below md: the page's floating bar has the button for it. */
+const ShellMenuContext = React.createContext<() => void>(() => {});
+
+type Sides = ShellSides;
+const SIDES_KEY = "ds-shell-sides";
+
 export function DsShell({
   children,
   backHref = "/",
@@ -153,6 +161,40 @@ export function DsShell({
 }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
+  // Remembered in this browser; read after the first paint, so the page a server sent and the one drawn here match.
+  const [collapsed, setCollapsed] = React.useState<Sides>({ left: false, right: false });
+  React.useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SIDES_KEY) ?? "{}");
+      setCollapsed({ left: stored.left === true, right: stored.right === true });
+    } catch {}
+  }, []);
+  const setSides = React.useCallback((next: (sides: Sides) => Sides) => {
+    setCollapsed((sides) => {
+      const to = next(sides);
+      try {
+        localStorage.setItem(SIDES_KEY, JSON.stringify(to));
+      } catch {}
+      return to;
+    });
+  }, []);
+  const toggleSide = React.useCallback((side: keyof Sides) => setSides((sides) => ({ ...sides, [side]: !sides[side] })), [setSides]);
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "." || !(e.metaKey || e.ctrlKey)) return;
+      e.preventDefault();
+      // Both at once: closed if either is open, opened only when both are closed.
+      setSides((sides) => (sides.left && sides.right ? { left: false, right: false } : { left: true, right: true }));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [setSides]);
+  // A board measures how much of it runs under the sidebar when the window changes size: tell it this did too.
+  React.useEffect(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, [collapsed.left]);
+  const min = collapsed.left;
+  const sidesValue = React.useMemo(() => ({ collapsed, toggle: toggleSide }), [collapsed, toggleSide]);
 
   // The menu (and the scroll lock it holds) mustn't linger if the window
   // grows past the breakpoint where the sidebar takes over.
@@ -165,30 +207,53 @@ export function DsShell({
 
   return (
     <ThemeEditorProvider>
-      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border bg-ds-surface-subtle p-5 md:flex">
+      {/* Frosted (`ds-frosted`), so a board running under it shows through, softly. */}
+      <aside data-slot="ds-sidebar" className={`fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border/60 p-5 ds-frosted ${min ? "" : "md:flex"}`}>
         <div className="flex items-center justify-between">
           <ShellMenu backHref={backHref} />
-          <DsThemeToggle size="small" />
+          <div className="flex items-center gap-ds-4">
+            <DsThemeToggle size="small" />
+            <DsButton size="small" iconLeft={PanelLeftClose} aria-label="Collapse the sidebar" title="Collapse the sidebar (⌘. for both sides)" onClick={() => toggleSide("left")} />
+          </div>
         </div>
         <SidebarNav />
       </aside>
+      {/* The sidebar, collapsed: one small button at the top left, in line with the header's, its name and the icon that
+          opens it again. The panel's is its twin, in the header at the right. */}
+      {min && (
+        <DsButton size="small" iconLeft={PanelLeftOpen} className="fixed top-3 left-5 z-30 hidden md:inline-flex" title="Expand the sidebar (⌘. for both sides)" onClick={() => toggleSide("left")}>
+          Parabola
+        </DsButton>
+      )}
 
-      <div className="md:hidden">
-        <DsNavBar backHref={backHref ?? "/parabola"} menuOpen={menuOpen} onMenuToggle={() => setMenuOpen((o) => !o)} />
-        <DsMenu
-          open={menuOpen}
-          onClose={closeMenu}
-          className="items-stretch justify-start overflow-y-auto px-5 pt-[76px] pb-10"
-        >
-          {/* The menu is modal, so it carries its own copy of the bar for closing it. */}
-          <DsNavBar backHref={backHref ?? "/parabola"} menuOpen onMenuToggle={closeMenu} />
+      {/* Below md the sections are in a menu, opened from the page's floating bar. It's modal, so it carries its own
+          bar: back to the website on the left (moving between sections is the menu's job, not a back button's),
+          Parabola's home in the middle, the light or dark toggle and close on the right. */}
+      <DsMenu open={menuOpen} onClose={closeMenu} className="items-stretch justify-start overflow-y-auto pb-10 md:hidden">
+        <DsFloatingBar
+          leading={backHref ? <DsButton size="small" iconLeft={ArrowLeft} aria-label="Back to website" href={backHref} /> : null}
+          title={
+            <DsFloatingTitle size="small" href="/parabola" onClick={closeMenu}>
+              Parabola
+            </DsFloatingTitle>
+          }
+          trailing={
+            <>
+              <DsThemeToggle size="small" />
+              <DsButton size="small" iconLeft={X} aria-label="Close menu" onClick={closeMenu} />
+            </>
+          }
+        />
+        <div className="px-5">
           <SidebarNav onNavigate={closeMenu} />
-        </DsMenu>
-      </div>
+        </div>
+      </DsMenu>
 
-      <main className="flex min-h-screen flex-col bg-ds-bg pt-[76px] md:ml-[240px] md:pt-0">
-        {children}
-      </main>
+      <ShellMenuContext.Provider value={() => setMenuOpen(true)}>
+        <ShellSidesContext.Provider value={sidesValue}>
+          <main className={`flex min-h-screen flex-col bg-ds-bg ${min ? "" : "md:ml-[240px]"}`}>{children}</main>
+        </ShellSidesContext.Provider>
+      </ShellMenuContext.Provider>
       {/* One toaster for every page: the theme's, and the Toast specimen's. */}
       <DsToaster />
     </ThemeEditorProvider>
@@ -207,14 +272,21 @@ function ThemeTitle() {
   return <>{useThemeEditor().entry.name}</>;
 }
 
+/** The panel card's colour: the page colour in both modes, white on the grey canvas in the light and the darkest
+ *  layer in the dark, where a lighter card left its picked pills with too little to stand out from. */
+const PANEL_CARD = "bg-ds-bg";
+
 export function DsCanvas({
   group,
   title,
   themeTitle = false,
+  board = false,
   children,
 }: {
   group: string;
   title: string;
+  /** The page is a board (showcase/board.tsx): it fills the canvas edge to edge on the UI's own colours and scrolls itself; its frames wear the theme. */
+  board?: boolean;
   /** Show the open theme's name as the title (the Theme page: "Theme" over "Parabola"). */
   themeTitle?: boolean;
   children: React.ReactNode;
@@ -225,6 +297,34 @@ export function DsCanvas({
   // Collapse all, then Expand all: every accordion on the page (the panel's sections) at once.
   const [allOpen, setAllOpen] = React.useState(true);
   const [version, setVersion] = React.useState(0);
+  const toggleAll = () => {
+    setAllOpen((o) => !o);
+    setVersion((v) => v + 1);
+  };
+  const openMenu = React.useContext(ShellMenuContext);
+  const { collapsed, toggle: toggleSide } = React.useContext(ShellSidesContext);
+  const min = collapsed.left;
+  const folded = collapsed.right;
+  // Whether the page put anything in the panel: only then is there a panel to fold and open again.
+  const [hasPanel, setHasPanel] = React.useState(false);
+  React.useEffect(() => {
+    if (!slot) return;
+    const check = () => setHasPanel(slot.childElementCount > 0);
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(slot, { childList: true });
+    return () => observer.disconnect();
+  }, [slot]);
+  const all = React.useMemo(() => ({ open: allOpen, toggle: toggleAll }), [allOpen]);
+  // The page's name for its title button: the section, then the page when it has its own ("Buttons · Label button").
+  const titleText = themeTitle ? group : group === title ? title : `${group} · ${title}`;
+  const name = themeTitle ? (
+    <>
+      {group} · <ThemeTitle />
+    </>
+  ) : (
+    titleText
+  );
   // How tall the pinned header is, for anything on the page that pins itself under it (--ds-canvas-top below).
   const [header, setHeader] = React.useState<HTMLElement | null>(null);
   const [headerHeight, setHeaderHeight] = React.useState(0);
@@ -239,77 +339,93 @@ export function DsCanvas({
   return (
     <PanelSlotContext.Provider value={slot}>
       <PanelFooterSlotContext.Provider value={footer}>
+      <PanelAllContext.Provider value={all}>
       <DsAccordionGroup open={allOpen} version={version}>
-      {/* One grid for the header, the page and its panel, so the header stays pinned
-          over all of it: on phones the panel comes under the page, and a header
-          sticky only within the page's own column would scroll away there. From
-          lg the header runs across the page and the panel, a rule under it, and
-          the two scroll on their own beneath it, the panel a column on the right
-          only while the page puts something in it (otherwise the page takes the width). */}
+      {/* Below lg, one grid: the header pinned over the page, the panel under the page (a header sticky only within
+          the page's own column would scroll away there). From lg the page fills the whole screen right of the sidebar,
+          and the rest floats over it: the header's buttons along the top, over a soft fade, and the panel as one card
+          on the right, under them. A page that scrolls keeps clear of both (`data-canvas`); a board runs under them. */}
       <div
         style={{ "--ds-shell-header": `${headerHeight}px` } as React.CSSProperties}
-        className="grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:h-screen lg:flex-none lg:grid-cols-[minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:[&:has(>aside>div:first-child:not(:empty))]:grid-cols-[minmax(0,1fr)_400px]">
-        {/* Pinned on the page colour (as the panel is; the sidebar sits on the surface), so the page never shows through behind
-            the title and the theme's actions. Below md it sits right under the fixed
-            nav bar (76px, its colour reaching up behind the bar), with no padding of
-            its own above. */}
-        <DsTopBar ref={setHeader} surface="solid" className="border-b border-ds-border top-[76px] self-start before:absolute before:inset-x-0 before:bottom-full before:h-[76px] before:bg-ds-bg md:top-0 md:before:hidden lg:col-span-full lg:row-start-1">
-          <div className="flex flex-wrap items-center justify-between gap-ds-16 px-5 py-3">
-            <div className="flex min-w-0 flex-col">
-              <p className="text-small text-ds-fg-subtle">{group}</p>
-              <h1 className="text-p text-ds-fg">{themeTitle ? <ThemeTitle /> : title}</h1>
-            </div>
-            {/* Collapse all / Expand all first, then the theme's Undo, Redo, Save, Publish and ⋮ menu, wherever you are. */}
-            <ThemeHeaderActions
-              trailing={<ThemeExport />}
-              leading={
-                <DsButton
-                  size="small"
-                  variant="text"
-                  iconLeft={allOpen ? ChevronsDownUp : ChevronsUpDown}
-                  aria-label={allOpen ? "Collapse all" : "Expand all"}
-                  title={allOpen ? "Collapse all" : "Expand all"}
-                  onClick={() => {
-                    setAllOpen((o) => !o);
-                    setVersion((v) => v + 1);
-                  }}
-                />
-              }
-            />
-          </div>
-        </DsTopBar>
+        className={`grid flex-1 grid-cols-1 grid-rows-[auto_1fr_auto] lg:relative lg:block lg:h-screen lg:flex-none ${folded ? "" : "lg:[&:has(>aside>[data-panel-slot]:not(:empty))>[data-canvas]]:pr-[432px]"}`}>
+        {/* The page's floating bar: its name in the middle as a button of its own, the theme's actions on the right,
+            no bar behind them, only a soft fade. On a phone it's one line: the name, cut short if need be, and two
+            buttons, the theme's ⋮ (everything else is in it) and the sections menu. */}
+        <div ref={setHeader} className="pointer-events-none sticky top-0 z-20 self-start lg:absolute lg:inset-x-0">
+          <DsFloatingBar
+            className="relative hidden px-5 md:block"
+            title={<DsFloatingTitle size="small">{name}</DsFloatingTitle>}
+            trailing={
+              <>
+                {/* The panel, folded: its name and the icon that opens it again, first among the header's buttons. */}
+                {folded && hasPanel && (
+                  <DsButton size="small" iconRight={PanelRightOpen} className="hidden lg:inline-flex" title="Expand the panel (⌘. for both sides)" onClick={() => toggleSide("right")}>
+                    {group}
+                  </DsButton>
+                )}
+                <ThemeHeaderActions trailing={<ThemeExport />} />
+              </>
+            }
+          />
+          <DsFloatingBar
+            className="relative md:hidden"
+            title={
+              <DsFloatingTitle size="small" aria-label={`${titleText}: open the sections`} onClick={openMenu}>
+                {name}
+              </DsFloatingTitle>
+            }
+            trailing={
+              <>
+                <ThemeHeaderActions compact allOpen={allOpen} onToggleAll={toggleAll} />
+                <DsButton size="small" iconLeft={Menu} aria-label="Open menu" onClick={openMenu} />
+              </>
+            }
+          />
+        </div>
         {/* The page wears the open theme (theme-editor), light or dark as the panel says; everything
             around it stays Parabola's own, in the UI's mode. */}
+        {/* A board's ground is a shade darker than the UI's own grey in the light, so a frame on a pale page (paper,
+            white) stands off it. */}
+        {/* The page is its own layer (`isolate`): what it pins inside itself, a preview's own nav, stays under the
+            floating header and the panel. */}
+        {board ? (
+          <div className={`relative isolate h-[75vh] min-w-0 overflow-hidden bg-[color-mix(in_srgb,var(--ds-surface)_45%,var(--ds-surface-subtle))] dark:bg-ds-surface-subtle lg:absolute lg:inset-0 lg:h-auto ${min ? "" : "md:-ml-[240px] lg:left-[-240px] lg:ml-0"}`}>
+            <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
+          </div>
+        ) : (
         <div
           // Only once a mode is picked: until then the canvas follows the page's own
           // .dark class, set before the first paint, so it never flashes light.
           data-ds-mode={pickedMode ?? undefined}
           // --ds-canvas-top: where a bar on the page pins itself (`top-(--ds-canvas-top)`), right
-          // under this header. Below lg the whole page scrolls, so that's the header's height
-          // (plus the fixed nav bar's 76px below md); from lg the canvas scrolls on its own, so
-          // it's the canvas's own top. The room around the page sits on the inner box, not on
-          // the canvas: a scrolling box's own padding would hold a pinned bar that far down.
-          className={`${DS_THEME_SCOPE} flex min-w-0 flex-col bg-ds-bg [--ds-canvas-top:calc(76px+var(--ds-shell-header))] md:[--ds-canvas-top:var(--ds-shell-header)] lg:col-start-1 lg:row-start-2 lg:min-h-0 lg:overflow-y-auto lg:[--ds-canvas-top:0px]`}>
-          <div className="flex min-w-0 flex-1 items-center-safe justify-center px-6 py-12">
+          // under this header: its height, whether the page scrolls (below lg) or the canvas does
+          // under the floating header (from lg). The room around the page sits on the inner box, not
+          // on the canvas: a scrolling box's own padding would hold a pinned bar that far down.
+          data-canvas
+          className={`${DS_THEME_SCOPE} isolate flex min-w-0 flex-col bg-ds-bg [--ds-canvas-top:var(--ds-shell-header)] lg:absolute lg:inset-0 lg:overflow-y-auto`}>
+          <div className="flex min-w-0 flex-1 items-center-safe justify-center px-6 py-12 lg:pt-[calc(var(--ds-shell-header)+48px)]">
             <DsModeScope onThemeChange={setPreviewMode}>{children}</DsModeScope>
           </div>
         </div>
-        {/* The page's properties; hidden while it has none. A rule between sections,
-            so folded ones still read as separate. */}
-        {/* Its sections scroll; its foot (a page's main action) stays pinned under them, on the panel's own colour.
-            Hidden while the page puts nothing there. */}
+        )}
+        {/* The page's properties, hidden while it has none. From lg one card floating on the right, under the header's
+            buttons: on the page colour, with a soft shadow and no line round it, a rule
+            between its sections so folded ones still read apart. Its sections scroll; its foot (a page's main action)
+            stays pinned under them, hidden while the page puts nothing there. */}
         <aside
           aria-label="Properties"
-          className="flex flex-col border-t border-ds-border [&:has(>div:first-child:empty)]:hidden lg:col-start-2 lg:row-start-2 lg:min-h-0 lg:border-t-0 lg:border-l"
+          className={`flex flex-col border-t border-ds-border [&:has(>[data-panel-slot]:empty)]:hidden lg:absolute lg:top-(--ds-shell-header) lg:right-4 lg:z-10 lg:border-t-0 ${folded ? "" : `lg:bottom-4 lg:w-[400px] lg:overflow-hidden lg:rounded-[20px] lg:shadow-ds-raised ${PANEL_CARD}`}`}
         >
           <div
             ref={setSlot}
-            className="flex flex-col gap-ds-16 p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16"
+            data-panel-slot
+            className={`flex min-w-0 flex-col gap-ds-16 overflow-x-hidden p-ds-16 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:p-ds-20 [&>*+*]:border-t [&>*+*]:border-ds-border [&>*+*]:pt-ds-16 ${folded ? "lg:hidden" : ""}`}
           />
-          <div ref={setFooter} className="sticky bottom-0 border-t border-ds-border bg-ds-bg p-ds-16 empty:hidden" />
+          <div ref={setFooter} className={`sticky bottom-0 border-t border-ds-border p-ds-16 empty:hidden ${folded ? "lg:hidden" : ""} ${PANEL_CARD}`} />
         </aside>
       </div>
       </DsAccordionGroup>
+      </PanelAllContext.Provider>
       </PanelFooterSlotContext.Provider>
     </PanelSlotContext.Provider>
   );

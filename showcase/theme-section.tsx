@@ -10,7 +10,6 @@ import {
   Archive,
   ArrowLeft,
   ArrowRight,
-  BadgeCheck,
   Box,
   CassetteTape,
   Circle,
@@ -33,14 +32,7 @@ import {
   Shapes,
   Square,
   SquareDashed,
-  BarChart3,
-  Bookmark,
-  Heart,
   Leaf,
-  MessageCircle,
-  MoreHorizontal,
-  Repeat2,
-  Upload,
   Minus,
   MoreVertical,
   OctagonAlert,
@@ -49,12 +41,18 @@ import {
   Newspaper,
   Pencil,
   Plus,
-  Send,
   RotateCcw,
   Terminal,
   Trash2,
   Type,
   type LucideIcon,
+  Menu,
+  Ban,
+  Blend,
+  Dock,
+  PanelTop,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { DsButton } from "../primitives/button";
 import { DsDisclosure } from "../primitives/disclosure";
@@ -77,7 +75,6 @@ import { DsPill } from "../primitives/pill";
 import { DsSelect } from "../primitives/select";
 import { dsToast } from "../primitives/toast";
 import { DsThemeToggle } from "../primitives/theme-toggle";
-import { DsInfoCard } from "../components/info-card";
 import { dsFontOptions } from "../components/font-pairing";
 import {
   DS_DEFAULT_COLOURS,
@@ -98,13 +95,16 @@ import { DsColourWheel } from "../components/colour-wheel";
 import { DsColourBar } from "../components/colour-picker";
 import { DsSwitch } from "../primitives/switch";
 import { DsTopBar } from "../primitives/top-bar";
+import { DsFloatingBar, DsFloatingTitle } from "../primitives/floating-bar";
+import { BoardOutline, BoardSurface, type BoardRow } from "./board";
+import { socialFrames, SocialSettings } from "./social-preview";
 import {
   DS_DEFAULT_FIELD_STYLE,
   DS_OUTLINE_MAX,
   DS_OUTLINE_WIDTHS,
   type DsButtonStyle,
 } from "../button-style";
-import { DS_DEFAULT_NAV_STYLE, DS_NAV_SURFACES } from "../nav-style";
+import { DS_DEFAULT_NAV_STYLE, DS_NAV_STYLES, DS_NAV_SURFACES } from "../nav-style";
 import { DsAngleDial } from "../components/angle-dial";
 import { DsCheckbox } from "../primitives/checkbox";
 import { DS_RADII, DS_RADIUS_MAX, dsRadiusPx, type DsRadius } from "../radius";
@@ -114,7 +114,6 @@ import {
   dsCharacterBase,
   dsCharacterColourOptions,
   dsMoodDials,
-  dsMoodLabel,
   dsTemperatureLabel,
   type DsCharacter,
   type DsTasteScope,
@@ -126,13 +125,12 @@ import {
   dsButtonLookAt,
   dsButtonLookStyle,
   dsPaletteDraw,
-  dsTasteNames,
   dsTastePeople,
-  dsTasteStory,
-  dsTasteTilt,
   dsTasteVoice,
   dsTypeStyleFonts,
   type DsTone,
+  DS_TASTES,
+  dsShuffleTaste,
 } from "../taste";
 import {
   DS_BODY_FAMILY,
@@ -529,6 +527,25 @@ const SECTION = {
   },
 } as const;
 
+/** The styles the Theme section offers: whole looks, a palette, a kind of type and a kind of button each (taste.ts). */
+const STYLES = DS_TASTES.filter((t) => ["classic", "minimal", "elegant", "tech", "natural"].includes(t.id));
+
+/** A style, applied: one look, the same every time (its first palette, type and buttons). The dice is for chance. */
+function withStyle(t: DsThemeConfig, id: string): DsThemeConfig {
+  const drawn = dsShuffleTaste([id], t.character, "first");
+  return dsThemeWithFonts(
+    {
+      ...t,
+      character: drawn.character,
+      colours: { ...DS_DEFAULT_COLOURS, accent: { light: drawn.button, dark: null } },
+      radius: null,
+      pillRadius: null,
+      buttons: drawn.buttonStyle,
+    },
+    drawn.fonts,
+  );
+}
+
 /**
  * The whole look again, at random: each section's own dice, one after the
  * other, and nothing else. So what comes up is always a combination of the
@@ -539,12 +556,6 @@ const drawLook = (t: DsThemeConfig): DsThemeConfig =>
   SECTION.fields.draw(
     SECTION.buttons.draw(SECTION.type.draw(SECTION.colour.draw(t))),
   );
-
-/** Light or dark, for the preview. */
-const MODES = [
-  { id: "light", label: "Light" },
-  { id: "dark", label: "Dark" },
-] as const;
 
 /** What each colour is based on in the light theme until it's given its own (colours.ts); null: Parabola's own. */
 const LIGHT_BASIS: Record<DsColourKind, string | null> = {
@@ -766,57 +777,6 @@ function PreviewAvatar({
   );
 }
 
-/** How a story's words sit on the photo (taste.ts): boxed in the page colour, plain in white, or loud on the button colour. */
-type Story = "boxed" | "plain" | "loud";
-
-/**
- * Words on a photo, as Instagram sets them: each line in its own box, tight,
- * the boxes following the lines (`box-decoration-break: clone`), in the page
- * colour or the button colour, or none at all with the words in white held
- * by a soft shadow. One size for every bit, small, as a person sets them.
- * `alt` swaps the box to the other colour, for the bit
- * that asks for a tap: words, not a button, as Instagram has none.
- */
-function StoryText({
-  story,
-  alt = false,
-  className,
-  children,
-}: {
-  story: Story;
-  alt?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const box =
-    story === "plain"
-      ? alt
-        ? "button"
-        : null
-      : (story === "loud") !== alt
-        ? "button"
-        : "page";
-  return (
-    <p className={cn("text-small leading-[1.35]", className)}>
-      <span
-        className={cn(
-          "[-webkit-box-decoration-break:clone] [box-decoration-break:clone]",
-          box && "rounded-ds-sm px-[0.4em] py-[0.12em]",
-          box === "page" && "bg-ds-bg text-ds-fg",
-          box === "button" && "bg-ds-button text-ds-on-button",
-        )}
-        style={
-          box
-            ? undefined
-            : { color: "white", textShadow: "0 1px 12px rgb(0 0 0 / 0.45)" }
-        }
-      >
-        {children}
-      </span>
-    </p>
-  );
-}
-
 /**
  * The platforms' own look, which a theme can't brand (there's no
  * custom branding there, so the preview doesn't pretend there is): Instagram's,
@@ -837,226 +797,6 @@ const PLATFORM = {
   gmailMuted: "rgb(94 94 94)",
   gmailChip: "rgb(233 235 238)",
 } as const;
-
-/**
- * A story, as Instagram shows one: Ilo's portrait full bleed, the progress
- * bars and her name at the top, then a short story in two moments, small,
- * in the taste's voice and set the way the taste asks (StoryText): her next
- * project, Dragonfly Vision, by her cheek, lined up on the left with her
- * avatar; and low in the middle the line and what to tap, the second in the
- * other colour. A playful mood tilts them a little
- * (dsTasteTilt). Its corners
- * are rounded where the Social piece's outer corners are (`className`).
- */
-function PreviewStory({
-  people,
-  story,
-  tilt,
-  copy,
-  className,
-}: {
-  people: People;
-  story: Story;
-  tilt: boolean;
-  copy: PreviewCopy;
-  className?: string;
-}) {
-  const [title, , cta] = copy.story;
-  return (
-    <div
-      className={cn(
-        "relative min-h-[320px] overflow-hidden bg-ds-surface",
-        className,
-      )}
-    >
-      <img
-        src={`${PREVIEW_MEDIA}/ilo-portrait.jpg`}
-        alt="Ilo, by the water"
-        className="absolute inset-0 size-full object-cover"
-      />
-      <div className="absolute inset-x-3 top-3 flex flex-col gap-ds-8">
-        <div className="flex gap-1">
-          {[1, 0.4, 0.4].map((o, i) => (
-            <span
-              key={i}
-              className="h-0.5 flex-1 rounded-full"
-              style={{ backgroundColor: "white", opacity: o }}
-            />
-          ))}
-        </div>
-        <div className="flex items-center gap-ds-8">
-          <PreviewAvatar people={people} className="size-6" />
-          <span
-            style={{
-              color: "white",
-              fontFamily: PLATFORM.font,
-              fontSize: 13,
-              fontWeight: 600,
-              textShadow: "0 1px 12px rgb(0 0 0 / 0.45)",
-            }}
-          >
-            iloodena
-          </span>
-        </div>
-      </div>
-      {/* Two moments: what's next, by her cheek, left with her avatar; then the line and what to tap, low. */}
-      <StoryText
-        story={story}
-        className={cn(
-          "absolute top-[52%] left-3 max-w-[70%]",
-          tilt && "-rotate-2",
-        )}
-      >
-        {copy.vision}
-      </StoryText>
-      <div className="absolute inset-x-4 bottom-8 flex flex-col items-center gap-ds-8 text-center">
-        <StoryText story={story} className={cn(tilt && "-rotate-2")}>
-          {title}
-        </StoryText>
-        <StoryText story={story} alt className={cn(tilt && "rotate-2")}>
-          {cta}
-        </StoryText>
-      </div>
-    </div>
-  );
-}
-
-/**
- * A post in the feed, beside the story, on Instagram's white in a grey
- * outline (PLATFORM): one photo, square, her at the lake's edge well inside
- * the frame, with nothing written on it (not a carousel), the actions under it, then the likes and her
- * caption in the taste's voice. Its corners are rounded where the Social
- * piece's outer corners are (`className`).
- */
-function PreviewFeedPost({
-  people,
-  copy,
-  className,
-}: {
-  people: People;
-  copy: PreviewCopy;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex min-w-0 flex-col gap-ds-8 overflow-hidden border p-3",
-        className,
-      )}
-      style={{
-        borderColor: PLATFORM.faint,
-        backgroundColor: PLATFORM.bg,
-        color: PLATFORM.ink,
-        fontFamily: PLATFORM.font,
-        fontSize: 13,
-        lineHeight: 1.35,
-      }}
-    >
-      <div className="flex items-center gap-ds-8">
-        <PreviewAvatar people={people} className="size-7" />
-        <span style={{ fontSize: 14, fontWeight: 600 }}>iloodena</span>
-        <MoreHorizontal aria-hidden className="ml-auto size-4" />
-      </div>
-      <img
-        src={`${PREVIEW_MEDIA}/ilo-lake-day.jpg`}
-        alt="Ilo sitting at the lake's edge"
-        className="-mx-3 aspect-square w-[calc(100%+1.5rem)] max-w-none object-cover"
-      />
-      <div className="flex items-center gap-3">
-        <Heart aria-label="Like" className="size-5" />
-        <MessageCircle aria-label="Comment" className="size-5" />
-        <Send aria-label="Share" className="size-5" />
-        <Bookmark aria-label="Save" className="ml-auto size-5" />
-      </div>
-      <span style={{ fontWeight: 600 }}>1,204 likes</span>
-      <p>
-        <span style={{ fontWeight: 600 }}>iloodena</span> {copy.story[1]}
-      </p>
-    </div>
-  );
-}
-
-/**
- * A post on X, on X's white in a grey outline, with its inks and font (PLATFORM), laid out as
- * X lays one out: her avatar beside the post, her name, the blue check, her
- * handle and time, the ⋯, the text, the photo (square, her head in), then
- * the counts with their icons and bookmark and share at the end. Its corners
- * are rounded where the Social piece's outer corners are (`className`).
- */
-function PreviewXPost({
-  people,
-  copy,
-  className,
-}: {
-  people: People;
-  copy: PreviewCopy;
-  className?: string;
-}) {
-  const count = (Icon: LucideIcon, n: string, label: string) => (
-    <span
-      className="flex items-center gap-1"
-      style={{ color: PLATFORM.muted, fontSize: 13 }}
-      aria-label={`${n} ${label}`}
-    >
-      <Icon aria-hidden className="size-4" />
-      {n}
-    </span>
-  );
-  return (
-    <div
-      className={cn("flex w-full gap-3 border p-ds-16", className)}
-      style={{
-        borderColor: PLATFORM.faint,
-        backgroundColor: PLATFORM.bg,
-        color: PLATFORM.ink,
-        fontFamily: PLATFORM.font,
-        fontSize: 15,
-        lineHeight: 1.35,
-      }}
-    >
-      <PreviewAvatar people={people} className="size-10" />
-      <div className="flex min-w-0 flex-1 flex-col gap-ds-8">
-        <div className="flex items-center gap-1">
-          <span className="truncate" style={{ fontWeight: 700 }}>
-            Ilo Odena
-          </span>
-          <BadgeCheck
-            aria-label="Verified"
-            className="size-4 shrink-0"
-            style={{ color: PLATFORM.blue }}
-          />
-          <span className="truncate" style={{ color: PLATFORM.muted }}>
-            @iloodena · 2h
-          </span>
-          <MoreHorizontal
-            aria-hidden
-            className="ml-auto size-4 shrink-0"
-            style={{ color: PLATFORM.muted }}
-          />
-        </div>
-        <p>{copy.x}</p>
-        <img
-          src={`${PREVIEW_MEDIA}/ilo-black-sand.jpg`}
-          alt="Black sand and a line of foam"
-          className="aspect-square w-full rounded-2xl object-cover object-[50%_30%]"
-        />
-        <div className="flex items-center justify-between gap-ds-8 pr-1">
-          {count(MessageCircle, "12", "replies")}
-          {count(Repeat2, "48", "reposts")}
-          {count(Heart, "310", "likes")}
-          {count(BarChart3, "4.1K", "views")}
-          <span
-            className="flex items-center gap-ds-8"
-            style={{ color: PLATFORM.muted }}
-          >
-            <Bookmark aria-label="Bookmark" className="size-4" />
-            <Upload aria-label="Share" className="size-4" />
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Her newsletter as a reader opens it in Gmail ("create a
@@ -1097,14 +837,14 @@ function PreviewEmail({
   );
   return (
     <div
-      className="flex flex-col gap-ds-16 overflow-hidden rounded-ds-lg border p-ds-16"
+      className="relative flex flex-col gap-ds-16 overflow-hidden rounded-ds-lg p-ds-16"
       style={{
-        borderColor: PLATFORM.faint,
         backgroundColor: PLATFORM.bg,
         color: PLATFORM.gmailInk,
         fontFamily: PLATFORM.font,
       }}
     >
+      <BoardOutline />
       <div
         className="flex items-center gap-ds-20"
         style={{ color: PLATFORM.gmailMuted }}
@@ -1187,70 +927,191 @@ function PreviewEmail({
   );
 }
 
-/** A part of the preview: a divider, its name as the panel's sections show theirs, then what it shows. */
-function PreviewPart({
-  title,
-  className,
-  children,
-}: {
-  title: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
+/** The nav choices' icons: its style, and the bar's background. */
+const NAV_ICONS: Record<string, LucideIcon> = { floating: Dock, bar: PanelTop, transparent: Ban, blur: Blend, solid: Square };
+
+/** How wide a page's reading column runs on a desktop: its words, and its nav's row. */
+const READING = 600;
+
+/** A phone's screen, in px (the latest regular iPhone, iPhone 17: 402 × 874 points): room above its first row and below its last, and in from its sides. */
+const PHONE = { width: 402, height: 874, top: 28, bottom: 28, side: 24 };
+
+/** A phone, as a plain outline: what it holds scrolls inside it, as on the device. */
+function Phone({ children }: { children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-ds-20" aria-label={title}>
-      <div className="flex flex-col gap-ds-16">
-        <DsDivider />
-        <p className="text-p text-ds-fg-muted">{title}</p>
-      </div>
-      <div className={cn("flex flex-col gap-ds-20", className)}>{children}</div>
-    </section>
+    <div className="relative overflow-hidden bg-ds-bg" style={{ width: PHONE.width, height: PHONE.height, borderRadius: 48 }}>
+      <div className="size-full overflow-y-auto [scrollbar-width:none]">{children}</div>
+      <BoardOutline />
+    </div>
+  );
+}
+
+/** A wider screen (a laptop, a tablet on its side), as a plain outline: what it holds scrolls inside it. */
+function Screen({ height, children }: { height: number; children: React.ReactNode }) {
+  return (
+    <div className="relative overflow-hidden bg-ds-bg" style={{ height, borderRadius: 20 }}>
+      <div className="size-full overflow-y-auto [scrollbar-width:none]">{children}</div>
+      <BoardOutline />
+    </div>
   );
 }
 
 /**
- * The brand in words ("taste rules, brand rules"): a
- * style statement from the pills and the chips (the tastes, then the mood,
- * the palette and the fonts it's set in), then the
- * voice, a rule from each taste picked. What the preview's words follow,
- * and what an agent writing for the brand would read.
+ * Ilo's site: the nav as a site pins it, on the background the theme picks
+ * (Navigation), an essay's opening with the one big button, a picture, and a
+ * card with the subscribe field. Scroll it and the page goes under the nav.
  */
-function PreviewBrand({
-  theme,
-  rules,
-}: {
-  theme: DsThemeConfig;
-  rules: string[];
-}) {
-  const c = theme.character;
-  const tastes = dsTasteNames(c.tastes);
-  const named = tastes.length
-    ? `${tastes.slice(0, -1).join(", ")}${tastes.length > 1 ? " and " : ""}${tastes.at(-1)}. `
-    : "";
-  const palette = DS_PALETTES.find((p) => p.id === c.scoped.colour);
-  const mood = dsMoodLabel(c.mood);
-  const names = new Map(dsFontOptions(theme).map((o) => [o.value, o.label]));
-  const fonts = [
-    ...new Set(theme.families.map((f) => names.get(f.font) ?? f.font)),
-  ];
+function PreviewWeb({ theme, phone = false }: { theme: DsThemeConfig; phone?: boolean }) {
+  // In from the frame's sides: the nav's row and the page alike. The bar itself runs edge to edge, so its blur does too;
+  // on a desktop its row keeps to the page's reading column (DsTopBar's `column`), as the page does.
+  const side = phone ? PHONE.side : 32;
   return (
-    <PreviewPart title="Brand">
-      <p className="text-h3 text-ds-fg">
-        {named}
-        {`${mood}${palette ? `, in ${palette.label.toLowerCase()} colours` : ""}, set in ${fonts.join(" and ")}.`}
-      </p>
-      <div className="flex flex-col gap-ds-8">
-        <span className="text-p text-ds-fg">Voice</span>
-        <ul className="flex list-disc flex-col gap-ds-4 pl-5 text-p text-ds-fg-muted">
-          {(rules.length
-            ? rules
-            : ["Plain words and short sentences; nothing shouted."]
-          ).map((rule) => (
-            <li key={rule}>{rule}</li>
-          ))}
-        </ul>
+    <div className="flex flex-col">
+        {/* The nav as a site pins it, on the background the theme picks (Navigation): scroll the preview and the page goes
+            under it. On a phone, the name and a menu button; on a desktop, the links. */}
+        {theme.nav.style === "floating" ? (
+          // Floating, as a website wears it: her name on the left, the menu (a phone) or the links (a desktop) on the
+          // right, both in line with the page under them.
+          <DsFloatingBar
+            column={phone ? undefined : READING}
+            style={{ paddingInline: side, paddingTop: phone ? PHONE.top : 20 }}
+            leading={<DsFloatingTitle size="small">Ilo Odena</DsFloatingTitle>}
+            trailing={
+              phone ? (
+                <DsButton size="small" iconLeft={Menu} aria-label="Menu" />
+              ) : (
+                <>
+                  <DsButton size="small">Work</DsButton>
+                  <DsButton size="small" current>
+                    Writing
+                  </DsButton>
+                  <DsButton size="small">About</DsButton>
+                  <DsThemeToggle size="small" />
+                </>
+              )
+            }
+          />
+        ) : (
+        <DsTopBar surface={theme.nav.surface} column={phone ? undefined : READING} style={{ paddingTop: phone ? PHONE.top : undefined, paddingInline: side }}>
+            {phone ? (
+              <div className="flex items-center justify-between gap-ds-16 py-ds-4">
+                <span className="text-p whitespace-nowrap text-ds-fg">Ilo Odena</span>
+                <DsButton size="small" variant="text" iconLeft={Menu} aria-label="Menu" />
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-ds-16 py-ds-16">
+                <span className="text-p whitespace-nowrap text-ds-fg">Ilo Odena</span>
+                <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
+                  <DsButton variant="text">Work</DsButton>
+                  <DsButton variant="text" current>
+                    Writing
+                  </DsButton>
+                  <DsButton variant="text">About</DsButton>
+                  <DsThemeToggle variant="text" />
+                </nav>
+              </div>
+            )}
+          </DsTopBar>
+        )}
+
+      <div className="pt-ds-20" style={{ paddingInline: side, paddingBottom: phone ? 40 : 80 }}>
+      <div className="mx-auto flex flex-col gap-ds-40" style={{ maxWidth: phone ? undefined : READING }}>
+        <article className="flex flex-col gap-ds-20">
+          <div className="flex flex-wrap items-center gap-ds-8">
+            <DsPill variant="highlight">New</DsPill>
+            <DsPill>Essay</DsPill>
+            <DsPill variant="dark">Published</DsPill>
+          </div>
+          <h1 className="text-display text-ds-fg">
+            Creating tasteful AI in an AI-infested world
+          </h1>
+          <h2 className="text-h2 text-ds-fg">
+            Where to let it decide, and where to keep the choice
+          </h2>
+          <p className="text-prose text-ds-fg-muted">
+            The hard part isn&apos;t what AI can do. It&apos;s knowing which
+            decisions to hand over and which ones have to stay mine, because the
+            ones I keep are the ones people recognise me by.
+          </p>
+          <p className="text-small text-ds-fg-muted">
+            2026 · 4 min · Taste, the floor
+          </p>
+          {/* The one big marketing button on the page, in its context: on to the essay. */}
+          <div>
+            <DsButton variant="primary" size="large" iconRight={ArrowRight}>
+              Read the essay
+            </DsButton>
+          </div>
+        </article>
+
+        <figure className="flex flex-col gap-ds-8">
+          <img
+            src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
+            alt="A still lake at dawn"
+            className="aspect-[3/2] w-full rounded-ds-lg object-cover"
+          />
+          <figcaption className="text-small text-ds-fg-muted">
+            Three summers at the lake, and one drop of it kept.
+          </figcaption>
+        </figure>
+
+        {/* A card above the fold, on the surface, with the big marketing buttons. */}
+        <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
+          <div className="flex flex-col gap-ds-4">
+            <h3 className="text-h3 text-ds-fg">Keep up with my thoughts</h3>
+            <p className="text-p text-ds-fg-muted">
+              One letter in your inbox a week.
+            </p>
+          </div>
+          <div className="@max-2xl:ds-fields-fill">
+            <DsInput aria-label="Email" placeholder="you@example.com" />
+          </div>
+          <div className="flex flex-wrap items-center gap-ds-8">
+            <DsButton variant="primary">Subscribe</DsButton>
+            <DsButton>Learn more</DsButton>
+          </div>
+        </section>
       </div>
-    </PreviewPart>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Ilo's own app: Hollow's (Y3K, the Humans: Ilo made Hollow, a palm-sized
+ * stone left in the lake overnight that answers a question as pulse and
+ * warmth). The app is the voice beside it: it listened to the lake all night
+ * and tells you what it heard. The stone's dish, big in the middle and
+ * breathing slowly, is the one thing to touch: hold it to ask. Under it what
+ * it heard, a line at a time, the newest strongest, everything centred.
+ */
+function PreviewApp() {
+  const heard = ["The frogs went quiet at 4:10.", "The water is two degrees colder than last night."];
+  return (
+    <div className="flex min-h-full flex-col items-center text-center" style={{ padding: `${PHONE.top + 8}px ${PHONE.side}px ${PHONE.bottom}px` }}>
+      <style>{`@keyframes ds-hollow{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.06);opacity:1}}`}</style>
+      <div className="flex flex-col items-center gap-ds-4">
+        <span className="text-p text-ds-fg">Hollow</span>
+        <span className="text-small text-ds-fg-muted">Listening since 21:40</span>
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center gap-ds-32">
+        {/* The dish: one drop of lake water, breathing while it listens. Hold it to ask. */}
+        <div className="relative grid size-56 place-items-center">
+          <div className="absolute inset-0 rounded-full bg-ds-surface-subtle motion-safe:animate-[ds-hollow_6s_ease-in-out_infinite]" />
+          <div className="absolute inset-8 rounded-full bg-ds-surface" />
+          <div className="relative size-3 rounded-full bg-ds-fg" />
+        </div>
+        <div className="flex flex-col items-center gap-ds-8">
+          {heard.map((line) => (
+            <p key={line} className="text-p text-ds-fg-subtle">
+              {line}
+            </p>
+          ))}
+          <p className="text-h3 text-ds-fg">Rain by noon. Bring the stone in before then.</p>
+        </div>
+      </div>
+      <span className="text-small text-ds-fg-muted">Hold to ask</span>
+    </div>
   );
 }
 
@@ -1359,7 +1220,7 @@ function SectionRail({
       label={label}
       options={options}
       picked={picked ? [picked] : []}
-      // One at a time, as tabs are: picking the one picked does nothing.
+      // One at a time, as tabs are: picking the one picked does nothing. Another look is the dice's job.
       onToggle={(id) => {
         if (id === picked) return;
         onTheme(
@@ -1478,8 +1339,9 @@ function ColourChoice({
         theme={theme}
         onTheme={onTheme}
         apply={(id, t) => {
+          // A palette is one look, the same every time: its first page and its first button. The dice draws from the rest.
           const drawn = id
-            ? dsPaletteDraw(id, t.character)
+            ? dsPaletteDraw(id, t.character, t.character.mood, true)
             : {
                 character: {
                   hue: 40,
@@ -1943,6 +1805,7 @@ export function ThemeSection() {
     removeTheme,
     restoreTheme,
     previewMode: mode,
+    pickedMode,
     setPreviewMode,
   } = useThemeEditor();
   const [naming, setNaming] = React.useState<
@@ -1965,150 +1828,78 @@ export function ThemeSection() {
   // Ilo shows as her photo in a friendly look, her initials in a branded one; her story's words boxed, plain or
   // loud (taste.ts).
   const people = dsTastePeople(theme.character.tastes, theme.character.mood);
-  const story = dsTasteStory(theme.character.tastes, theme.character.mood);
-  const tilt = dsTasteTilt(theme.character.tastes, theme.character.mood);
   const voice = dsTasteVoice(theme.character.tastes, theme.character.mood);
   const copy = VOICE_COPY[voice.tone];
+  // The style showing as picked: the one that set this look, while its palette, type and buttons are still its own.
+  const styled = STYLES.find(
+    (t) =>
+      t.id === theme.character.tastes[0] &&
+      t.palettes[0] === theme.character.scoped.colour &&
+      t.types[0] === theme.character.scoped.type &&
+      t.buttons[0] === theme.character.scoped.buttons,
+  )?.id;
+  const social = socialFrames(theme.social);
+  const rows: BoardRow[] = [
+    {
+      name: "Web",
+      frames: [
+        {
+          name: "iPhone 17 · 402",
+          width: PHONE.width,
+          chrome: false,
+          render: () => (
+            <Phone>
+              <PreviewWeb theme={theme} phone />
+            </Phone>
+          ),
+        },
+        {
+          name: "Desktop · 1280",
+          width: 1280,
+          chrome: false,
+          render: () => (
+            <Screen height={PHONE.height}>
+              <PreviewWeb theme={theme} />
+            </Screen>
+          ),
+        },
+      ],
+    },
+    { name: "Email", frames: [{ name: "Gmail · 640", width: 640, chrome: false, render: () => <PreviewEmail theme={theme} people={people} copy={copy} /> }] },
+    {
+      name: `Carousel · ${social.slides.length} slides · 1080 × ${social.slideHeight}`,
+      frames: social.slides.map((slide, i) => ({ name: `${i + 1} / ${social.slides.length}`, width: 470, chrome: false, render: () => slide })),
+    },
+    {
+      name: `Reel · ${social.scenes.length} scenes · 1080 × 1920`,
+      frames: social.scenes.map((scene, i) => ({ name: `Scene ${i + 1}`, width: 300, chrome: false, render: () => scene })),
+    },
+    {
+      name: "App",
+      frames: [
+        {
+          name: "iPhone 17 · 402",
+          width: PHONE.width,
+          chrome: false,
+          render: () => (
+            <Phone>
+              <PreviewApp />
+            </Phone>
+          ),
+        },
+      ],
+    },
+  ];
   const heading = theme.families.find((f) => f.id === DS_HEADING_FAMILY);
   const body =
     theme.families.find((f) => f.id === DS_BODY_FAMILY) ?? theme.families[0];
 
   return (
-    // The brand, not just the UI: the look in each place, at a site's reading width (600px),
-    // the site (Web), the top of a letter (Email), a story, a feed post and a post on X (Social), and the admin's own card
-    // (App), with Ilo's own photos and words in the taste's voice; then what it says and how (Brand).
-    <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
-      <PreviewPart title="Web" className="gap-ds-40">
-        {/* The nav as a site pins it, on the background the theme picks (Navigation): scroll the preview and the page goes under it. */}
-        {/* Pinned right under the showcase's header (--ds-canvas-top, ds-shell), so nothing shows above it. */}
-        <DsTopBar surface={theme.nav.surface} className="top-(--ds-canvas-top)">
-          <div className="flex items-center justify-between gap-ds-16 py-ds-12">
-            <span className="text-p text-ds-fg">Ilo Odena</span>
-            <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
-              <DsButton variant="text">Work</DsButton>
-              <DsButton variant="text" current>
-                Writing
-              </DsButton>
-              <DsButton variant="text">About</DsButton>
-              <DsThemeToggle variant="text" />
-            </nav>
-          </div>
-        </DsTopBar>
-
-        <article className="flex flex-col gap-ds-20">
-          <div className="flex flex-wrap items-center gap-ds-8">
-            <DsPill variant="highlight">New</DsPill>
-            <DsPill>Essay</DsPill>
-            <DsPill variant="dark">Published</DsPill>
-          </div>
-          <h1 className="text-display text-ds-fg">
-            Creating tasteful AI in an AI-infested world
-          </h1>
-          <h2 className="text-h2 text-ds-fg">
-            Where to let it decide, and where to keep the choice
-          </h2>
-          <p className="text-prose text-ds-fg-muted">
-            The hard part isn&apos;t what AI can do. It&apos;s knowing which
-            decisions to hand over and which ones have to stay mine, because the
-            ones I keep are the ones people recognise me by.
-          </p>
-          <p className="text-small text-ds-fg-muted">
-            2026 · 4 min · Taste, the floor
-          </p>
-          {/* The one big marketing button on the page, in its context: on to the essay. */}
-          <div>
-            <DsButton variant="primary" size="large" iconRight={ArrowRight}>
-              Read the essay
-            </DsButton>
-          </div>
-        </article>
-
-        <figure className="flex flex-col gap-ds-8">
-          <img
-            src={`${PREVIEW_MEDIA}/ilo-lake.jpg`}
-            alt="A still lake at dawn"
-            className="aspect-[3/2] w-full rounded-ds-lg object-cover"
-          />
-          <figcaption className="text-small text-ds-fg-muted">
-            Three summers at the lake, and one drop of it kept.
-          </figcaption>
-        </figure>
-
-        {/* A card above the fold, on the surface, with the big marketing buttons. */}
-        <section className="@container flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
-          <div className="flex flex-col gap-ds-4">
-            <h3 className="text-h3 text-ds-fg">Keep up with my thoughts</h3>
-            <p className="text-p text-ds-fg-muted">
-              One letter in your inbox a week.
-            </p>
-          </div>
-          <div className="@max-2xl:ds-fields-fill">
-            <DsInput aria-label="Email" placeholder="you@example.com" />
-          </div>
-          <div className="flex flex-wrap items-center gap-ds-8">
-            <DsButton variant="primary">Subscribe</DsButton>
-            <DsButton>Learn more</DsButton>
-          </div>
-        </section>
-      </PreviewPart>
-
-      <PreviewPart title="Email">
-        <PreviewEmail theme={theme} people={people} copy={copy} />
-      </PreviewPart>
-
-      <PreviewPart title="Social">
-        {/* One piece: the story and the feed post side by side over the post on X, 4px apart,
-            rounded only at the piece's outer corners. The story stretches to the post's height. */}
-        <div className="flex flex-col gap-1">
-          <div className="grid grid-cols-[23fr_35fr] gap-1">
-            <PreviewStory
-              people={people}
-              story={story}
-              tilt={tilt}
-              copy={copy}
-              className="rounded-tl-ds-lg"
-            />
-            <PreviewFeedPost
-              people={people}
-              copy={copy}
-              className="rounded-tr-ds-lg"
-            />
-          </div>
-          <PreviewXPost
-            people={people}
-            copy={copy}
-            className="rounded-b-ds-lg"
-          />
-        </div>
-      </PreviewPart>
-
-      <PreviewPart title="App">
-        {/* Her project, as the admin shows a draft: its name and state, a note, its actions. */}
-        <section className="flex flex-col gap-ds-16 rounded-ds-lg bg-ds-surface-subtle p-ds-20">
-          <div className="flex items-start justify-between gap-ds-16">
-            <div className="flex flex-col gap-ds-4">
-              <h3 className="text-h3 text-ds-fg">Dragonfly</h3>
-              <p className="text-small text-ds-fg-muted">
-                Project · Craft, sound, writing · 14 images, 3 recordings
-              </p>
-            </div>
-            <DsPill>Draft</DsPill>
-          </div>
-          <DsInfoCard title="Not live yet">
-            <p>
-              The process notes and the recordings go out with it when you
-              publish.
-            </p>
-          </DsInfoCard>
-          <div className="flex flex-wrap items-center gap-ds-8">
-            <DsButton variant="primary">Publish</DsButton>
-            <DsButton>Save</DsButton>
-            <DsButton variant="text">Preview</DsButton>
-          </div>
-        </section>
-      </PreviewPart>
-
-      <PreviewBrand theme={theme} rules={voice.rules} />
+    // The brand, not just the UI, on a board to move around and zoom (BoardSurface): the site on a phone and
+    // on a desktop, a letter, a carousel and a reel, and the app on a phone, with Ilo's own photos and words
+    // in the taste's voice. The panel beside it changes all of them at once.
+    <>
+      <BoardSurface rows={rows} mode={pickedMode} startZoom={0.5} />
 
       <InPanel>
         <PanelSection
@@ -2171,30 +1962,49 @@ export function ThemeSection() {
         >
           {/* The themes, as text: Parabola first (its own, never changed), then any made from it.
               A change goes into the open theme, Parabola included (Restore puts it back); New +, the last tab, adds a copy. */}
+          {/* The themes, and on the right the preview's light or dark, one button as the sidebar's own toggle is. */}
+          <div className="flex items-center gap-ds-8">
+            <div className="min-w-0 flex-1">
           <PillRow
-            plain
-            label="Theme"
-            options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
-            picked={[entry.id]}
-            onToggle={(id) => {
-              if (id === entry.id) return;
-              select(id);
-            }}
-            // The last tab: a new theme, a copy of the open one, named first.
-            after={
-              <DsButton size="small" variant="text" iconRight={Plus} onClick={() => setNaming("add")}>
-                New
-              </DsButton>
-            }
-          />
-          {/* The preview's mode, right under the themes, the same kind of row; the UI's is the sidebar's toggle. */}
-          <PillRow
-            plain
-            label="Mode"
-            options={MODES}
-            picked={[mode]}
-            onToggle={(id) => setPreviewMode(id as "light" | "dark")}
-          />
+                plain
+                label="Theme"
+                options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
+                picked={[entry.id]}
+                onToggle={(id) => {
+                  if (id === entry.id) return;
+                  select(id);
+                }}
+                // The last tab: a new theme, a copy of the open one, named first.
+                after={
+                  <DsButton size="small" variant="text" iconRight={Plus} onClick={() => setNaming("add")}>
+                    New
+                  </DsButton>
+                }
+              />
+            </div>
+            <DsButton
+              size="small"
+              variant="text"
+              iconLeft={mode === "dark" ? Sun : Moon}
+              aria-label={mode === "dark" ? "Show the preview in light" : "Show the preview in dark"}
+              title={mode === "dark" ? "Light" : "Dark"}
+              onClick={() => setPreviewMode(mode === "dark" ? "light" : "dark")}
+            />
+          </div>
+          {/* A whole look in one pick: a palette, a kind of type and a kind of button together, the same each time. The
+              sections below tune what it set. */}
+          <div className="flex flex-col gap-ds-4">
+            <span className="text-p text-ds-fg">Style</span>
+            <PillRow
+              label="Style"
+              options={STYLES}
+              picked={styled ? [styled] : []}
+              onToggle={(id) => {
+                if (styled === id) return;
+                setTheme(withStyle(theme, id));
+              }}
+            />
+          </div>
         </PanelSection>
 
         <PanelSection
@@ -2398,24 +2208,61 @@ export function ThemeSection() {
           }
         >
           <div className="flex flex-col gap-ds-8">
-            <span className="text-p text-ds-fg">Background</span>
-            <div className="flex items-center gap-ds-4" role="group" aria-label="Navigation background">
-              {DS_NAV_SURFACES.map((s) => (
+            <span className="text-p text-ds-fg">Style</span>
+            <div role="group" aria-label="Navigation style" className="flex items-center gap-ds-4">
+              {DS_NAV_STYLES.map((s) => (
                 <DsButton
                   key={s.id}
                   size="small"
-                  className="min-w-0 flex-1 px-0"
-                  pressed={theme.nav.surface === s.id}
-                  onClick={() => setTheme({ ...theme, nav: { surface: s.id } })}
+                  variant="text"
+                  className="min-w-0 flex-1"
+                  iconLeft={NAV_ICONS[s.id]}
+                  pressed={theme.nav.style === s.id}
+                  onClick={() => setTheme({ ...theme, nav: { ...theme.nav, style: s.id } })}
                 >
                   {s.label}
                 </DsButton>
               ))}
             </div>
           </div>
+          {/* The bar's background; floating has its own soft fade. */}
+          {theme.nav.style === "bar" && (
+            <div className="flex flex-col gap-ds-8">
+              <span className="text-p text-ds-fg">Background</span>
+              <div role="group" aria-label="Navigation background" className="flex items-center gap-ds-4">
+                {DS_NAV_SURFACES.map((s) => (
+                  <DsButton
+                    key={s.id}
+                    size="small"
+                    variant="text"
+                    className="min-w-0 flex-1"
+                    iconLeft={NAV_ICONS[s.id]}
+                    pressed={theme.nav.surface === s.id}
+                    onClick={() => setTheme({ ...theme, nav: { ...theme.nav, surface: s.id } })}
+                  >
+                    {s.label}
+                  </DsButton>
+                ))}
+              </div>
+            </div>
+          )}
         </PanelSection>
 
         {/* No dice here: Lucide is the only library that works (colours.ts), so a draw has nothing to pick. */}
+        <PanelSection
+          title="Social"
+          actions={
+            <SectionRestore
+              section="Social"
+              theme={theme}
+              setTheme={setTheme}
+              restore={(t) => ({ ...t, social: DS_DEFAULT_THEME.social })}
+            />
+          }
+        >
+          <SocialSettings social={theme.social} onChange={(social) => setTheme({ ...theme, social })} />
+        </PanelSection>
+
         <PanelSection
           title="Icons"
           actions={
@@ -2483,6 +2330,6 @@ export function ThemeSection() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

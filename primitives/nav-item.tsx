@@ -122,8 +122,8 @@ export function DsNavItem({
 }
 
 /**
- * A collapsible group of nav items: a default-size row with a chevron that
- * opens and closes its small child rows, indented 12px and 4px apart
+ * A collapsible group of nav items: a row (default size, or small with
+ * `size`) with a chevron that opens and closes its small child rows, indented 12px and 4px apart
  * (`ds-4`, the smallest spacing) as nav rows are. Radix Collapsible
  * handles the open state and its announcement.
  */
@@ -131,6 +131,7 @@ export function DsNavGroup({
   label,
   iconLeft,
   meta,
+  size,
   open,
   defaultOpen,
   onOpenChange,
@@ -139,6 +140,7 @@ export function DsNavGroup({
   label: React.ReactNode;
   iconLeft?: LucideIcon;
   meta?: React.ReactNode;
+  size?: "default" | "small";
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -147,7 +149,7 @@ export function DsNavGroup({
   return (
     <Collapsible.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
       <Collapsible.Trigger asChild>
-        <DsNavItem expandable iconLeft={iconLeft} meta={meta}>
+        <DsNavItem expandable iconLeft={iconLeft} meta={meta} size={size}>
           {label}
         </DsNavItem>
       </Collapsible.Trigger>
