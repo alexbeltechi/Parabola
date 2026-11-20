@@ -21,6 +21,7 @@
  */
 import { dsMoodLabel } from "./character";
 import { dsCompositionWords } from "./composition";
+import { dsSocialWords } from "./social";
 import { DS_SPACES } from "./spacing";
 import { DS_BUTTON_LOOKS, DS_PALETTES, DS_TYPE_STYLES, dsTasteNames, dsTasteVoice } from "./taste";
 import { dsThemeColourTokens, dsThemeCss, dsThemeExport, parseDsThemeConfig, type DsThemeConfig } from "./theme";
@@ -255,6 +256,9 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
     ...dsCompositionWords(theme.composition).map((line) => `- ${line}`),
     "",
     ...(brief.moves.length ? ["Signature moves", ...brief.moves.map((m) => `- ${m}`), ""] : []),
+    "Social (posts, carousels, reels)",
+    ...dsSocialWords(theme.social).map((line) => `- ${line}`),
+    "",
     `Voice: ${voice.tone}. ${(voice.rules.length ? voice.rules : ["Plain words and short sentences; nothing shouted."]).join(" ")}`,
     "",
     "How to use it",

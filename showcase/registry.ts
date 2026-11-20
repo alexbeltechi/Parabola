@@ -66,7 +66,7 @@ export const DS_TIERS: DsTier[] = [
         label: "Theme",
         icon: Paintbrush,
         single: true,
-        pages: [{ slug: "fonts", label: "Theme", component: ThemeSection }],
+        pages: [{ slug: "fonts", label: "Theme", component: ThemeSection, board: true }],
       },
       {
         slug: "board",

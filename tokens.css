@@ -160,7 +160,7 @@
      its bottom edge, so the bar reads as one surface. Two blurs fading into
      each other don't look like a blur in between: halfway, a sharp and a
      blurred copy of the content show at once, and the bar looks sliced. Kept
-     soft (6px) under a light tint (40% of the page colour), so the page
+     soft (3px) under a light tint (40% of the page colour), so the page
      shows through. */
   &::before {
     content: "";
@@ -168,10 +168,44 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
     -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
     mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent);
+  }
+}
+
+/* Frosted: the page colour, mostly opaque, over a strong blur of what's behind
+   it, a little more saturated. One recipe for every surface that sits over the
+   page and lets it show through: the menu sheet, the showcase's sidebar. */
+@utility ds-frosted {
+  background-color: color-mix(in srgb, var(--ds-bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  backdrop-filter: blur(24px) saturate(1.5);
+}
+
+/* The floating bar's fade (primitives/floating-bar.tsx): no bar, only the page
+   colour fading out downwards, strong at the very top, and a very faint blur
+   that fades with it, so what scrolls under the floating buttons quietens. */
+@utility ds-nav-float {
+  isolation: isolate;
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ds-bg) 55%, transparent),
+    color-mix(in srgb, var(--ds-bg) 20%, transparent) 60%,
+    transparent
+  );
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(1px);
+    backdrop-filter: blur(1px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent);
   }
 }
 

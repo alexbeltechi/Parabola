@@ -3,7 +3,7 @@ import { DS_ACCENT_COLOURS, DS_BASE_COLOURS, DS_ICON_LIBRARIES, DS_SHIFT_MAX, ds
 import { DS_CHARACTER_DIALS, DS_DEFAULT_CHARACTER } from "./character";
 import { DS_CUSTOM_FONT_ID_RE, DS_FONTS, DS_FONT_LABEL_RE, DS_GOOGLE_FONT_RE, dsGoogleWeightsValid } from "./fonts";
 import { DS_OUTLINE_MAX } from "./button-style";
-import { DS_NAV_SURFACES } from "./nav-style";
+import { DS_NAV_STYLES, DS_NAV_SURFACES } from "./nav-style";
 import { DS_RADII, DS_RADIUS_MAX } from "./radius";
 import { DS_TEXT_STYLES, parseDsThemeConfig, type DsThemeConfig } from "./theme";
 
@@ -32,7 +32,7 @@ const STYLE_KEYS = ["label", "family", "weight", "size", "lineHeight"] as const;
 const CUSTOM_FONT_KEYS = ["id", "label", "google"] as const;
 const BUTTON_KEYS = ["fill", "contrast", "outline", "outlineWidth", "outlineOpacity", "shadow", "shadowAngle"] as const;
 const FIELD_KEYS = ["outline", "outlineWidth", "outlineOpacity"] as const;
-const NAV_KEYS = ["surface"] as const;
+const NAV_KEYS = ["style", "surface"] as const;
 const CHARACTER_KEYS = ["tastes", "scoped", "mood", ...DS_CHARACTER_DIALS.map((d) => d.id)] as const;
 const THEME_KEYS = [
   "character",
@@ -64,6 +64,7 @@ export const DS_THEME_FILE_CONTRACT = {
   buttons: BUTTON_KEYS,
   fields: FIELD_KEYS,
   nav: NAV_KEYS,
+  navStyles: DS_NAV_STYLES.map((s) => s.id),
   navSurfaces: DS_NAV_SURFACES.map((s) => s.id),
   radii: DS_RADII.map((r) => r.id),
   radiusMaxPx: DS_RADIUS_MAX,
@@ -248,6 +249,10 @@ function checkTheme(theme: Obj, errors: string[]) {
     if (!isObj(theme.nav)) errors.push("theme.nav: must be an object");
     else {
       unknownKeys(theme.nav, NAV_KEYS, "theme.nav", errors);
+      const style = theme.nav.style;
+      if (style !== undefined && !DS_THEME_FILE_CONTRACT.navStyles.some((s) => s === style)) {
+        errors.push(`theme.nav.style: must be one of ${list(DS_THEME_FILE_CONTRACT.navStyles)}`);
+      }
       const surface = theme.nav.surface;
       if (surface !== undefined && !DS_THEME_FILE_CONTRACT.navSurfaces.some((s) => s === surface)) {
         errors.push(`theme.nav.surface: must be one of ${list(DS_THEME_FILE_CONTRACT.navSurfaces)}`);

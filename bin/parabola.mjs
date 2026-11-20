@@ -674,6 +674,131 @@ function dsCompositionWords(c) {
   return c.numbered ? [...lines, `Numbering: ${NUMBERED_SAYS}`] : lines;
 }
 
+// social.ts
+var DS_DEFAULT_SOCIAL = {
+  frame: "3:4",
+  edge: "regular",
+  text: "mixed",
+  corners: "square",
+  fonts: "two",
+  align: "centre",
+  signature: "ends"
+};
+var DS_SOCIAL_TYPE = {
+  display: { size: 126, leading: 1.05, heading: true },
+  h1: { size: 90, leading: 1.1, heading: true },
+  h2: { size: 63, leading: 1.15, heading: true },
+  // A reel's captions: one size and one font for all of them, the body font, a little bigger than a sentence.
+  caption: { size: 54, leading: 1.2, heading: false },
+  p: { size: 45, leading: 1.25, heading: false },
+  small: { size: 36, leading: 1.25, heading: false }
+};
+var DS_SOCIAL_REEL = { height: 1920, top: 220, bottom: 500, right: 240, left: 100 };
+var DS_SOCIAL_CHOICES = [
+  {
+    key: "frame",
+    label: "Post size",
+    options: [
+      { id: "3:4", label: "3:4", says: "A post and every slide of a carousel is 3:4, 1080 \xD7 1440px, the shape Instagram's grid shows." },
+      { id: "4:5", label: "4:5", says: "A post and every slide of a carousel is 4:5, 1080 \xD7 1350px." },
+      { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 \xD7 1080px." }
+    ]
+  },
+  {
+    key: "edge",
+    label: "Edge",
+    options: [
+      { id: "tight", label: "Tight", says: "No text or mark comes closer to the frame's edge than 36px (at 1080 wide). Things sit on that line, not somewhere inside it." },
+      { id: "regular", label: "Regular", says: "No text or mark comes closer to the frame's edge than 54px (at 1080 wide). Things sit on that line, not somewhere inside it." },
+      { id: "wide", label: "Wide", says: "No text or mark comes closer to the frame's edge than 90px (at 1080 wide). Things sit on that line, not somewhere inside it." }
+    ]
+  },
+  {
+    key: "text",
+    label: "Text on pictures",
+    options: [
+      {
+        id: "mixed",
+        label: "Mixed",
+        says: "Text on a picture or a video is set two ways. A title, or one line said over a calm picture, sits straight on it in the heading font and the page colour, no box, no shadow. Sentences and captions sit in a solid box: the page colour as the box, the text colour for the words, 18px of padding, several boxes stacked 18px apart, a box as wide as its words."
+      },
+      {
+        id: "boxed",
+        label: "Boxed",
+        says: "Text on a picture or a video sits in a solid box: the page colour as the box, the text colour for the words, as on the site, 18px of padding. Several boxes stack 18px apart; a box is as wide as its words, never the frame."
+      },
+      {
+        id: "wrapped",
+        label: "Wrapped",
+        says: "Text on a picture or a video has a band behind each line, as wide as that line's words, the bands joined into one shape: the page colour as the band, the text colour for the words. Never one box around all of it."
+      },
+      { id: "plain", label: "Plain", says: "Text on a picture or a video sits straight on it, in white, with no box and no shadow. Put it where the picture is calm." },
+      {
+        id: "shadow",
+        label: "Shadow",
+        says: "Text on a picture or a video sits straight on it, in white, with a tight shadow under it (4.5px down, 4.5px blur, 40% black, at 1080 wide) so it reads on any picture."
+      }
+    ]
+  },
+  {
+    key: "corners",
+    label: "Corners",
+    options: [
+      { id: "square", label: "Square", says: "A box or a band behind text has square corners." },
+      { id: "rounded", label: "Rounded", says: "A box or a band behind text has rounded corners, 18px (at 1080 wide), where bands of different widths meet too." }
+    ]
+  },
+  {
+    key: "fonts",
+    label: "Fonts",
+    options: [
+      { id: "two", label: "Two", says: "Statements and titles are in the heading font, sentences and captions in the body font." },
+      { id: "one", label: "One", says: "One font, the body font, for everything; size alone makes a title." }
+    ]
+  },
+  {
+    key: "align",
+    label: "Alignment",
+    options: [
+      { id: "left", label: "Left", says: "Text hangs from the left edge line; on a colour, a statement starts at the top left." },
+      { id: "centre", label: "Centred", says: "Text is centred; on a colour, a statement sits in the middle of the frame." },
+      { id: "right", label: "Right", says: "Text hangs from the right edge line; on a colour, a statement starts at the top right." }
+    ]
+  },
+  {
+    key: "signature",
+    label: "Signature",
+    options: [
+      { id: "none", label: "None", says: "Slides aren't signed." },
+      { id: "ends", label: "First and last", says: "The first and the last slide carry the name, small, on the bottom edge line." },
+      { id: "every", label: "Every slide", says: "Every slide carries the name, small, on the bottom edge line." }
+    ]
+  }
+];
+function parseDsSocial(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  const out = { ...DS_DEFAULT_SOCIAL };
+  for (const choice of DS_SOCIAL_CHOICES) {
+    if (choice.options.some((o) => o.id === raw[choice.key])) out[choice.key] = raw[choice.key];
+  }
+  return out;
+}
+var FIXED = [
+  `Type (size/line height at 1080 wide): ${Object.entries(DS_SOCIAL_TYPE).map(([name, t]) => `${name} ${t.size}/${Math.round(t.size * t.leading)}`).join(", ")}. Use these sizes and no others; one display or h1 statement a slide at most.`,
+  `Reels and stories: 9:16, 1080 \xD7 ${DS_SOCIAL_REEL.height}px. Keep text out of the top ${DS_SOCIAL_REEL.top}px, the bottom ${DS_SOCIAL_REEL.bottom}px and the left ${DS_SOCIAL_REEL.left}px, and, in the lower half only, the right ${DS_SOCIAL_REEL.right}px: a tall phone crops the sides, and the app's own name, caption and tab bar sit at the bottom, its buttons down the right of the lower half. In the upper half, text is centred on the whole screen. Captions are short, one thought a scene, all in the caption size and the body font, aligned as the style aligns. A caption sits in one of three places and nowhere else: on the top line of the clear area, in its middle, or on its bottom line. Pick the one where the picture is calm, never over a face. A reel may open on a title instead: h1, in the heading font, straight on the picture in the page colour with no box, where the picture is calm.`,
+  "Text straight on a picture or a video is the page colour (the light one), never pure white unless the page is white.",
+  "Colour: pictures aside, a carousel uses the page colour, the text colour and the accent, and opens on the page colour. The accent is a ground for one slide at most.",
+  "Every length is a share of the frame's width: scale them together for another size.",
+  "Text, marks, pictures and video only. Nothing that looks like a button."
+];
+function dsSocialWords(s) {
+  const lines = DS_SOCIAL_CHOICES.filter((choice) => !(choice.key === "corners" && (s.text === "plain" || s.text === "shadow"))).map((choice) => {
+    const option = choice.options.find((o) => o.id === s[choice.key]);
+    return option ? `${choice.label}: ${option.says}` : "";
+  });
+  return [...lines.filter(Boolean), ...FIXED];
+}
+
 // spacing.ts
 var DS_SPACES = [4, 8, 16, 20, 32, 40, 80, 160];
 
@@ -684,25 +809,16 @@ var pair2 = (heading, headingAxes, body, bodyAxes) => ({
 });
 var AXES = ":wght@400..700";
 var DS_PALETTES = [
-  // Parabola's own: white, black buttons.
-  { id: "classic", label: "Classic", backgrounds: [null], buttons: [null], contrast: [0, 0] },
-  // A startup's: whites and zinc greys, near-black or one clear blue.
-  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#09090B"], buttons: ["#18181B", null, "#2563EB"], contrast: [0.05, 0.3] },
-  { id: "earthy", label: "Earthy", backgrounds: ["#F3EFE4", "#E7EDDF", "#D9C9A8", "#2E5E3A"], buttons: ["#2E5E3A", "#8A5A2B", "#B5532E"], contrast: [-0.15, 0.15] },
-  { id: "pastel", label: "Pastel", backgrounds: ["#FFF4E8", "#F2F0FF", "#EEF6F1", "#FDEFF4"], buttons: ["#2F6FEB", "#00A37A", "#7C5CFF", "#FF7A59"], contrast: [-0.25, 0] },
-  { id: "vibrant", label: "Vibrant", backgrounds: ["#FFE600", "#FF4F00", "#0F766E", "#FF3EA5", "#3D5AFE"], buttons: ["#111111", "#2F2BFF", "#FFFFFF"], contrast: [0.3, 0.7] },
-  // A team's: white or black, one loud primary, hard contrast.
-  // A team's and a track's: volt, black, electric blue, blaze orange, a court green; one loud colour on it.
-  {
-    id: "sport",
-    label: "Sport",
-    backgrounds: ["#C6FF3D", "#0B0B0B", "#1F3BFF", "#FF5A1F", "#00C46A", "#FF2E63", null],
-    buttons: ["#0B0B0B", "#FFFFFF", "#C6FF3D", "#FF5A1F", "#1F3BFF"],
-    contrast: [0.4, 0.8]
-  },
-  { id: "rich", label: "Rich", backgrounds: ["#F5F1EA", "#121212", "#1E2A24", "#3B2F2A", "#7A1F2B"], buttons: ["#111111", "#8C6A43", "#C9A96E"], contrast: [0.1, 0.4] },
-  { id: "vintage", label: "Vintage", backgrounds: ["#F4E9D8", "#F2D7A6", "#E9C46A", "#3B2A20"], buttons: ["#3B2A20", "#2A9D8F", "#D1495B", "#E76F51"], contrast: [-0.1, 0.25] },
-  { id: "neon", label: "Neon", backgrounds: ["#05070D", "#0E1A2B", "#2A1B4D", "#1B1035"], buttons: ["#00E5FF", "#B388FF", "#39FF88", "#FF5F1F"], contrast: [0.3, 0.7] }
+  // Paper: warm off-whites, stone ink. Black buttons, or one deep red.
+  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: [null, "#1C1917", "#B0182B"], contrast: [0, 0.1] },
+  // No colour at all: white, greys, black.
+  { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
+  // Clay, sand and moss, muted.
+  { id: "earthy", label: "Earthy", backgrounds: ["#F3EEE3", "#EAE4D3", "#E3E7DA", "#2B3328"], buttons: ["#3D4A36", "#8A5A2B", "#A4492B"], contrast: [-0.1, 0.15] },
+  // A faint tint of one colour, and a soft mid-tone of it for the buttons. Never bright.
+  { id: "pastel", label: "Pastel", backgrounds: ["#F3F1FB", "#FBF0F1", "#EEF5F0", "#FAF3E3", "#EDF3FA"], buttons: ["#6F63B8", "#B5677C", "#4F8F7B", "#5B7FB5", null], contrast: [-0.2, 0] },
+  // Dark, with one bright colour on it.
+  { id: "neon", label: "Neon", backgrounds: ["#0B0B10", "#0E1420", "#15111F"], buttons: ["#C6FF3D", "#00E5FF", "#FF5F1F", "#B388FF"], contrast: [0.3, 0.6] }
 ];
 var DS_TYPE_STYLES = [
   {
@@ -814,7 +930,7 @@ var DS_TASTES = [
     id: "classic",
     label: "Classic",
     ink: [1, 1],
-    // Parabola's own first (its white, its fonts, its round buttons), then an editorial paper, serif and square.
+    // Paper first (its fonts, its round buttons), then an earthier page, serif and square.
     palettes: ["classic", "earthy"],
     types: ["classic", "editorial"],
     buttons: ["soft", "product"],
@@ -839,7 +955,7 @@ var DS_TASTES = [
     label: "Elegant",
     ink: [0.55, 0.85],
     // A refined serif, rich colour, square buttons (briefly called Fashion, which it isn't).
-    palettes: ["rich", "classic"],
+    palettes: ["classic", "earthy"],
     types: ["elegant"],
     buttons: ["sharp", "outline"],
     people: "photo",
@@ -875,7 +991,7 @@ var DS_TASTES = [
     label: "Retro",
     ink: [0.4, 0.7],
     // Seventies print and old packaging.
-    palettes: ["vintage"],
+    palettes: ["earthy", "pastel"],
     types: ["retro"],
     buttons: ["chunky", "soft"],
     people: "photo",
@@ -887,7 +1003,7 @@ var DS_TASTES = [
     label: "Sport",
     ink: [1, 1],
     // Vibrant, athletic: volt, black, electric blue; neon on dark now and then.
-    palettes: ["sport", "sport", "neon", "vibrant"],
+    palettes: ["neon", "neutral"],
     types: ["funky"],
     buttons: ["sharp", "chunky"],
     people: "initials",
@@ -1012,16 +1128,21 @@ function dsRadiusPx(radius) {
 }
 
 // nav-style.ts
+var DS_NAV_STYLES = [
+  { id: "floating", label: "Floating" },
+  { id: "bar", label: "Bar" }
+];
 var DS_NAV_SURFACES = [
   { id: "transparent", label: "None" },
   { id: "blur", label: "Blur" },
   { id: "solid", label: "Solid" }
 ];
-var DS_DEFAULT_NAV_STYLE = { surface: "blur" };
+var DS_DEFAULT_NAV_STYLE = { style: "floating", surface: "blur" };
 function parseDsNavStyle(value) {
   const raw = value && typeof value === "object" ? value : {};
+  const style = DS_NAV_STYLES.find((s) => s.id === raw.style)?.id ?? DS_DEFAULT_NAV_STYLE.style;
   const surface = DS_NAV_SURFACES.find((s) => s.id === raw.surface)?.id ?? DS_DEFAULT_NAV_STYLE.surface;
-  return { surface };
+  return { style, surface };
 }
 
 // theme.ts
@@ -1059,7 +1180,8 @@ var DS_DEFAULT_THEME = {
   nav: DS_DEFAULT_NAV_STYLE,
   icons: "lucide",
   composition: DS_DEFAULT_COMPOSITION,
-  brief: DS_DEFAULT_BRIEF
+  brief: DS_DEFAULT_BRIEF,
+  social: DS_DEFAULT_SOCIAL
 };
 var DS_PERMANENT_FONT = "system";
 function dsThemeFont(theme, id) {
@@ -1201,7 +1323,8 @@ function parseDsThemeConfig(value) {
     nav: parseDsNavStyle(raw.nav),
     icons,
     composition: parseDsComposition(raw.composition),
-    brief: parseDsBrief(raw.brief)
+    brief: parseDsBrief(raw.brief),
+    social: parseDsSocial(raw.social)
   };
 }
 var dsThemeRadius = (theme) => theme.radius ?? dsCharacterRadius(theme.character);
@@ -1543,6 +1666,9 @@ function dsBrandKit(theme, name) {
     ...dsCompositionWords(theme.composition).map((line) => `- ${line}`),
     "",
     ...brief.moves.length ? ["Signature moves", ...brief.moves.map((m) => `- ${m}`), ""] : [],
+    "Social (posts, carousels, reels)",
+    ...dsSocialWords(theme.social).map((line) => `- ${line}`),
+    "",
     `Voice: ${voice.tone}. ${(voice.rules.length ? voice.rules : ["Plain words and short sentences; nothing shouted."]).join(" ")}`,
     "",
     "How to use it",

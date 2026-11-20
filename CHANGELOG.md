@@ -6,6 +6,39 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: **the floating bar** (`DsFloatingBar`, `DsFloatingTitle`,
+  `primitives/floating-bar.tsx`), the newer kind of nav: buttons floating
+  over the page, the page's title in the middle as a button of its own,
+  back on the left only when there's somewhere to go back to, the options
+  on the right; no bar, only a soft fade of the page colour with a very
+  faint blur (`ds-nav-float`). The title truncates first on a narrow screen.
+  A theme picks its site's nav style (`theme.nav.style`: `floating`, now the
+  default, or `bar`, `DsTopBar`); the Background choice is the bar's.
+  Touches `nav-style.ts`, `theme-file.ts`, `tokens.css`.
+- Changed: the nav fade's blur is gentler (3px, was 6px). Touches `tokens.css`.
+- New: `DsTopBar` takes `column`, the page's reading width: the bar runs edge
+  to edge, its rows sit in a centred column that wide.
+- Changed: the showcase's header is a floating bar. On a phone it's one line,
+  the page's name and two buttons: the theme's ⋮ (collapse, undo, redo, save,
+  publish, export, restore) and the sections menu, which also holds the way
+  back to the website. Touches `showcase/ds-shell.tsx`,
+  `showcase/theme-editor.tsx`, `showcase/theme-export.tsx`.
+- Exploration: **social**, the style as posts (`social.ts`). A theme now
+  carries `social`: the post's shape (3:4, 4:5 or square), the edge line,
+  text on pictures (boxed, wrapped a line at a time, plain or with a
+  shadow; square or rounded), one font or two, alignment, how many colours a feed may use (two,
+  three or five) and how a slide is signed. Type sizes and a reel's safe
+  areas are fixed for every style. All of it goes into the exported style.
+  Themes stored before read as Parabola's own. Touches `theme.ts`,
+  `brand-kit.ts`.
+- Exploration: **the Theme page is a board** (`showcase/theme-section.tsx`,
+  `showcase/social-preview.tsx`): its preview is laid out on the Board's
+  surface (`BoardSurface` in `showcase/board.tsx`) to move around and zoom,
+  with the theme's panel beside it. The site on a phone and on a desktop,
+  each scrolling inside its frame; a letter; a carousel's five slides and a
+  reel's five scenes side by side, drawn by the social rules, with a Social
+  section in the panel; the app as one screen on a phone. The story, the
+  feed post, the post on X and the Brand part are gone.
 - Exploration: **composition**, the part of a style that isn't a value
   (`composition.ts`). A theme now carries `composition` (layout: inline,
   hybrid or full width; alignment; scale; density; structure; labels;
