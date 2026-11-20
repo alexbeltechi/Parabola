@@ -537,7 +537,7 @@ export function socialFrames(social: DsSocial): { slides: React.ReactNode[]; sce
   };
 }
 
-/** A frame of a given shape, drawn as an icon: 3:4, 4:5 or 1:1. */
+/** A frame of a given shape, drawn as an icon: 3:4, 4:5, 1:1 or 1.91:1. */
 const shape = (name: string, w: number, h: number) =>
   createLucideIcon(name, [["rect", { x: `${(24 - w) / 2}`, y: `${(24 - h) / 2}`, width: `${w}`, height: `${h}`, rx: "2", key: "frame" }]]);
 /** A frame with its edge line inside it, close to the edge or far in. */
@@ -548,7 +548,7 @@ const edge = (name: string, inset: number) =>
   ]);
 /** Each choice's icon, by option (social.ts holds the choices, the panel the pictures). */
 const ICONS: Record<keyof DsSocial, Record<string, LucideIcon>> = {
-  frame: { "3:4": shape("Frame34", 13.5, 18), "4:5": shape("Frame45", 14.4, 18), "1:1": shape("Frame11", 16, 16) },
+  frame: { "3:4": shape("Frame34", 13.5, 18), "4:5": shape("Frame45", 14.4, 18), "1:1": shape("Frame11", 16, 16), "1.91:1": shape("Frame191", 19, 10) },
   edge: { tight: edge("EdgeTight", 2), regular: edge("EdgeRegular", 3.5), wide: edge("EdgeWide", 5.5) },
   text: { mixed: Shapes, boxed: Captions, wrapped: WrapText, plain: Type, shadow: Layers2 },
   corners: { square: Square, rounded: Squircle },

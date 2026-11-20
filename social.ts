@@ -18,7 +18,7 @@
 
 export type DsSocial = {
   /** The shape of a post and of every slide in a carousel. A reel is always 9:16. */
-  frame: "3:4" | "4:5" | "1:1";
+  frame: "3:4" | "4:5" | "1:1" | "1.91:1";
   /** How far text and marks stay from the frame's edge. */
   edge: "tight" | "regular" | "wide";
   /** How text sits on a picture: in one box, in a band behind each line, straight on it, or straight on it with a shadow. */
@@ -46,7 +46,7 @@ export const DS_DEFAULT_SOCIAL: DsSocial = {
 export const DS_SOCIAL_WIDTH = 1080;
 
 /** A post's height at 1080 wide, by frame. */
-export const DS_SOCIAL_FRAMES: Record<DsSocial["frame"], number> = { "3:4": 1440, "4:5": 1350, "1:1": 1080 };
+export const DS_SOCIAL_FRAMES: Record<DsSocial["frame"], number> = { "3:4": 1440, "4:5": 1350, "1:1": 1080, "1.91:1": 566 };
 
 /** The edge distance at 1080 wide, by choice. */
 export const DS_SOCIAL_EDGES: Record<DsSocial["edge"], number> = { tight: 36, regular: 54, wide: 90 };
@@ -95,6 +95,7 @@ export const DS_SOCIAL_CHOICES: readonly [
       { id: "3:4", label: "3:4", says: "A post and every slide of a carousel is 3:4, 1080 × 1440px, the shape Instagram's grid shows." },
       { id: "4:5", label: "4:5", says: "A post and every slide of a carousel is 4:5, 1080 × 1350px." },
       { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 × 1080px." },
+      { id: "1.91:1", label: "1.91:1", says: "A post and every slide of a carousel is landscape, 1.91:1, 1080 × 566px, the widest Instagram keeps." },
     ],
   },
   {

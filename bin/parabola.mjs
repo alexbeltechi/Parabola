@@ -275,11 +275,12 @@ function dsInkCounterpart(hex, page, contrast = 4.5) {
   }
   return out;
 }
-function hexIn(colour, mode, auto, counterpart = dsCounterpart) {
+function hexIn(colour, mode, auto, counterpart = dsCounterpart, back) {
   const light = dsIsHex(colour.light) ? colour.light : null;
   if (mode === "light" && light) return light;
   if (mode === "dark" && colour.dark) return colour.dark;
-  const based = mode === "dark" && light ? counterpart(light) : null;
+  const dark = dsIsHex(colour.dark) ? colour.dark : null;
+  const based = mode === "dark" && light ? counterpart(light) : mode === "light" && dark && back ? back(dark) : null;
   const shift = (mode === "light" ? colour.lightShift : colour.darkShift) ?? 0;
   return shift ? dsShift(based ?? auto(), shift) : based;
 }
@@ -293,7 +294,8 @@ function dsColourTokens(colours, mode, options = {}) {
     mode,
     () => dsLuminance(page ?? tokens.bg) > 0.18 ? BLACK : WHITE,
     // Text in dark reads well clear of the page (7:1), so its quieter steps, mixed toward the page, still read.
-    (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7)
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg, 7),
+    (hex) => dsInkCounterpart(hex, page ?? tokens.bg)
   );
   if (page || text || contrast !== 0) {
     const bg = page ?? tokens.bg;
@@ -330,7 +332,8 @@ function dsColourTokens(colours, mode, options = {}) {
     tokens["fg-subtle"] = dsMix(inked, tokens.bg, mode === "dark" ? 0.64 : 0.52);
     tokens["surface-inverse"] = inked;
   }
-  const muted = hexIn(colours.muted, mode, () => tokens["fg-muted"], (hex) => dsInkCounterpart(hex, tokens.bg));
+  const onPage = (hex) => dsInkCounterpart(hex, tokens.bg);
+  const muted = hexIn(colours.muted, mode, () => tokens["fg-muted"], onPage, onPage);
   if (muted) {
     tokens["fg-muted"] = muted;
     tokens["fg-subtle"] = dsMix(muted, tokens.bg, 0.75);
@@ -345,7 +348,7 @@ function dsColourTokens(colours, mode, options = {}) {
   if (field) tokens.field = field;
   tokens["field-border"] = field ? dsMix(dsLuminance(field) > 0.18 ? BLACK : WHITE, field, 0.16) : tokens.border;
   const preset = colours.accent.light && !dsIsHex(colours.accent.light) && !(mode === "dark" && colours.accent.dark);
-  const accent = preset ? null : hexIn(colours.accent, mode, () => tokens.fg, (hex) => dsInkCounterpart(hex, tokens.bg));
+  const accent = preset ? null : hexIn(colours.accent, mode, () => tokens.fg, onPage, (hex) => hex);
   if (preset) {
     const old = dsAccentTokens(colours.accent.light, mode);
     tokens.highlight = old.highlight;
@@ -702,7 +705,8 @@ var DS_SOCIAL_CHOICES = [
     options: [
       { id: "3:4", label: "3:4", says: "A post and every slide of a carousel is 3:4, 1080 \xD7 1440px, the shape Instagram's grid shows." },
       { id: "4:5", label: "4:5", says: "A post and every slide of a carousel is 4:5, 1080 \xD7 1350px." },
-      { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 \xD7 1080px." }
+      { id: "1:1", label: "1:1", says: "A post and every slide of a carousel is square, 1080 \xD7 1080px." },
+      { id: "1.91:1", label: "1.91:1", says: "A post and every slide of a carousel is landscape, 1.91:1, 1080 \xD7 566px, the widest Instagram keeps." }
     ]
   },
   {

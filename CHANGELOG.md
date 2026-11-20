@@ -6,6 +6,17 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Fixed: a text or button colour picked while viewing dark now shows in
+  light too, moved only as far as it needs to read on the light page
+  (`colours.ts`). Before, light fell back to black.
+- New: a landscape post size, **1.91:1** (1080 × 566), the widest Instagram
+  keeps (`social.ts`).
+- Changed: the email preview's letter is in the theme's own colours, and
+  Gmail around it goes dark when the preview does.
+- New: right-click a custom theme or a kept look to rename or delete it.
+- Fixed: pressing + on a row while a preset is picked selects the new look,
+  and clicking a kept look that matches a preset picks it.
+
 - New: **Emphasis** in social text. Star a word or a line (`plain *loud*`)
   and it wears Tertiary, one per slide; on a picture it's lifted light
   enough to read. The rule is in `social.ts`'s fixed words.

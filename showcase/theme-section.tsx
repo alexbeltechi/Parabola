@@ -81,7 +81,6 @@ import {
   DS_DEFAULT_COLOURS,
   DS_ICON_LIBRARIES,
   dsColourShown,
-  dsContrast,
   dsHexToHsl,
   dsNormalizeHex,
   dsShift,
@@ -797,11 +796,12 @@ const PLATFORM = {
   blue: "rgb(29 155 240)",
   dot: "rgb(0 149 246)",
   faint: "rgb(219 219 219)",
-  /** Gmail's: its inks and the grey of its label chips. */
-  gmailInk: "rgb(31 31 31)",
-  gmailMuted: "rgb(94 94 94)",
-  gmailChip: "rgb(233 235 238)",
 } as const;
+
+/** Gmail's own look, light, or dark when the preview is: its page, inks and the grey of its label chips. */
+const GMAIL =
+  "[--gm-bg:white] [--gm-ink:rgb(31_31_31)] [--gm-muted:rgb(94_94_94)] [--gm-chip:rgb(233_235_238)] " +
+  "dark:[--gm-bg:rgb(31_31_31)] dark:[--gm-ink:rgb(227_227_227)] dark:[--gm-muted:rgb(168_168_168)] dark:[--gm-chip:rgb(60_64_67)]";
 
 /**
  * Her newsletter as a reader opens it in Gmail ("create a
@@ -809,8 +809,8 @@ const PLATFORM = {
  * white, inks and font (PLATFORM), its toolbar, the subject with its Inbox
  * label, the sender's row (avatar, name and address, "to me", the time,
  * star and reply), then the letter itself: short and whole (no
- * fade), in the theme's fonts on white (the theme's own
- * colours only far up Playful), its masthead and issue, the title, a
+ * fade), in the theme's fonts and colours (light or dark, as the preview
+ * is, with Gmail around it), its masthead and issue, the title, a
  * greeting, a few lines in the taste's voice, a link on and her name.
  */
 function PreviewEmail({
@@ -822,37 +822,24 @@ function PreviewEmail({
   people: People;
   copy: PreviewCopy;
 }) {
-  // White, as letters mostly are, in Gmail's inks, unless the mood is far up Playful ("only like
-  // funky stuff would do that"); the link in the button colour where it reads on white.
-  const coloured = theme.character.mood >= 0.85;
-  const white = dsThemeColourTokens(DS_DEFAULT_THEME, "light").bg;
-  const button = dsThemeColourTokens(theme, "light").highlight;
-  const letter: React.CSSProperties | undefined = coloured
-    ? undefined
-    : ({
-        "--ds-bg": white,
-        "--ds-fg": PLATFORM.gmailInk,
-        "--ds-fg-muted": PLATFORM.gmailMuted,
-        "--ds-border": PLATFORM.faint,
-        "--ds-highlight":
-          dsContrast(button, white) >= 3 ? button : PLATFORM.gmailInk,
-      } as React.CSSProperties);
+  // Gmail itself: white, or its dark look when the preview's in dark (GMAIL). The letter is hers, in the theme's
+  // colours for that mode ("at least the title should be in the orange").
   const tool = (Icon: LucideIcon, label: string) => (
     <Icon aria-label={label} className="size-4" />
   );
   return (
     <div
-      className="relative flex flex-col gap-ds-16 overflow-hidden rounded-ds-lg p-ds-16"
+      className={`relative flex flex-col gap-ds-16 overflow-hidden rounded-ds-lg p-ds-16 ${GMAIL}`}
       style={{
-        backgroundColor: PLATFORM.bg,
-        color: PLATFORM.gmailInk,
+        backgroundColor: "var(--gm-bg)",
+        color: "var(--gm-ink)",
         fontFamily: PLATFORM.font,
       }}
     >
       <BoardOutline />
       <div
         className="flex items-center gap-ds-20"
-        style={{ color: PLATFORM.gmailMuted }}
+        style={{ color: "var(--gm-muted)" }}
       >
         {tool(ArrowLeft, "Back to Inbox")}
         {tool(Archive, "Archive")}
@@ -867,8 +854,8 @@ function PreviewEmail({
         <span
           className="rounded px-1.5"
           style={{
-            backgroundColor: PLATFORM.gmailChip,
-            color: PLATFORM.gmailMuted,
+            backgroundColor: "var(--gm-chip)",
+            color: "var(--gm-muted)",
             fontSize: 12,
           }}
         >
@@ -884,13 +871,13 @@ function PreviewEmail({
             </span>
             <span
               className="truncate"
-              style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+              style={{ color: "var(--gm-muted)", fontSize: 12 }}
             >
               &lt;letters@example.com&gt;
             </span>
             <span
               className="ml-auto flex shrink-0 items-center gap-3 pl-ds-8"
-              style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+              style={{ color: "var(--gm-muted)", fontSize: 12 }}
             >
               9:14 AM (2 hours ago)
               <Star aria-label="Star" className="size-4" />
@@ -900,7 +887,7 @@ function PreviewEmail({
           </div>
           <span
             className="flex items-center gap-0.5"
-            style={{ color: PLATFORM.gmailMuted, fontSize: 12 }}
+            style={{ color: "var(--gm-muted)", fontSize: 12 }}
           >
             to me
             <ChevronDown aria-hidden className="size-3" />
@@ -908,7 +895,7 @@ function PreviewEmail({
         </div>
       </div>
       {/* The letter: hers, so in the theme, its column centred as a newsletter's is. */}
-      <div className="ml-[52px] bg-ds-bg p-ds-20" style={letter}>
+      <div className="ml-[52px] bg-ds-bg p-ds-20">
         <div className="mx-auto flex max-w-[480px] flex-col gap-ds-20">
           <div className="flex items-baseline justify-between gap-ds-16">
             <span className="text-h3 text-ds-fg">Ilo Odena</span>
@@ -1163,7 +1150,7 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
  * it. `onAdd` puts a + at the row's end, outside the slide, so it's always in
  * reach; a new pill being named is scrolled into view.
  */
-type Pill = { id: string; label: string; icon?: LucideIcon; onRename?: (name: string) => void };
+type Pill = { id: string; label: string; icon?: LucideIcon; onRename?: (name: string) => void; onRemove?: () => void };
 
 function PillRow({
   label,
@@ -1190,6 +1177,8 @@ function PillRow({
   onRenameEnd?: () => void;
 }) {
   const row = React.useRef<HTMLDivElement>(null);
+  const [menu, setMenu] = React.useState<string | null>(null);
+  const [naming, setNaming] = React.useState<string | null>(null);
   React.useEffect(() => {
     if (!renaming) return;
     const scroller = row.current?.querySelector<HTMLElement>("[role=group]");
@@ -1198,22 +1187,54 @@ function PillRow({
   return (
     <div ref={row} className="flex min-w-0 items-center gap-ds-4">
       <DsScrollRow role="group" aria-label={label} className="-mx-2 min-w-0 flex-1 px-2">
-        {options.map((o) => (
-          <DsButton
-            key={o.id}
-            size="small"
-            variant="text"
-            iconLeft={plain ? undefined : (o.icon ?? TASTE_ICONS[o.id])}
-            pressed={picked.includes(o.id)}
-            onClick={() => onToggle(o.id)}
-            onRename={o.onRename}
-            renaming={renaming === o.id}
-            onRenameEnd={onRenameEnd}
-            title={o.onRename ? "Double-click to rename" : undefined}
-          >
-            {o.label}
-          </DsButton>
-        ))}
+        {options.map((o) => {
+          const pill = (
+            <DsButton
+              key={o.id}
+              size="small"
+              variant="text"
+              iconLeft={plain ? undefined : (o.icon ?? TASTE_ICONS[o.id])}
+              pressed={picked.includes(o.id)}
+              onClick={() => onToggle(o.id)}
+              onContextMenu={
+                o.onRename || o.onRemove
+                  ? (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      setMenu(o.id);
+                    }
+                  : undefined
+              }
+              onRename={o.onRename}
+              renaming={renaming === o.id || naming === o.id}
+              onRenameEnd={() => {
+                setNaming(null);
+                onRenameEnd?.();
+              }}
+              title={o.onRename ? `Double-click to rename${o.onRemove ? ", right-click to delete" : ""}` : undefined}
+            >
+              {o.label}
+            </DsButton>
+          );
+          if (!o.onRename && !o.onRemove) return pill;
+          // Right-click: rename or delete it. The menu opens only from here, never on a click (that picks it).
+          return (
+            <DsDropdown key={o.id} open={menu === o.id} onOpenChange={(open) => !open && setMenu(null)} modal={false}>
+              <DsDropdownTrigger asChild>{pill}</DsDropdownTrigger>
+              <DsDropdownContent align="start">
+                {o.onRename && (
+                  <DsDropdownItem iconLeft={Pencil} onSelect={() => setNaming(o.id)}>
+                    Rename
+                  </DsDropdownItem>
+                )}
+                {o.onRemove && (
+                  <DsDropdownItem tone="danger" iconLeft={Trash2} onSelect={o.onRemove}>
+                    Delete
+                  </DsDropdownItem>
+                )}
+              </DsDropdownContent>
+            </DsDropdown>
+          );
+        })}
       </DsScrollRow>
       {onAdd && <DsButton size="small" variant="text" iconLeft={Plus} aria-label={addLabel} title={addLabel} onClick={onAdd} />}
     </div>
@@ -1252,14 +1273,28 @@ function LookRail({
   const marked = (id: string, t: DsThemeConfig): DsThemeConfig =>
     scope === "style" ? t : { ...t, character: { ...t.character, scoped: { ...t.character.scoped, [scope]: id } } };
   const snap = dsLookSnapshot(scope, theme);
-  const preset = presets.find((p) => p.id === current && dsSameLook(dsLookSnapshot(scope, apply(p.id, marked(p.id, theme))), snap));
-  const kept = preset ? undefined : looks.find((l) => dsSameLook(l.snap, snap));
+  // The kept look picked last (or just made with +) stays picked while the values are its own, even when a preset
+  // has the same ones; otherwise the preset the theme names, then any kept look that matches.
+  const [chosen, setChosen] = React.useState<string | null>(null);
+  const chosenLook = looks.find((l) => l.id === chosen && dsSameLook(l.snap, snap));
+  const preset = chosenLook
+    ? undefined
+    : presets.find((p) => p.id === current && dsSameLook(dsLookSnapshot(scope, apply(p.id, marked(p.id, theme))), snap));
+  const kept = chosenLook ?? (preset ? undefined : looks.find((l) => dsSameLook(l.snap, snap)));
   const taken = looks.map((l) => l.name);
   const live = !preset && !kept;
   const options: Pill[] = [
     ...presets.map((p) => ({ id: p.id, label: custom.name(scope, p.id, p.label), onRename: (name: string) => custom.renamePreset(scope, p.id, name) })),
-    ...looks.map((l) => ({ id: l.id, label: l.name, icon: Sparkles, onRename: (name: string) => custom.rename(scope, l.id, name) })),
-    ...(live ? [{ id: "custom", label: dsCustomName(taken), icon: Sparkles, onRename: (name: string) => custom.add(scope, name, snap) }] : []),
+    ...looks.map((l) => ({
+      id: l.id,
+      label: l.name,
+      icon: Sparkles,
+      onRename: (name: string) => custom.rename(scope, l.id, name),
+      onRemove: () => custom.remove(scope, l.id),
+    })),
+    ...(live
+      ? [{ id: "custom", label: dsCustomName(taken), icon: Sparkles, onRename: (name: string) => setChosen(custom.add(scope, name, snap)) }]
+      : []),
   ];
   return (
     <PillRow
@@ -1269,11 +1304,17 @@ function LookRail({
       renaming={renaming}
       onRenameEnd={() => setRenaming(null)}
       addLabel={`Keep this ${scope === "style" ? "style" : "look"}`}
-      onAdd={() => setRenaming(custom.add(scope, dsCustomName(taken), snap))}
+      onAdd={() => {
+        const id = custom.add(scope, dsCustomName(taken), snap);
+        setChosen(id);
+        setRenaming(id);
+      }}
       onToggle={(id) => {
         const look = looks.find((l) => l.id === id);
         if (id === "custom" || id === preset?.id || id === kept?.id) return;
-        onTheme(look ? dsWithLook(scope, theme, look.snap) : apply(id, marked(id, theme)));
+        setChosen(look ? id : null);
+        if (look) onTheme(dsWithLook(scope, theme, look.snap));
+        else onTheme(apply(id, marked(id, theme)));
       }}
     />
   );
@@ -2006,7 +2047,12 @@ export function ThemeSection() {
               <PillRow
                 plain
                 label="Theme"
-                options={library.themes.map((t) => ({ id: t.id, label: t.name, onRename: (name: string) => renameTheme(t.id, name) }))}
+                options={library.themes.map((t) => ({
+                  id: t.id,
+                  label: t.name,
+                  onRename: (name: string) => renameTheme(t.id, name),
+                  onRemove: t.id === DS_DEFAULT_THEME_ID || t.id === library.active ? undefined : () => removeTheme(t.id),
+                }))}
                 picked={[entry.id]}
                 onToggle={(id) => {
                   if (id === entry.id) return;
