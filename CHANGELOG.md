@@ -6,6 +6,18 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- New: **Emphasis** in social text. Star a word or a line (`plain *loud*`)
+  and it wears Tertiary, one per slide; on a picture it's lifted light
+  enough to read. The rule is in `social.ts`'s fixed words.
+- Changed: text on a picture is the light one of the theme's pair: the page
+  colour in light mode, Primary in dark (was always white).
+- Changed: the theme toggle hands the page back to the system's mode when
+  the pick matches it, so a later system change is followed again.
+  `useDsSetTheme` and `onThemeChange` take `"system"` too.
+- Fixed: on the Theme board, content panned under the sidebar no longer
+  flickers above it.
+- Changed: the app preview (Hollow) shows its strongest line first.
+
 - Changed: the colours are named by rank, Primary (the text), **Secondary**
   (the brand's second colour, which the main button and calls to action
   wear; was "Button: primary") and **Tertiary** (quieter text; was

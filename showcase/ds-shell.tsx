@@ -207,8 +207,9 @@ export function DsShell({
 
   return (
     <ThemeEditorProvider>
-      {/* Frosted (`ds-frosted`), so a board running under it shows through, softly. */}
-      <aside data-slot="ds-sidebar" className={`fixed inset-y-0 left-0 z-30 hidden w-[240px] flex-col gap-4 overflow-y-auto border-r border-ds-border/60 p-5 ds-frosted ${min ? "" : "md:flex"}`}>
+      {/* Frosted (`ds-frosted`), so a board running under it shows through, softly. A layer of its own
+          (translateZ), so the board panning under it never paints over it for a frame. */}
+      <aside data-slot="ds-sidebar" className={`fixed inset-y-0 left-0 z-30 hidden w-[240px] [transform:translateZ(0)] flex-col gap-4 overflow-y-auto border-r border-ds-border/60 p-5 ds-frosted ${min ? "" : "md:flex"}`}>
         <div className="flex items-center justify-between">
           <ShellMenu backHref={backHref} />
           <div className="flex items-center gap-ds-4">

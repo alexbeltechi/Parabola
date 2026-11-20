@@ -50,7 +50,36 @@ const ON_PICTURE = "#FFFFFF";
  * Text straight on a picture: the page colour, not pure white (paper on a paper theme, white only on a white one).
  * Kept light whatever the page is, a dark one included: its lightness is lifted and its colour held faint.
  */
-const PAGE_ON_PICTURE = "oklch(from var(--ds-bg) max(l, 0.9) min(c, 0.05) h)";
+const PAGE_ON_PICTURE = "var(--ds-on-picture)";
+/**
+ * Which of the theme's colours text on a picture takes: the light one of the pair, so it reads. In the light
+ * mode the page colour (paper on a paper theme), in the dark the text colour (Primary). Set on every frame.
+ */
+const ON_PICTURE_VARS = "[--ds-on-picture:var(--ds-bg)] dark:[--ds-on-picture:var(--ds-fg)]";
+/**
+ * Emphasis: a word or a line said louder, in Tertiary. On a colour, Tertiary as it is; on a picture, kept
+ * light enough to read (its lightness lifted, its hue held).
+ */
+const EMPHASIS = "var(--ds-fg-muted)";
+const EMPHASIS_ON_PICTURE = "oklch(from var(--ds-fg-muted) max(l, 0.82) c h)";
+
+/** A line with its emphasised part, written `plain *loud*`: the starred part in Tertiary. */
+function Said({ text, picture }: { text: string; picture?: boolean }) {
+  const parts = text.split(/\*([^*]+)\*/);
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 ? (
+          <span key={i} style={{ color: picture ? EMPHASIS_ON_PICTURE : EMPHASIS }}>
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
 /** How a frame's content lines up across it, by the style's alignment. */
 const ACROSS = { left: "items-start text-left", centre: "items-center text-center", right: "items-end text-right" } as const;
 const ITEMS = { left: "items-start", centre: "items-center", right: "items-end" } as const;
@@ -119,7 +148,7 @@ function Frame({
   const across = ACROSS[s.align];
   return (
     <div
-      className={`relative overflow-hidden ${flush ? "" : "rounded-ds-lg"}`}
+      className={`relative overflow-hidden ${ON_PICTURE_VARS} ${flush ? "" : "rounded-ds-lg"}`}
       style={{ containerType: "inline-size", aspectRatio: `${DS_SOCIAL_WIDTH} / ${height}`, background: ground?.bg ?? "#000000", color: ground?.fg ?? ON_PICTURE }}
     >
       {picture && (
@@ -294,7 +323,7 @@ function slide(ctx: Ctx, index: number): React.ReactNode {
       return (
         <Frame ctx={ctx} height={height} ground={first} anchor={statement} foot={sign()}>
           <span className="block" style={type(ctx, "h1")}>
-            The hard part isn&apos;t what AI can do.
+            <Said text="The hard part isn't *what AI can do.*" />
           </span>
         </Frame>
       );
@@ -344,10 +373,10 @@ function slide(ctx: Ctx, index: number): React.ReactNode {
  * never over her face.
  */
 const SCENES: { picture: string; position?: string; place: Place; title?: boolean; plain?: boolean; lines: string[] }[] = [
-  { picture: "ilo-black-sand.jpg", place: "top", title: true, lines: ["The hard part isn't what AI can do."] },
+  { picture: "ilo-black-sand.jpg", place: "top", title: true, lines: ["The hard part isn't *what AI can do.*"] },
   { picture: "ilo-portrait.jpg", place: "bottom", lines: ["It's knowing which decisions to hand over."] },
   // Straight on the picture, with no box: the lake is calm enough to carry it.
-  { picture: "ilo-lake.jpg", place: "middle", plain: true, lines: ["And which ones have to stay mine."] },
+  { picture: "ilo-lake.jpg", place: "middle", plain: true, lines: ["And which ones *have to stay mine.*"] },
   { picture: "ilo-lake-day.jpg", place: "top", lines: ["The ones I keep are the ones people recognise me by."] },
   { picture: "ilo-portrait.jpg", position: "50% 0%", place: "bottom", lines: ["Pick three you never hand over."] },
 ];
@@ -453,11 +482,11 @@ function scene(ctx: Ctx, index: number): React.ReactNode {
             title || plain ? (
               ctx.s.text === "mixed" ? (
                 <span key={line} className="block max-w-[82%]" style={{ ...type(ctx, "h1"), color: PAGE_ON_PICTURE }}>
-                  {line}
+                  <Said text={line} picture />
                 </span>
               ) : (
                 <OnPicture key={line} ctx={ctx} as="h1">
-                  {line}
+                  {line.replace(/\*/g, "")}
                 </OnPicture>
               )
             ) : (

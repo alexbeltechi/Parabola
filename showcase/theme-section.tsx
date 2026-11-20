@@ -1088,7 +1088,7 @@ function PreviewWeb({ theme, phone = false }: { theme: DsThemeConfig; phone?: bo
  * warmth). The app is the voice beside it: it listened to the lake all night
  * and tells you what it heard. The stone's dish, big in the middle and
  * breathing slowly, is the one thing to touch: hold it to ask. Under it what
- * it heard, a line at a time, the newest strongest, everything centred.
+ * it says now, strongest, then what it heard before, everything centred.
  */
 function PreviewApp() {
   const heard = ["The frogs went quiet at 4:10.", "The water is two degrees colder than last night."];
@@ -1106,13 +1106,14 @@ function PreviewApp() {
           <div className="absolute inset-8 rounded-full bg-ds-surface" />
           <div className="relative size-3 rounded-full bg-ds-fg" />
         </div>
+        {/* What it says now first, strongest; what it heard before under it, in Tertiary. */}
         <div className="flex flex-col items-center gap-ds-8">
+          <p className="text-h3 text-ds-fg">Rain by noon. Bring the stone in before then.</p>
           {heard.map((line) => (
-            <p key={line} className="text-p text-ds-fg-subtle">
+            <p key={line} className="text-p text-ds-fg-muted">
               {line}
             </p>
           ))}
-          <p className="text-h3 text-ds-fg">Rain by noon. Bring the stone in before then.</p>
         </div>
       </div>
       <span className="text-small text-ds-fg-muted">Hold to ask</span>

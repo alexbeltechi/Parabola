@@ -185,7 +185,8 @@ const FIXED = [
     .map(([name, t]) => `${name} ${t.size}/${Math.round(t.size * t.leading)}`)
     .join(", ")}. Use these sizes and no others; one display or h1 statement a slide at most.`,
   `Reels and stories: 9:16, 1080 × ${DS_SOCIAL_REEL.height}px. Keep text out of the top ${DS_SOCIAL_REEL.top}px, the bottom ${DS_SOCIAL_REEL.bottom}px and the left ${DS_SOCIAL_REEL.left}px, and, in the lower half only, the right ${DS_SOCIAL_REEL.right}px: a tall phone crops the sides, and the app's own name, caption and tab bar sit at the bottom, its buttons down the right of the lower half. In the upper half, text is centred on the whole screen. Captions are short, one thought a scene, all in the caption size and the body font, aligned as the style aligns. A caption sits in one of three places and nowhere else: on the top line of the clear area, in its middle, or on its bottom line. Pick the one where the picture is calm, never over a face. A reel may open on a title instead: h1, in the heading font, straight on the picture in the page colour with no box, where the picture is calm.`,
-  "Text straight on a picture or a video is the page colour (the light one), never pure white unless the page is white.",
+  "Text straight on a picture or a video takes the light one of the theme's pair: the page colour in a light theme, the text colour (Primary) in a dark one. Never pure white unless that colour is white.",
+  "Emphasis: one word or one line of a statement may be said louder in Tertiary, the theme's third colour (on a picture, kept light enough to read). One emphasis a slide at most; the rest in the slide's own colour.",
   "Colour: pictures aside, a carousel uses the page colour, the text colour and the accent, and opens on the page colour. The accent is a ground for one slide at most.",
   "Every length is a share of the frame's width: scale them together for another size.",
   "Text, marks, pictures and video only. Nothing that looks like a button.",
