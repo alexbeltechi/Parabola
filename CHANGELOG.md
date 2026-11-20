@@ -6,6 +6,8 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.4.0 — 2026-11-20
+
 - Fixed: a theme file carries `composition`, `brief` and `social`, so a theme
   saved to a file reads back whole (they were refused as unknown keys).
   Touches `theme-file.ts`.

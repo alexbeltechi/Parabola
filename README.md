@@ -340,11 +340,16 @@ they update.
 
 ### Releasing a version
 
-Change things here, add an entry to `CHANGELOG.md` in plain words (say which
-files a project is likely to have edited), raise `version` in
-`package.json`, `npm run bundle`, `npm test`, `npm run check`, commit, and
-tag it `v<version>`. `update` takes the newest tag. Nothing happens in any
-project until it runs `update`.
+Change things here and add an entry under `## Unreleased` in `CHANGELOG.md`
+in plain words (say which files a project is likely to have edited). To
+release: raise `version` in `package.json`, turn `## Unreleased` into
+`## <version> — <date>` (a new empty `## Unreleased` above it), `npm run
+bundle`, `npm test`, `npm run check`, and merge to `main`. The tag
+`v<version>` is made for you when it lands
+(`.github/workflows/tag-release.yml`), so a release can't miss its tag.
+`update` takes the newest tag, so a project gets the release with plain
+`update`; work merged without a version stays on `main` until the next
+release. Nothing happens in any project until it runs `update`.
 
 Publishing a GitHub release for the tag puts that version on npm
 (`.github/workflows/publish.yml`; it needs the repo's `NPM_TOKEN` secret).

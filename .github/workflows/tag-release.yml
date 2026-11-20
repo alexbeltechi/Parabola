@@ -1,0 +1,33 @@
+# Tags a release the moment it reaches main, so it can't be forgotten. When the
+# version in package.json has no tag yet (v0.4.0 and so on), this tags that
+# commit; a project's `npx @beltechi/parabola update` takes the newest tag, so
+# the release is what it gets next. A push that doesn't raise the version tags
+# nothing: unreleased work stays on main until a release says so.
+name: Tag the release
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag v<version> when it isn't tagged yet
+        run: |
+          version="v$(node -p 'require("./package.json").version')"
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            echo "$version is already tagged."
+            exit 0
+          fi
+          grep -q "^## ${version#v} " CHANGELOG.md || { echo "CHANGELOG.md has no '## ${version#v} ' entry"; exit 1; }
+          git tag "$version"
+          git push origin "$version"
+          echo "Tagged $version."
