@@ -150,6 +150,7 @@ function ShellMenu({ backHref }: { backHref: string | null }) {
 const ShellMenuContext = React.createContext<() => void>(() => {});
 
 type Sides = ShellSides;
+/** Where the sides were once remembered; cleared on load. */
 const SIDES_KEY = "ds-shell-sides";
 
 export function DsShell({
@@ -162,23 +163,15 @@ export function DsShell({
 }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const closeMenu = React.useCallback(() => setMenuOpen(false), []);
-  // Remembered in this browser; read after the first paint, so the page a server sent and the one drawn here match.
+  // Open on every visit: collapsing (the buttons, ⌘.) lasts while the page does, never into the next visit, so the
+  // UI is never hidden on landing. (It used to be remembered, and a page drawn open closed a moment after loading.)
   const [collapsed, setCollapsed] = React.useState<Sides>({ left: false, right: false });
   React.useEffect(() => {
     try {
-      const stored = JSON.parse(localStorage.getItem(SIDES_KEY) ?? "{}");
-      setCollapsed({ left: stored.left === true, right: stored.right === true });
+      localStorage.removeItem(SIDES_KEY);
     } catch {}
   }, []);
-  const setSides = React.useCallback((next: (sides: Sides) => Sides) => {
-    setCollapsed((sides) => {
-      const to = next(sides);
-      try {
-        localStorage.setItem(SIDES_KEY, JSON.stringify(to));
-      } catch {}
-      return to;
-    });
-  }, []);
+  const setSides = React.useCallback((next: (sides: Sides) => Sides) => setCollapsed(next), []);
   const toggleSide = React.useCallback((side: keyof Sides) => setSides((sides) => ({ ...sides, [side]: !sides[side] })), [setSides]);
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
