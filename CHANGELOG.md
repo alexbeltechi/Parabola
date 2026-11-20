@@ -6,6 +6,13 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.5.3 — 2026-11-20
+
+- Fixed: the showcase opens with its sidebar and panel shown on every
+  visit. Collapsing them lasts while the page does; it was remembered, so a
+  page drawn open hid them a moment after loading. The old setting
+  (`ds-shell-sides`) is cleared.
+
 ## 0.5.2 — 2026-11-20
 
 - Fixed: an empty or untouched theme reads back with its Paper colour chip

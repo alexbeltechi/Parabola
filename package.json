@@ -1,6 +1,6 @@
 {
   "name": "@beltechi/parabola",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Parabola is a style, not a design system in the traditional sense, although it contains components. Fixed below, free above: the basics of a design system, as a foundation any model can experiment on.",
   "license": "MIT",
   "repository": {
