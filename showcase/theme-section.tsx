@@ -98,7 +98,7 @@ import { DsTopBar } from "../primitives/top-bar";
 import { DsFloatingBar, DsFloatingTitle } from "../primitives/floating-bar";
 import { BoardOutline, BoardSurface, type BoardRow } from "./board";
 import { socialFrames, SocialSettings } from "./social-preview";
-import { dsLookSnapshot, dsSameLook, dsWithLook, useCustomLooks, type DsLookScope } from "./custom-looks";
+import { dsLookSnapshot, dsSameLook, dsUnhidePresets, dsWithLook, useCustomLooks, type DsLookScope, type DsLookSnapshot } from "./custom-looks";
 import { dsCustomName } from "./theme-editor";
 import {
   DS_DEFAULT_FIELD_STYLE,
@@ -361,11 +361,14 @@ function SectionRestore({
   theme,
   setTheme,
   restore,
+  looks = [],
 }: {
   section: string;
   theme: DsThemeConfig;
   setTheme: (theme: DsThemeConfig) => void;
   restore: (theme: DsThemeConfig) => DsThemeConfig;
+  /** Its rows of looks, whose deleted presets it brings back. */
+  looks?: readonly DsLookScope[];
 }) {
   return (
     <DsButton
@@ -377,8 +380,15 @@ function SectionRestore({
       onClick={() => {
         const before = theme;
         setTheme(restore(theme));
+        const rehide = dsUnhidePresets(looks);
         dsToast(`${section} restored`, {
-          action: { label: "Undo", onClick: () => setTheme(before) },
+          action: {
+            label: "Undo",
+            onClick: () => {
+              setTheme(before);
+              rehide();
+            },
+          },
         });
       }}
     />
@@ -1150,7 +1160,14 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
  * it. `onAdd` puts a + at the row's end, outside the slide, so it's always in
  * reach; a new pill being named is scrolled into view.
  */
-type Pill = { id: string; label: string; icon?: LucideIcon; onRename?: (name: string) => void; onRemove?: () => void };
+type Pill = {
+  id: string;
+  label: string;
+  icon?: LucideIcon;
+  onRename?: (name: string) => void;
+  onDuplicate?: () => void;
+  onRemove?: () => void;
+};
 
 function PillRow({
   label,
@@ -1188,16 +1205,18 @@ function PillRow({
     <div ref={row} className="flex min-w-0 items-center gap-ds-4">
       <DsScrollRow role="group" aria-label={label} className="-mx-2 min-w-0 flex-1 px-2">
         {options.map((o) => {
+          const on = picked.includes(o.id);
+          const menuable = Boolean(o.onRename || o.onDuplicate || o.onRemove);
           const pill = (
             <DsButton
-              key={o.id}
               size="small"
               variant="text"
+              className={menuable ? "pr-6" : undefined}
               iconLeft={plain ? undefined : (o.icon ?? TASTE_ICONS[o.id])}
-              pressed={picked.includes(o.id)}
+              pressed={on}
               onClick={() => onToggle(o.id)}
               onContextMenu={
-                o.onRename || o.onRemove
+                menuable
                   ? (e: React.MouseEvent) => {
                       e.preventDefault();
                       setMenu(o.id);
@@ -1210,29 +1229,49 @@ function PillRow({
                 setNaming(null);
                 onRenameEnd?.();
               }}
-              title={o.onRename ? `Double-click to rename${o.onRemove ? ", right-click to delete" : ""}` : undefined}
+              title={o.onRename ? "Double-click to rename" : undefined}
             >
               {o.label}
             </DsButton>
           );
-          if (!o.onRename && !o.onRemove) return pill;
-          // Right-click: rename or delete it. The menu opens only from here, never on a click (that picks it).
+          if (!menuable) return <React.Fragment key={o.id}>{pill}</React.Fragment>;
+          // Each chip's own ⋮, at its end: always there on the one picked, on the others when the pointer's over
+          // them (or right-click anywhere on it). Clicking the chip picks it; the ⋮ holds the rest.
           return (
-            <DsDropdown key={o.id} open={menu === o.id} onOpenChange={(open) => !open && setMenu(null)} modal={false}>
-              <DsDropdownTrigger asChild>{pill}</DsDropdownTrigger>
-              <DsDropdownContent align="start">
-                {o.onRename && (
-                  <DsDropdownItem iconLeft={Pencil} onSelect={() => setNaming(o.id)}>
-                    Rename
-                  </DsDropdownItem>
-                )}
-                {o.onRemove && (
-                  <DsDropdownItem tone="danger" iconLeft={Trash2} onSelect={o.onRemove}>
-                    Delete
-                  </DsDropdownItem>
-                )}
-              </DsDropdownContent>
-            </DsDropdown>
+            <div key={o.id} className="group/pill relative flex shrink-0">
+              {pill}
+              <DsDropdown open={menu === o.id} onOpenChange={(open) => setMenu(open ? o.id : null)} modal={false}>
+                <DsDropdownTrigger asChild>
+                  <DsButton
+                    size="small"
+                    variant="text"
+                    iconLeft={MoreVertical}
+                    aria-label={`More for ${o.label}`}
+                    className={cn(
+                      "absolute right-0.5 top-1/2 size-5 -translate-y-1/2 text-ds-fg-muted hover:bg-transparent hover:text-ds-fg [&_svg]:size-3.5",
+                      on || menu === o.id ? "opacity-100" : "opacity-0 focus-visible:opacity-100 group-hover/pill:opacity-100",
+                    )}
+                  />
+                </DsDropdownTrigger>
+                <DsDropdownContent align="start">
+                  {o.onRename && (
+                    <DsDropdownItem iconLeft={Pencil} onSelect={() => setNaming(o.id)}>
+                      Rename
+                    </DsDropdownItem>
+                  )}
+                  {o.onDuplicate && (
+                    <DsDropdownItem iconLeft={Copy} onSelect={o.onDuplicate}>
+                      Duplicate
+                    </DsDropdownItem>
+                  )}
+                  {o.onRemove && (
+                    <DsDropdownItem tone="danger" iconLeft={Trash2} onSelect={o.onRemove}>
+                      Delete
+                    </DsDropdownItem>
+                  )}
+                </DsDropdownContent>
+              </DsDropdown>
+            </div>
           );
         })}
       </DsScrollRow>
@@ -1283,13 +1322,28 @@ function LookRail({
   const kept = chosenLook ?? (preset ? undefined : looks.find((l) => dsSameLook(l.snap, snap)));
   const taken = looks.map((l) => l.name);
   const live = !preset && !kept;
+  // A copy is a kept look of its own, at the row's end, its name open to change.
+  const duplicate = (name: string, look: DsLookSnapshot) => setRenaming(custom.add(scope, dsCustomName([...taken, name], `${name} copy`), look));
   const options: Pill[] = [
-    ...presets.map((p) => ({ id: p.id, label: custom.name(scope, p.id, p.label), onRename: (name: string) => custom.renamePreset(scope, p.id, name) })),
+    ...presets
+      // A preset deleted here is only hidden: the section's Restore brings it back. The one in use stays.
+      .filter((p) => p.id === preset?.id || !custom.hidden(scope, p.id))
+      .map((p) => {
+        const name = custom.name(scope, p.id, p.label);
+        return {
+          id: p.id,
+          label: name,
+          onRename: (next: string) => custom.renamePreset(scope, p.id, next),
+          onDuplicate: () => duplicate(name, dsLookSnapshot(scope, apply(p.id, marked(p.id, theme)))),
+          onRemove: () => custom.hide(scope, p.id),
+        };
+      }),
     ...looks.map((l) => ({
       id: l.id,
       label: l.name,
       icon: Sparkles,
       onRename: (name: string) => custom.rename(scope, l.id, name),
+      onDuplicate: () => duplicate(l.name, l.snap),
       onRemove: () => custom.remove(scope, l.id),
     })),
     ...(live
@@ -2051,6 +2105,12 @@ export function ThemeSection() {
                   id: t.id,
                   label: t.name,
                   onRename: (name: string) => renameTheme(t.id, name),
+                  onDuplicate: () => {
+                    const name = dsCustomName(library.themes.map((x) => x.name), `${t.name} copy`);
+                    const id = dsThemeEntryId(library, name);
+                    addTheme(name, t.id);
+                    setRenamingTheme(id);
+                  },
                   onRemove: t.id === DS_DEFAULT_THEME_ID || t.id === library.active ? undefined : () => removeTheme(t.id),
                 }))}
                 picked={[entry.id]}
@@ -2098,6 +2158,7 @@ export function ThemeSection() {
               />
               <SectionRestore
                 section="Colour"
+                looks={["colour"]}
                 theme={theme}
                 setTheme={setTheme}
                 restore={SECTION.colour.restore}
@@ -2120,6 +2181,7 @@ export function ThemeSection() {
               />
               <SectionRestore
                 section="Typography"
+                looks={["type"]}
                 theme={theme}
                 setTheme={setTheme}
                 restore={SECTION.type.restore}
@@ -2180,6 +2242,7 @@ export function ThemeSection() {
               />
               <SectionRestore
                 section="Buttons"
+                looks={["buttons"]}
                 theme={theme}
                 setTheme={setTheme}
                 restore={SECTION.buttons.restore}
@@ -2374,8 +2437,15 @@ export function ThemeSection() {
         onConfirm={() => {
           setRestoring(false);
           const undoIt = restoreTheme();
+          const rehide = dsUnhidePresets(["style", "colour", "type", "buttons"]);
           dsToast(RESTORE.all.done, {
-            action: { label: "Undo", onClick: undoIt },
+            action: {
+              label: "Undo",
+              onClick: () => {
+                undoIt();
+                rehide();
+              },
+            },
           });
         }}
       />

@@ -52,8 +52,8 @@ type ThemeEditor = {
   status: "parabola" | "theme";
   /** Open another theme. Not a change: nothing goes on the history. */
   select: (id: string) => void;
-  /** Add a theme called `name`, a copy of the open one, and open it. */
-  addTheme: (name: string) => void;
+  /** Add a theme called `name`, a copy of the open one (or of `from`), and open it. */
+  addTheme: (name: string, from?: string) => void;
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
@@ -240,9 +240,10 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       setTheme,
       status,
       select: setSelected,
-      addTheme: (name) => {
+      addTheme: (name, from) => {
         const id = dsThemeEntryId(library, name);
-        change({ ...library, themes: [...library.themes, { id, name, theme: entry.theme }] });
+        const source = library.themes.find((t) => t.id === from) ?? entry;
+        change({ ...library, themes: [...library.themes, { id, name, theme: source.theme }] });
         setSelected(id);
       },
       renameTheme: (id, name) => change({ ...library, themes: library.themes.map((t) => (t.id === id ? { ...t, name } : t)) }),
@@ -363,11 +364,11 @@ export type ShellSides = { left: boolean; right: boolean };
 /** Every section of the panel open or folded at once (the canvas holds it; the first section has its button). */
 export const PanelAllContext = React.createContext<{ open: boolean; toggle: () => void } | null>(null);
 /** "Custom", or "Custom 2" and on when that's taken. */
-export function dsCustomName(taken: readonly string[]): string {
-  if (!taken.includes("Custom")) return "Custom";
+export function dsCustomName(taken: readonly string[], base = "Custom"): string {
+  if (!taken.includes(base)) return base;
   let n = 2;
-  while (taken.includes(`Custom ${n}`)) n += 1;
-  return `Custom ${n}`;
+  while (taken.includes(`${base} ${n}`)) n += 1;
+  return `${base} ${n}`;
 }
 
 export const ShellSidesContext = React.createContext<{ collapsed: ShellSides; toggle: (side: keyof ShellSides) => void }>({

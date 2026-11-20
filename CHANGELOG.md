@@ -27,7 +27,10 @@ files a change touches when a project is likely to have edited them.
   where they fit, scrolling sideways where they don't (Text on pictures).
 - Changed: the email preview's letter is in the theme's own colours, and
   Gmail around it goes dark when the preview does.
-- New: right-click a custom theme or a kept look to rename or delete it.
+- New: every chip on the Theme panel (themes, styles, colours, typography,
+  buttons) has its own ⋮, on the picked one and on hover: Rename, Duplicate,
+  Delete. A deleted preset is only hidden; its section's Restore, or
+  Restore all, brings it back. Right-click opens the same menu.
 - Fixed: pressing + on a row while a preset is picked selects the new look,
   and clicking a kept look that matches a preset picks it.
 

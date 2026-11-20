@@ -5,7 +5,8 @@
  * Buttons) hold beyond Parabola's own presets. Change any value a preset set
  * and the row shows Custom; name it (double-click) or press + and it's kept,
  * a chip of its own to come back to. The presets can be renamed too, for this
- * maker only.
+ * maker only, or deleted: a deleted preset is only hidden, and its section's
+ * Restore (or Restore all) brings it back.
  *
  * Each row looks at its part of the theme alone (`dsLookSnapshot`): Colour at
  * the colour dials and the colours, Typography at the fonts, Buttons at the
@@ -21,12 +22,13 @@ import type { DsThemeConfig } from "../theme";
 
 export type DsLookScope = "style" | "colour" | "type" | "buttons";
 
-type Snapshot = Record<string, unknown>;
+export type DsLookSnapshot = Record<string, unknown>;
+type Snapshot = DsLookSnapshot;
 export type DsCustomLook = { id: string; name: string; snap: Snapshot };
-type Store = { looks: Record<DsLookScope, DsCustomLook[]>; names: Record<string, string> };
+type Store = { looks: Record<DsLookScope, DsCustomLook[]>; names: Record<string, string>; hidden: string[] };
 
 const KEY = "ds-custom-looks";
-const EMPTY: Store = { looks: { style: [], colour: [], type: [], buttons: [] }, names: {} };
+const EMPTY: Store = { looks: { style: [], colour: [], type: [], buttons: [] }, names: {}, hidden: [] };
 
 const colourSnap = (t: DsThemeConfig): Snapshot => ({
   hue: t.character.hue,
@@ -84,7 +86,11 @@ function load() {
   read = true;
   try {
     const raw = JSON.parse(window.localStorage.getItem(KEY) ?? "null") as Partial<Store> | null;
-    if (raw && typeof raw === "object") store = { looks: { ...EMPTY.looks, ...(raw.looks ?? {}) }, names: { ...(raw.names ?? {}) } };
+    if (raw && typeof raw === "object") store = {
+        looks: { ...EMPTY.looks, ...(raw.looks ?? {}) },
+        names: { ...(raw.names ?? {}) },
+        hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((k): k is string => typeof k === "string") : [],
+      };
   } catch {}
 }
 
@@ -126,7 +132,22 @@ export function useCustomLooks() {
       rename: (scope: DsLookScope, id: string, name: string) =>
         write({ ...store, looks: { ...store.looks, [scope]: store.looks[scope].map((l) => (l.id === id ? { ...l, name } : l)) } }),
       remove: (scope: DsLookScope, id: string) => write({ ...store, looks: { ...store.looks, [scope]: store.looks[scope].filter((l) => l.id !== id) } }),
+      /** Whether a preset was deleted (hidden) here. */
+      hidden: (scope: DsLookScope, id: string) => current.hidden.includes(`${scope}:${id}`),
+      hide: (scope: DsLookScope, id: string) => write({ ...store, hidden: [...store.hidden.filter((k) => k !== `${scope}:${id}`), `${scope}:${id}`] }),
     }),
     [current],
   );
+}
+
+/**
+ * The presets deleted in these rows back (a section's Restore; every row for Restore all). Returns what undoes it.
+ */
+export function dsUnhidePresets(scopes: readonly DsLookScope[]): () => void {
+  load();
+  const before = store.hidden;
+  const after = before.filter((k) => !scopes.some((scope) => k.startsWith(`${scope}:`)));
+  if (after.length === before.length) return () => {};
+  write({ ...store, hidden: after });
+  return () => write({ ...store, hidden: before });
 }
