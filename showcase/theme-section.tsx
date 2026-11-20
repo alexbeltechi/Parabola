@@ -1980,11 +1980,8 @@ export function ThemeSection() {
     <div className="flex w-full max-w-[600px] flex-col gap-ds-80">
       <PreviewPart title="Web" className="gap-ds-40">
         {/* The nav as a site pins it, on the background the theme picks (Navigation): scroll the preview and the page goes under it. */}
-        <DsTopBar
-          surface={theme.nav.surface}
-          // The canvas has room above the preview: a solid bar covers that too, so nothing shows over it.
-          className={cn(theme.nav.surface === "solid" && "before:absolute before:inset-x-0 before:bottom-full before:h-ds-160 before:bg-ds-bg")}
-        >
+        {/* Pinned right under the showcase's header (--ds-canvas-top, ds-shell), so nothing shows above it. */}
+        <DsTopBar surface={theme.nav.surface} className="top-(--ds-canvas-top)">
           <div className="flex items-center justify-between gap-ds-16 py-ds-12">
             <span className="text-p text-ds-fg">Ilo Odena</span>
             <nav className="flex items-center gap-ds-4" aria-label="Preview nav">
