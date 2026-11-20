@@ -802,11 +802,9 @@ const GMAIL =
  * greeting, a few lines in the taste's voice, a link on and her name.
  */
 function PreviewEmail({
-  theme,
   people,
   copy,
 }: {
-  theme: DsThemeConfig;
   people: People;
   copy: PreviewCopy;
 }) {
@@ -2023,7 +2021,7 @@ export function ThemeSection() {
         },
       ],
     },
-    { name: "Email", frames: [{ name: "Gmail · 640", width: 640, chrome: false, render: () => <PreviewEmail theme={theme} people={people} copy={copy} /> }] },
+    { name: "Email", frames: [{ name: "Gmail · 640", width: 640, chrome: false, render: () => <PreviewEmail people={people} copy={copy} /> }] },
     {
       name: `Carousel · ${social.slides.length} slides · 1080 × ${social.slideHeight}`,
       frames: social.slides.map((slide, i) => ({ name: `${i + 1} / ${social.slides.length}`, width: 470, chrome: false, render: () => slide })),

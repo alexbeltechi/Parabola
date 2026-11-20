@@ -6,6 +6,11 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.5.1 — 2026-11-20
+
+- Fixed: the email preview took a theme it no longer used, which a
+  project's lint (no unused arguments) stopped on.
+
 ## 0.5.0 — 2026-11-20
 
 The Theme panel as one rail of looks, colours named for what they colour,
