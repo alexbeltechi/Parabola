@@ -71,15 +71,16 @@ const RENAMED_TASTES: Record<string, string> = { fashion: "elegant", luxury: "el
 
 export const DS_DEFAULT_CHARACTER: DsCharacter = {
   tastes: DS_DEFAULT_TASTES,
-  // Parabola's own chips: its colours, its fonts, its round buttons.
+  // Parabola's own chips: its colours, its fonts, its round buttons. The colour dials are the Classic palette's own
+  // look (taste.ts), its paper, so the default theme is Classic everywhere it's shown.
   scoped: { colour: "classic", type: "classic", buttons: "soft" },
   mood: 0.5,
   ink: 1,
   warmth: 0,
-  hue: 40,
-  colour: 0,
-  brightness: 1,
-  contrast: 0,
+  hue: 38,
+  colour: 0.36,
+  brightness: 0.96,
+  contrast: 0.05,
   roundness: 1,
   depth: 0,
 };

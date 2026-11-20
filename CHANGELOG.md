@@ -6,6 +6,24 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: the colours are named by rank, Primary (the text), **Secondary**
+  (the brand's second colour, which the main button and calls to action
+  wear; was "Button: primary") and **Tertiary** (quieter text; was
+  "Secondary"). The theme's stored names (`text`, `accent`, `muted`) are
+  unchanged. The exported style says so.
+- Changed: the default theme is **Classic**, and its colour is the Classic
+  palette's paper (`DS_DEFAULT_CHARACTER`: hue 38, colour 0.36, brightness
+  0.96, contrast 0.05). Changing any value of an untouched Classic makes a
+  theme of its own, Custom, to rename and keep. Touches `character.ts`,
+  `theme.ts`.
+- New: **Custom looks** on the Theme panel's rows (Style, Colour,
+  Typography, Buttons): change a value a preset set and the row shows Custom;
+  name it, or press + at the row's end, and it's kept as a chip of its own
+  (in the browser, `showcase/custom-looks.ts`). Any chip renames on a
+  double-click.
+- New: `DsButton` takes `onRename`: a double-click turns its label into a
+  field in place (`renaming` opens it, `onRenameEnd` says it closed).
+
 ## 0.4.0 — 2026-11-20
 
 - Fixed: a theme file carries `composition`, `brief` and `social`, so a theme

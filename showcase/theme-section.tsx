@@ -53,6 +53,7 @@ import {
   PanelTop,
   Moon,
   Sun,
+  Sparkles,
 } from "lucide-react";
 import { DsButton } from "../primitives/button";
 import { DsDisclosure } from "../primitives/disclosure";
@@ -98,6 +99,8 @@ import { DsTopBar } from "../primitives/top-bar";
 import { DsFloatingBar, DsFloatingTitle } from "../primitives/floating-bar";
 import { BoardOutline, BoardSurface, type BoardRow } from "./board";
 import { socialFrames, SocialSettings } from "./social-preview";
+import { dsLookSnapshot, dsSameLook, dsWithLook, useCustomLooks, type DsLookScope } from "./custom-looks";
+import { dsCustomName } from "./theme-editor";
 import {
   DS_DEFAULT_FIELD_STYLE,
   DS_OUTLINE_MAX,
@@ -116,7 +119,6 @@ import {
   dsMoodDials,
   dsTemperatureLabel,
   type DsCharacter,
-  type DsTasteScope,
 } from "../character";
 import {
   DS_BUTTON_LOOKS,
@@ -143,6 +145,7 @@ import {
   dsThemeWithFonts,
   parseDsThemeConfig,
   type DsThemeConfig,
+  dsThemeEntryId,
 } from "../theme";
 import {
   InPanel,
@@ -154,9 +157,11 @@ import {
 /** The theme's colours on the wheel, in the order they're picked, named for what they colour. */
 const WHEEL: { kind: DsColourKind; label: string }[] = [
   { kind: "theme", label: "Background" },
+  // The brand's colours by rank: the text first, then the one that carries the brand (buttons, calls to action, a
+  // slide's ground), then the quieter text. Their stored names stay text, accent and muted.
   { kind: "text", label: "Primary" },
-  { kind: "muted", label: "Secondary" },
-  { kind: "accent", label: "Button: primary" },
+  { kind: "accent", label: "Secondary" },
+  { kind: "muted", label: "Tertiary" },
   { kind: "buttonSecondary", label: "Button: secondary" },
   { kind: "field", label: "Field" },
   { kind: "surface", label: "Surface" },
@@ -431,11 +436,11 @@ const SECTION = {
       character: {
         ...t.character,
         scoped: { ...t.character.scoped, colour: "classic" },
-        hue: 40,
-        warmth: 0,
-        colour: 0,
-        brightness: 1,
-        contrast: 0,
+        hue: DS_DEFAULT_CHARACTER.hue,
+        warmth: DS_DEFAULT_CHARACTER.warmth,
+        colour: DS_DEFAULT_CHARACTER.colour,
+        brightness: DS_DEFAULT_CHARACTER.brightness,
+        contrast: DS_DEFAULT_CHARACTER.contrast,
       },
       colours: DS_DEFAULT_COLOURS,
     }),
@@ -1153,85 +1158,121 @@ const TASTE_ICONS: Record<string, LucideIcon> = {
 /**
  * A row of pills that slides sideways (DsScrollRow), the light kind (text
  * buttons): no fill at rest, a soft one when picked, with an icon each
- * (`plain`: text only).
+ * (`plain`: text only). A pill given `onRename` is renamed by double-clicking
+ * it. `onAdd` puts a + at the row's end, outside the slide, so it's always in
+ * reach; a new pill being named is scrolled into view.
  */
+type Pill = { id: string; label: string; icon?: LucideIcon; onRename?: (name: string) => void };
+
 function PillRow({
   label,
   options,
   picked,
   onToggle,
   plain,
-  after,
+  onAdd,
+  addLabel = "New",
+  renaming,
+  onRenameEnd,
 }: {
   label: string;
-  options: readonly { id: string; label: string }[];
+  options: readonly Pill[];
   picked: readonly string[];
   onToggle: (id: string) => void;
-  /** Text only, no icons: the themes, and light or dark. */
+  /** Text only, no icons: the themes. */
   plain?: boolean;
-  /** One more button after the options, e.g. New +. */
-  after?: React.ReactNode;
+  /** The + at the row's end. */
+  onAdd?: () => void;
+  addLabel?: string;
+  /** The pill being named, its field open. */
+  renaming?: string | null;
+  onRenameEnd?: () => void;
 }) {
+  const row = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!renaming) return;
+    const scroller = row.current?.querySelector<HTMLElement>("[role=group]");
+    scroller?.scrollTo({ left: scroller.scrollWidth, behavior: "smooth" });
+  }, [renaming]);
   return (
-    <DsScrollRow role="group" aria-label={label} className="-mx-2 px-2">
-      {options.map((o) => (
-        <DsButton
-          key={o.id}
-          size="small"
-          variant="text"
-          iconLeft={plain ? undefined : TASTE_ICONS[o.id]}
-          pressed={picked.includes(o.id)}
-          onClick={() => onToggle(o.id)}
-        >
-          {o.label}
-        </DsButton>
-      ))}
-      {after}
-    </DsScrollRow>
+    <div ref={row} className="flex min-w-0 items-center gap-ds-4">
+      <DsScrollRow role="group" aria-label={label} className="-mx-2 min-w-0 flex-1 px-2">
+        {options.map((o) => (
+          <DsButton
+            key={o.id}
+            size="small"
+            variant="text"
+            iconLeft={plain ? undefined : (o.icon ?? TASTE_ICONS[o.id])}
+            pressed={picked.includes(o.id)}
+            onClick={() => onToggle(o.id)}
+            onRename={o.onRename}
+            renaming={renaming === o.id}
+            onRenameEnd={onRenameEnd}
+            title={o.onRename ? "Double-click to rename" : undefined}
+          >
+            {o.label}
+          </DsButton>
+        ))}
+      </DsScrollRow>
+      {onAdd && <DsButton size="small" variant="text" iconLeft={Plus} aria-label={addLabel} title={addLabel} onClick={onAdd} />}
+    </div>
   );
 }
 
 /**
- * A section's one rail: in Colour a palette, in
- * Typography a kind of type, in Buttons a kind of button, nothing else. The
- * style picks one on each; picking another by hand decides only that
- * section's values. One at a time, as tabs are. Kept on
- * the theme (`character.scoped`).
+ * A row of looks: Parabola's presets, then the custom looks kept, then, when
+ * the values match none of them, Custom, picked. One at a time, as tabs are;
+ * picking the one picked does nothing (another look is the dice's job).
+ * Any of them renames on a double-click; naming Custom keeps it, and + keeps
+ * the look as it is now, named Custom, ready to rename. Style looks at the
+ * whole look, the others at their own section (custom-looks.ts).
  */
-function SectionRail({
+function LookRail({
   scope,
   label,
-  options,
+  presets,
   theme,
   onTheme,
   apply,
 }: {
-  scope: DsTasteScope;
+  scope: DsLookScope;
   label: string;
-  options: readonly { id: string; label: string }[];
+  presets: readonly { id: string; label: string }[];
   theme: DsThemeConfig;
   onTheme: (theme: DsThemeConfig) => void;
-  /** The theme with this section's values from the pick (null: Parabola's own). */
-  apply: (id: string | null, theme: DsThemeConfig) => DsThemeConfig;
+  /** The theme with this row's values from a preset. */
+  apply: (id: string, theme: DsThemeConfig) => DsThemeConfig;
 }) {
-  const picked = theme.character.scoped[scope];
+  const custom = useCustomLooks();
+  const [renaming, setRenaming] = React.useState<string | null>(null);
+  const looks = custom.looks(scope);
+  const current = scope === "style" ? theme.character.tastes[0] : theme.character.scoped[scope];
+  // A preset applied: the theme saying so, for the export's words and the dice.
+  const marked = (id: string, t: DsThemeConfig): DsThemeConfig =>
+    scope === "style" ? t : { ...t, character: { ...t.character, scoped: { ...t.character.scoped, [scope]: id } } };
+  const snap = dsLookSnapshot(scope, theme);
+  const preset = presets.find((p) => p.id === current && dsSameLook(dsLookSnapshot(scope, apply(p.id, marked(p.id, theme))), snap));
+  const kept = preset ? undefined : looks.find((l) => dsSameLook(l.snap, snap));
+  const taken = looks.map((l) => l.name);
+  const live = !preset && !kept;
+  const options: Pill[] = [
+    ...presets.map((p) => ({ id: p.id, label: custom.name(scope, p.id, p.label), onRename: (name: string) => custom.renamePreset(scope, p.id, name) })),
+    ...looks.map((l) => ({ id: l.id, label: l.name, icon: Sparkles, onRename: (name: string) => custom.rename(scope, l.id, name) })),
+    ...(live ? [{ id: "custom", label: dsCustomName(taken), icon: Sparkles, onRename: (name: string) => custom.add(scope, name, snap) }] : []),
+  ];
   return (
     <PillRow
       label={label}
       options={options}
-      picked={picked ? [picked] : []}
-      // One at a time, as tabs are: picking the one picked does nothing. Another look is the dice's job.
+      picked={[preset?.id ?? kept?.id ?? "custom"]}
+      renaming={renaming}
+      onRenameEnd={() => setRenaming(null)}
+      addLabel={`Keep this ${scope === "style" ? "style" : "look"}`}
+      onAdd={() => setRenaming(custom.add(scope, dsCustomName(taken), snap))}
       onToggle={(id) => {
-        if (id === picked) return;
-        onTheme(
-          apply(id, {
-            ...theme,
-            character: {
-              ...theme.character,
-              scoped: { ...theme.character.scoped, [scope]: id },
-            },
-          }),
-        );
+        const look = looks.find((l) => l.id === id);
+        if (id === "custom" || id === preset?.id || id === kept?.id) return;
+        onTheme(look ? dsWithLook(scope, theme, look.snap) : apply(id, marked(id, theme)));
       }}
     />
   );
@@ -1332,10 +1373,10 @@ function ColourChoice({
   };
   return (
     <div className="flex flex-col gap-ds-16">
-      <SectionRail
+      <LookRail
         scope="colour"
         label="Palette"
-        options={DS_PALETTES}
+        presets={DS_PALETTES}
         theme={theme}
         onTheme={onTheme}
         apply={(id, t) => {
@@ -1812,6 +1853,8 @@ export function ThemeSection() {
     "add" | "rename" | null
   >(null);
   const [restoring, setRestoring] = React.useState(false);
+  // The theme being named, its pill a field: a new one, from +.
+  const [renamingTheme, setRenamingTheme] = React.useState<string | null>(null);
 
   const setFamilyFont = (familyId: string, font: string) =>
     setTheme({
@@ -1830,14 +1873,6 @@ export function ThemeSection() {
   const people = dsTastePeople(theme.character.tastes, theme.character.mood);
   const voice = dsTasteVoice(theme.character.tastes, theme.character.mood);
   const copy = VOICE_COPY[voice.tone];
-  // The style showing as picked: the one that set this look, while its palette, type and buttons are still its own.
-  const styled = STYLES.find(
-    (t) =>
-      t.id === theme.character.tastes[0] &&
-      t.palettes[0] === theme.character.scoped.colour &&
-      t.types[0] === theme.character.scoped.type &&
-      t.buttons[0] === theme.character.scoped.buttons,
-  )?.id;
   const social = socialFrames(theme.social);
   const rows: BoardRow[] = [
     {
@@ -1965,21 +2000,26 @@ export function ThemeSection() {
           {/* The themes, and on the right the preview's light or dark, one button as the sidebar's own toggle is. */}
           <div className="flex items-center gap-ds-8">
             <div className="min-w-0 flex-1">
-          <PillRow
+          {/* The themes: double-click one to rename it; + makes a new one, a copy of the open one, named Custom
+              and ready to rename. Changing Classic, untouched, makes one too (theme-editor). */}
+              <PillRow
                 plain
                 label="Theme"
-                options={library.themes.map((t) => ({ id: t.id, label: t.name }))}
+                options={library.themes.map((t) => ({ id: t.id, label: t.name, onRename: (name: string) => renameTheme(t.id, name) }))}
                 picked={[entry.id]}
                 onToggle={(id) => {
                   if (id === entry.id) return;
                   select(id);
                 }}
-                // The last tab: a new theme, a copy of the open one, named first.
-                after={
-                  <DsButton size="small" variant="text" iconRight={Plus} onClick={() => setNaming("add")}>
-                    New
-                  </DsButton>
-                }
+                renaming={renamingTheme}
+                onRenameEnd={() => setRenamingTheme(null)}
+                addLabel="New theme"
+                onAdd={() => {
+                  const name = dsCustomName(library.themes.map((t) => t.name));
+                  const id = dsThemeEntryId(library, name);
+                  addTheme(name);
+                  setRenamingTheme(id);
+                }}
               />
             </div>
             <DsButton
@@ -1995,15 +2035,7 @@ export function ThemeSection() {
               sections below tune what it set. */}
           <div className="flex flex-col gap-ds-4">
             <span className="text-p text-ds-fg">Style</span>
-            <PillRow
-              label="Style"
-              options={STYLES}
-              picked={styled ? [styled] : []}
-              onToggle={(id) => {
-                if (styled === id) return;
-                setTheme(withStyle(theme, id));
-              }}
-            />
+            <LookRail scope="style" label="Style" presets={STYLES} theme={theme} onTheme={setTheme} apply={(id, t) => withStyle(t, id)} />
           </div>
         </PanelSection>
 
@@ -2048,17 +2080,14 @@ export function ThemeSection() {
             </div>
           }
         >
-          <SectionRail
+          <LookRail
             scope="type"
             label="Kind of type"
-            options={DS_TYPE_STYLES}
+            presets={DS_TYPE_STYLES}
             theme={theme}
             onTheme={setTheme}
             apply={(id, t) =>
-              dsThemeWithFonts(
-                t,
-                id ? dsTypeStyleFonts(id, t.character.mood) : null,
-              )
+              dsThemeWithFonts(t, dsTypeStyleFonts(id, t.character.mood))
             }
           />
           <TypeContrast theme={theme} mode={mode} onTheme={setTheme} />
@@ -2111,14 +2140,14 @@ export function ThemeSection() {
             </div>
           }
         >
-          <SectionRail
+          <LookRail
             scope="buttons"
             label="Kind of button"
-            options={DS_BUTTON_LOOKS}
+            presets={DS_BUTTON_LOOKS}
             theme={theme}
             onTheme={setTheme}
             apply={(id, t) => {
-              const look = id ? dsButtonLookAt(id, t.character.mood) : null;
+              const look = dsButtonLookAt(id, t.character.mood);
               return {
                 ...t,
                 character: {
@@ -2130,7 +2159,7 @@ export function ThemeSection() {
                 radius: null,
                 pillRadius: null,
                 // Outline and Text have a look of their own (no fill); the others come from the depth.
-                buttons: dsButtonLookStyle(id ?? undefined),
+                buttons: dsButtonLookStyle(id),
               };
             }}
           />

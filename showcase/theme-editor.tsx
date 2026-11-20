@@ -153,6 +153,15 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       const lib = h.present;
       const open = lib.themes.find((t) => t.id === selectedRef.current) ?? lib.themes[0];
       if (JSON.stringify(theme) === JSON.stringify(open.theme)) return h;
+      // Classic, untouched, is a preset: changing any value makes a theme of its own, Custom, at the end of the row,
+      // to rename, keep and publish. (A Classic already edited before this stays edited in place.)
+      if (open.id === DS_DEFAULT_THEME_ID && JSON.stringify(open.theme) === JSON.stringify(DS_DEFAULT_THEME)) {
+        const name = dsCustomName(lib.themes.map((t) => t.name));
+        const id = dsThemeEntryId(lib, name);
+        selectedRef.current = id;
+        queueMicrotask(() => setSelected(id));
+        return { past: [...h.past, lib].slice(-100), present: { ...lib, themes: [...lib.themes, { id, name, theme }] }, future: [] };
+      }
       return {
         past: [...h.past, lib].slice(-100),
         present: { ...lib, themes: lib.themes.map((t) => (t.id === open.id ? { ...t, theme } : t)) },
@@ -353,6 +362,14 @@ export type ShellSides = { left: boolean; right: boolean };
 
 /** Every section of the panel open or folded at once (the canvas holds it; the first section has its button). */
 export const PanelAllContext = React.createContext<{ open: boolean; toggle: () => void } | null>(null);
+/** "Custom", or "Custom 2" and on when that's taken. */
+export function dsCustomName(taken: readonly string[]): string {
+  if (!taken.includes("Custom")) return "Custom";
+  let n = 2;
+  while (taken.includes(`Custom ${n}`)) n += 1;
+  return `Custom ${n}`;
+}
+
 export const ShellSidesContext = React.createContext<{ collapsed: ShellSides; toggle: (side: keyof ShellSides) => void }>({
   collapsed: { left: false, right: false },
   toggle: () => {},

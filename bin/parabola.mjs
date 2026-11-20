@@ -448,15 +448,16 @@ var RETIRED_TASTES = ["restrained", "technical", "approachable", "luxurious", "b
 var RENAMED_TASTES = { fashion: "elegant", luxury: "elegant", scifi: "tech", default: "classic", editorial: "classic" };
 var DS_DEFAULT_CHARACTER = {
   tastes: DS_DEFAULT_TASTES,
-  // Parabola's own chips: its colours, its fonts, its round buttons.
+  // Parabola's own chips: its colours, its fonts, its round buttons. The colour dials are the Classic palette's own
+  // look (taste.ts), its paper, so the default theme is Classic everywhere it's shown.
   scoped: { colour: "classic", type: "classic", buttons: "soft" },
   mood: 0.5,
   ink: 1,
   warmth: 0,
-  hue: 40,
-  colour: 0,
-  brightness: 1,
-  contrast: 0,
+  hue: 38,
+  colour: 0.36,
+  brightness: 0.96,
+  contrast: 0.05,
   roundness: 1,
   depth: 0
 };
@@ -810,7 +811,8 @@ var pair2 = (heading, headingAxes, body, bodyAxes) => ({
 var AXES = ":wght@400..700";
 var DS_PALETTES = [
   // Paper: warm off-whites, stone ink. Black buttons, or one deep red.
-  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: [null, "#1C1917", "#B0182B"], contrast: [0, 0.1] },
+  // Its own look's button (the middle, at a balanced mood) is the text's own colour.
+  { id: "classic", label: "Classic", backgrounds: ["#F8F5F0", "#F3F0EA", "#EEE9E0", null], buttons: ["#1C1917", null, "#B0182B"], contrast: [0, 0.1] },
   // No colour at all: white, greys, black.
   { id: "neutral", label: "Neutral", backgrounds: [null, "#FAFAFA", "#F4F4F5", "#0A0A0A"], buttons: [null, "#0A0A0A", "#52525B"], contrast: [0.05, 0.3] },
   // Clay, sand and moss, muted.
@@ -1648,8 +1650,9 @@ function dsBrandKit(theme, name) {
     "",
     "Colours",
     `- Page: ${both("bg")}`,
-    `- Text: ${both("fg")}; quieter text ${both("fg-muted")}`,
-    `- Accent and primary button: ${both("button")}, its text ${both("on-button")}`,
+    `- Primary, the text: ${both("fg")}`,
+    `- Secondary, the brand's second colour: ${both("button")}, its text ${both("on-button")}. Use it with intent: the main button and calls to action, a highlight, the ground of one slide in a carousel.`,
+    `- Tertiary, quieter text: ${both("fg-muted")}`,
     `- Cards and panels: ${both("surface-subtle")}; secondary buttons and pills ${both("surface")}`,
     `- Borders: ${both("border")}`,
     "",
