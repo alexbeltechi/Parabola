@@ -6,6 +6,9 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Fixed: a theme file carries `composition`, `brief` and `social`, so a theme
+  saved to a file reads back whole (they were refused as unknown keys).
+  Touches `theme-file.ts`.
 - Changed: a showcase group that is one page (Intro, Theme, Board) is at its
   own name, `/parabola/theme`, not `/parabola/theme/fonts`; the old
   addresses redirect there, and a group's own name opens its first page.
