@@ -6,6 +6,12 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Changed: a showcase group that is one page (Intro, Theme, Board) is at its
+  own name, `/parabola/theme`, not `/parabola/theme/fonts`; the old
+  addresses redirect there, and a group's own name opens its first page.
+  `dsHref` and `findDsPage` (showcase/registry.ts) give the new addresses; a
+  project serving the showcase adds the `[group]` route
+  (`site/app/parabola/[group]/page.tsx`).
 - New: **the floating bar** (`DsFloatingBar`, `DsFloatingTitle`,
   `primitives/floating-bar.tsx`), the newer kind of nav: buttons floating
   over the page, the page's title in the middle as a button of its own,

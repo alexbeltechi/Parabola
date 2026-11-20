@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // The site opens on the showcase's first page.
-      { source: "/", destination: "/parabola/intro/welcome", permanent: false },
-      { source: "/parabola", destination: "/parabola/intro/welcome", permanent: false },
+      { source: "/", destination: "/parabola/intro", permanent: false },
+      { source: "/parabola", destination: "/parabola/intro", permanent: false },
     ];
   },
 };

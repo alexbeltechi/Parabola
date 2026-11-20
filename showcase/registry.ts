@@ -277,10 +277,12 @@ export const DS_TIERS: DsTier[] = [
 /** Every group, in sidebar order, for routing and lookups. */
 export const DS_GROUPS: DsGroup[] = DS_TIERS.flatMap((tier) => tier.groups);
 
-export const dsHref = (group: DsGroup, page: DsPage) => `/parabola/${group.slug}/${page.slug}`;
+/** A page's address. A group that is one page (Theme, Board, Intro) is at its own name, /parabola/theme. */
+export const dsHref = (group: DsGroup, page: DsPage) => (group.single ? `/parabola/${group.slug}` : `/parabola/${group.slug}/${page.slug}`);
 
-export function findDsPage(groupSlug: string, pageSlug: string) {
+/** A group and one of its pages, by their slugs; with no page slug, a one-page group's page. */
+export function findDsPage(groupSlug: string, pageSlug?: string) {
   const group = DS_GROUPS.find((g) => g.slug === groupSlug);
-  const page = group?.pages.find((p) => p.slug === pageSlug);
+  const page = pageSlug ? group?.pages.find((p) => p.slug === pageSlug) : group?.single ? group.pages[0] : undefined;
   return group && page ? { group, page } : null;
 }
