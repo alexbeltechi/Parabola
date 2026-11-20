@@ -11,7 +11,7 @@ import { DS_DEFAULT_COLOURS } from "../colours";
 import { DS_TASTES, dsShuffleTaste } from "../taste";
 import { DS_DEFAULT_THEME, DS_DEFAULT_THEME_ID, dsThemeWithFonts, type DsThemeConfig } from "../theme";
 import { dsLookSnapshot, dsSameLook, useCustomLooks } from "./custom-looks";
-import { useThemeEditor } from "./theme-editor";
+import { dsCustomName, useThemeEditor } from "./theme-editor";
 
 /** The styles the Theme rail offers: whole looks, a palette, a kind of type and a kind of button each (taste.ts). */
 export const STYLES = DS_TASTES.filter((t) => ["classic", "minimal", "elegant", "tech", "natural"].includes(t.id));
@@ -63,6 +63,10 @@ export function useThemeLook() {
     : undefined;
   const live = onFirst && !style;
   // What the page calls it: the style (as this maker named it), Custom, or the kept theme's name.
-  const name = !onFirst ? entry.name : style ? custom.name("style", style.id, style.label) : "Custom";
+  const name = !onFirst
+    ? entry.name
+    : style
+      ? custom.name("style", style.id, style.label)
+      : dsCustomName(library.themes.map((t) => t.name));
   return { first, kept, onFirst, style, live, fresh, current, name };
 }

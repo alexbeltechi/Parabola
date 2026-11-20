@@ -1366,6 +1366,9 @@ function LookRail({
   );
 }
 
+/** The unsaved Custom chip's id: never a kept theme's (those are slugs of their names, "custom" included). */
+const LIVE = ":custom";
+
 /**
  * The Theme rail, one row for every look: Parabola's styles (Classic first,
  * the default), then the themes kept, then Custom. A style is worn by the
@@ -1401,7 +1404,6 @@ function ThemeRail() {
     ...kept.map((t) => ({
       id: t.id,
       label: t.name,
-      icon: Sparkles,
       onRename: (name: string) => renameTheme(t.id, name),
       onDuplicate: () => keep(`${t.name} copy`, t.id),
       // The theme the website wears stays.
@@ -1410,14 +1412,14 @@ function ThemeRail() {
     ...(live
       ? [
           {
-            id: "custom",
-            label: "Custom",
-            icon: Sparkles,
+            id: LIVE,
+            // The name it would be kept under, so it never reads the same as a kept one.
+            label: dsCustomName(names),
             onRename: (name: string) => {
               const unique = dsCustomName(names, name);
               addTheme(unique);
             },
-            onDuplicate: () => keep("Custom"),
+            onDuplicate: () => keep(`${dsCustomName(names)} copy`),
             // Not kept: deleting it puts the style it came from back (Classic, if none).
             onRemove: () => setTheme(fresh(STYLES.find((p) => p.id === current)?.id ?? STYLES[0].id)),
           },
@@ -1428,13 +1430,13 @@ function ThemeRail() {
     <PillRow
       label="Theme"
       options={options}
-      picked={[onFirst ? (style?.id ?? "custom") : entry.id]}
+      picked={[onFirst ? (style?.id ?? LIVE) : entry.id]}
       renaming={renaming}
       onRenameEnd={() => setRenaming(null)}
       addLabel="Keep this theme"
       onAdd={() => keep("Custom")}
       onToggle={(id) => {
-        if (id === "custom") return;
+        if (id === LIVE) return;
         if (STYLES.some((p) => p.id === id)) {
           if (onFirst && id === style?.id) return;
           setTheme(fresh(id), first.id);

@@ -10,7 +10,9 @@ files a change touches when a project is likely to have edited them.
   themes kept, then Custom, which shows only while a style's been changed
   (+ or naming keeps it as a theme; Delete puts the style back). The
   separate Theme and Style rows are gone, and changing Classic no longer
-  makes a "Custom" theme by itself. The page's title says the look picked.
+  makes a "Custom" theme by itself. Restore all goes back to Classic and
+  takes the kept themes out (not the website's), with Undo. Custom themes
+  have no icon. The page's title says the look picked.
   `setTheme(theme, into?)` and `addTheme(name, from?)` take a theme to open
   or copy (`showcase/theme-look.ts`).
 

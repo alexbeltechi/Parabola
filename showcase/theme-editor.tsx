@@ -57,7 +57,7 @@ type ThemeEditor = {
   renameTheme: (id: string, name: string) => void;
   /** Take a theme out (never Default, nor the one in use). */
   removeTheme: (id: string) => void;
-  /** The open theme back to Parabola's own look. Other themes stay. Returns what undoes it. */
+  /** Back to the start: Classic as Parabola makes it, the kept themes gone (not the website's). Returns what undoes it. */
   restoreTheme: () => () => void;
   /** Changes not saved yet. */
   dirty: boolean;
@@ -250,17 +250,25 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
         change({ ...library, themes: library.themes.filter((t) => t.id !== id) });
         if (selected === id) setSelected(library.active);
       },
+      // Back to the start: Classic, as Parabola makes it, and the kept themes gone (all but the one the website
+      // wears), the styles hidden here shown again (theme-section). Undo puts every theme and the open one back.
       restoreTheme: () => {
-        const id = entry.id;
-        const before = entry.theme;
-        const put = (theme: DsThemeConfig) =>
-          setHistory((h) => ({
-            past: [...h.past, h.present].slice(-100),
-            present: { ...h.present, themes: h.present.themes.map((t) => (t.id === id ? { ...t, theme } : t)) },
-            future: [],
-          }));
-        put(DS_DEFAULT_THEME);
-        return () => put(before);
+        const before = library;
+        const open = entry.id;
+        const first = library.themes.find((t) => t.id === DS_DEFAULT_THEME_ID) ?? library.themes[0];
+        const after: DsThemeLibrary = {
+          ...library,
+          themes: library.themes
+            .filter((t) => t.id === first.id || t.id === library.active)
+            .map((t) => (t.id === first.id ? { ...t, theme: DS_DEFAULT_THEME } : t)),
+        };
+        const put = (lib: DsThemeLibrary, id: string) => {
+          selectedRef.current = id;
+          setSelected(id);
+          setHistory((h) => ({ past: [...h.past, h.present].slice(-100), present: lib, future: [] }));
+        };
+        put(after, first.id);
+        return () => put(before, open);
       },
       dirty: JSON.stringify(library) !== JSON.stringify(saved),
       unpublished: published.id !== entry.id || JSON.stringify(published.theme) !== JSON.stringify(entry.theme),
@@ -394,7 +402,7 @@ export const RESTORE: Record<RestoreScope, { item: string; title: string; descri
   all: {
     item: "Restore all settings",
     title: "Restore all settings?",
-    description: "Every setting of this theme goes back to Parabola's own. Undo brings them back.",
+    description: "Back to Classic as Parabola makes it, and the themes you kept are taken out (not the one your website wears). Undo brings them all back.",
     done: "All settings restored",
   },
 };
