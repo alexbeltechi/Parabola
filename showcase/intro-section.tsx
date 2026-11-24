@@ -14,9 +14,9 @@ export function IntroSection() {
 
       <section className="flex w-full flex-col items-center gap-2">
         <h3 className="text-h3 text-ds-fg">Get started</h3>
-        <p className="text-p text-ds-fg-muted">Install it, then import components and style with tokens.</p>
+        <p className="text-p text-ds-fg-muted">Install it from GitHub, then import components and style with tokens.</p>
         <pre className="w-full overflow-x-auto rounded-ds-lg bg-ds-surface/70 p-4 text-left text-small text-ds-fg">
-          <code>{`npm install @beltechi/parabola
+          <code>{`npm install github:alexbeltechi/parabola
 
 import { DsButton } from "@beltechi/parabola";
 

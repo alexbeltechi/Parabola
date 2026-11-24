@@ -23,7 +23,7 @@ export function ComponentsOverview() {
   return (
     <TierOverview
       title="Components"
-      lede="Primitives composed into a reusable piece with one job: a testimonial card, a step card, a marquee. Smaller than a page section, used by more than one block."
+      lede="Primitives composed into a reusable piece with one job: a colour picker, a media tile, a prompt box. Smaller than a page section, used by more than one block."
       rules={[
         {
           title: "Made of primitives",

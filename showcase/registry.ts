@@ -43,7 +43,7 @@ export type DsGroup = {
   single?: boolean;
 };
 
-/** A sidebar section: Foundations, Primitives, Components or Blocks (see README). */
+/** A sidebar section: Foundations, Primitives, Components or Blocks (see docs/reference.md). */
 export type DsTier = { label?: string; groups: DsGroup[] };
 
 /**
