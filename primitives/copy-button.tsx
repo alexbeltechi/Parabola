@@ -11,8 +11,8 @@ import { dsToast } from "./toast";
  * what it returns at the moment of the click), shows
  * a tick for a moment and says "Copied". Its hit area reaches a little past
  * its edges. `floating`: over the text in the field's top right corner, on
- * the default button's grey, so a long text keeps the field's whole width
- * and runs under it.
+ * the default button's grey (DsTextarea). A wrapped DsCopyField gives it a
+ * column of its own instead, so its text never runs under it.
  */
 export function DsCopyButton({ value, floating }: { value: string | (() => string); floating?: boolean }) {
   const [copied, setCopied] = React.useState(false);

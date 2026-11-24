@@ -4,8 +4,13 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
-## Unreleased
+## 0.5.5 — 2026-11-24
 
+- Fixed: a wrapped copy field (`wrap` or `collapsible`) reads cleanly. The
+  copy button floated over the text's top right corner and the first line
+  ran under it; it now keeps a column of its own beside the first line,
+  the same distance from the edge as on the one-line field. The one-line
+  field is unchanged. Touches `primitives/copy-field.tsx`.
 - Public: an MIT `LICENSE` file (package.json already said MIT). The README
   is one short page for people; everything else moved, brought up to date,
   to `docs/reference.md` (seven colours with their current names, Classic
