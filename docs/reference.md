@@ -252,9 +252,10 @@ spacing, corners, buttons, the voice from `dsTasteVoice`); the guide adds
 only the rules for using them.
 
 Copy inside a field is one button, `DsCopyButton`: DsCopyField always has
-it, a DsTextarea takes it with `copyable`. Over several lines it floats in
-the top right corner on the default button's grey, the text running under
-it. Both take `collapsible` (`show-more.tsx`): six lines fading out and
+it, a DsTextarea takes it with `copyable`. In a copy field over several
+lines it keeps a column of its own on the right, beside the first line, so
+the text never runs under it. In a textarea it floats in the top right
+corner on the default button's grey. Both take `collapsible` (`show-more.tsx`): six lines fading out and
 Show more, then the whole text in the page. Never a scroll inside a scroll:
 it's hard to work on a phone.
 
