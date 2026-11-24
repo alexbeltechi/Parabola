@@ -6,6 +6,15 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+- Public: an MIT `LICENSE` file (package.json already said MIT). The README
+  is one short page for people; everything else moved, brought up to date,
+  to `docs/reference.md` (seven colours with their current names, Classic
+  as the default, the Theme board, Social, the Export dialog).
+- Fixed: the Export dialog's command and the Intro page's install line
+  work today: `npx github:alexbeltechi/parabola` and
+  `npm install github:alexbeltechi/parabola`, since Parabola isn't on npm
+  yet. Components' overview names components that exist.
+
 ## 0.5.4 — 2026-11-24
 
 - Fixed: a button drawn by a server page crashed it ("useState only works in

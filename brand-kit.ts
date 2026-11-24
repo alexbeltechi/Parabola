@@ -339,8 +339,14 @@ export function dsThemeFromPaste(text: string): DsThemeConfig | null {
   return theme ? parseDsThemeConfig(theme) : null;
 }
 
-/** The package's name as the command is typed (a rename changes this one line). */
+/** The package's name as code imports it (a rename changes this one line). */
 export const DS_PACKAGE_NAME = "@beltechi/parabola";
+
+/**
+ * What `npx` runs: Parabola straight from GitHub, which works today. Once the
+ * package is on npm this can become DS_PACKAGE_NAME.
+ */
+export const DS_PACKAGE_RUN = "github:alexbeltechi/parabola";
 
 /**
  * The theme as one shell-safe word, base64 of its Parabola code: what
@@ -356,7 +362,7 @@ export function dsThemeCode(kit: DsBrandKit): string {
 /** The commands that copy this theme, and a component, into a project (`npx`, as shadcn's `add`). */
 export function dsThemeCommands(kit: DsBrandKit): { theme: string; component: string } {
   return {
-    theme: `npx ${DS_PACKAGE_NAME} add theme --code ${dsThemeCode(kit)}`,
-    component: `npx ${DS_PACKAGE_NAME} add button`,
+    theme: `npx ${DS_PACKAGE_RUN} add theme --code ${dsThemeCode(kit)}`,
+    component: `npx ${DS_PACKAGE_RUN} add button`,
   };
 }

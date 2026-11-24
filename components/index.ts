@@ -1,6 +1,6 @@
 /**
  * Parabola components: primitives composed into a reusable piece with one job
- * (a placeholder, a testimonial card, a marquee). See the README's tiers.
+ * (a placeholder, a media tile, a prompt box). See docs/reference.md's tiers.
  * Re-exported from the main barrel.
  */
 export { DsMediaTile } from "./media-tile";

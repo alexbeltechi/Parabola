@@ -6,431 +6,54 @@ design system (tokens, buttons, fields, a spacing scale), and they leave room
 for visual expression, so any model can experiment on top of them and a
 site still reads as one thing from page to page.
 
-The default theme is the fallback, so everything is consistent; from there a
-page can expand. Not every page is made from scratch.
+**Make your theme at [parabolasystem.com](https://parabolasystem.com).**
+Pick a style, change colours, type and buttons, and see it on a website, a
+letter, an app, an Instagram carousel and a reel at once.
 
-As a package it's `@beltechi/parabola`. Showcase: `/parabola`.
+## Take your style anywhere
 
-## What belongs here
+Press **Export**, top right on parabolasystem.com:
 
-Parabola is organised in tiers, each built only from the ones above it. Each
-tier has its own folder and its own section on `/parabola`.
+- **The style in words:** copy it and paste it at the end of any prompt
+  ("make a website, in this style"). Works with any AI.
+- **Brand kit:** a zip with a brand guide, the tokens and the theme file.
+- **Design system:** one text for Claude Design or any agent to build a
+  design system from.
+- **Parabola code**, and a command that copies the theme into a project.
 
-| Tier | Folder | What it is | Examples |
-| --- | --- | --- | --- |
-| **Foundations** | root | Tokens: colours, type scale, spacing, corners, elevation, focus, z-index | `tokens.css`, `accents.ts`, `spacing.ts` |
-| **Primitives** | `primitives/` | Single building blocks that decide how something looks and behaves, even when one screen uses them today | button, field, select, pill, list row, dialog |
-| **Components** | `components/` | Primitives composed into a reusable piece with one job | testimonial card, step card, marquee |
-| **Blocks** | `blocks/` | Full-width page sections that the page builder (or an agent) arranges into pages | hero, service row, process |
+## Use it in a project
 
-Not here: anything that arranges pieces for one screen of the app (the posts
-list, a page's pinned header and filter row, the category dialog). Those live
-with their page. When two screens need the same arrangement *and* must stay
-identical, promote it to a component then, not before.
-
-## Installing
-
-Parabola is an npm package, `@beltechi/parabola`, released from this repo
-(see [Releasing a version](#releasing-a-version)). Install it and pin a
-version; never copy the folder by hand (to copy pieces into a project, use
-`add`, below). Nothing checks for a newer version at run time: upgrading is
-a `package.json` change.
+Copy the theme, or a component, into your project and own the files:
 
 ```sh
-npm install @beltechi/parabola
+npx github:alexbeltechi/parabola add theme --from parabola-theme.json
+npx github:alexbeltechi/parabola add button
 ```
 
-It needs React 19, Tailwind CSS v4, Radix UI, lucide-react, sonner,
-class-variance-authority, clsx and tailwind-merge as peers (npm installs the
-ones you don't have). Then, in the app:
+Or install the whole package (React 19, Tailwind CSS v4) from GitHub, at a
+version:
 
-1. Import the tokens once, after Tailwind, and point Tailwind at the package
-   so its classes are generated (node_modules is skipped by default):
-
-   ```css
-   @import "tailwindcss";
-   @import "@beltechi/parabola/tokens.css";
-   @source "../node_modules/@beltechi/parabola";
-   ```
-
-   The `@source` path is relative to the CSS file: from `src/app/globals.css`
-   it's `"../../node_modules/@beltechi/parabola"`.
-
-2. Wrap the app in `DsProvider`, where it plugs in its framework:
-
-   ```tsx
-   <DsProvider link={Link} onThemeChange={setTheme}>   {/* next/link, next-themes */}
-   ```
-
-   Without it Parabola renders plain `<a>` links and its theme toggle flips
-   the `dark` class on `<html>` (not remembered across visits).
-
-3. The package ships TypeScript source, not a build, so tell the bundler to
-   compile it. In Next: `transpilePackages: ["@beltechi/parabola"]` in
-   `next.config.ts`. A build step (compiled JS and `.d.ts`) comes when a
-   non-Next consumer needs one.
-
-`site/` in this repo is a complete, minimal example: it's the app behind
-[parabolasystem.com](https://parabolasystem.com).
-
-## Self-contained
-
-The package depends on nothing in an app and on no framework: no `@/…`
-imports, nothing from the app that uses it.
-
-- `tokens.css`: tokens, the dark variant and the `ds-*` utilities. An app
-  imports it once, after Tailwind (see `site/app/globals.css`).
-- `cn.ts`: the class-name helper, taught Parabola's custom classes.
-- `provider.tsx`: `DsProvider` (above). `site/app/providers.tsx` sets it up
-  for Next.
-
-### Add-ons
-
-Heavier pieces live outside the core barrel, each with its own import path,
-so apps that don't use them never load their dependencies. Their packages
-are optional peers:
-
-| Add-on | Import | Needs |
-| --- | --- | --- |
-| Rich text | `@beltechi/parabola/primitives/rich-text` (`DsRichText`) | Tiptap (`@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/extension-placeholder`, `@tiptap/extension-table`) |
-
-Tiptap is used as-is from npm (MIT), not forked: Parabola owns only the
-wrapper (its menu, buttons and prose styles).
-
-### The showcase
-
-`showcase/` is the `/parabola` site: the registry of pages, the specimens and
-the shell around them. It ships in the package so the package documents
-itself: a consumer can mount it to see the exact version it installed, and
-every component's specimen lives next to the component it shows (the
-component contract asks for one). It is not part of the design system: never
-import it from app code (ESLint stops you) and nothing in the core imports
-it. It is the one place that touches a framework (`next/navigation`, for the
-shell's current path), so `next` is an optional peer, needed only when the
-showcase is mounted. Parabola's own site mounts it from `site/app/parabola`
-(and so does Darmio, from `src/app/parabola`).
-
-## Naming
-
-"Parabola" is the brand: the folder, the URL, the docs. `ds` is its code
-namespace, short and brand-free, so a rename never touches code:
-
-| What | Pattern | Example |
-| --- | --- | --- |
-| Components | `Ds*` | `DsButton`, `DsListRow` |
-| Class constants | `DS_*_CLASS` | `DS_FIELD_BOX_CLASS`, `DS_COLUMNS_CLASS` |
-| CSS tokens | `--ds-*` | `--ds-surface`, `--ds-accent-red` |
-| Tailwind utilities | `*-ds-*` | `bg-ds-surface`, `text-ds-fg-muted`, `rounded-ds-lg` |
-| CSS utilities | `ds-*` | `ds-focus`, `ds-hover`, `ds-nav-fade` |
-
-## Themes
-
-A theme is data (`theme.ts`), much as shadcn's create page sets a style:
-
-- **Character** (`character.ts`, `DsCharacter`): the look as a whole, dials
-  every Auto value is worked out from: a base colour to start from (null:
-  white), hue, saturation, brightness, contrast, roundness and depth. A value given
-  its own (a colour, `radius`, `buttons`) stays when a dial moves; `null`
-  means Auto. `dsThemeRadius`, `dsThemeButtons` and `dsThemeColourTokens`
-  resolve a theme; `dsCharacterColourOptions` is what the colour
-  derivations take from it. An agent sets a look by moving dials. The
-  panel opens with **Taste** (`taste.ts`), aesthetics and personality:
-  a style (`DS_TASTES`: Classic, Minimal, Elegant, Tech, Natural, Retro,
-  Sport; `dsPickTaste`, `dsShuffleTaste`, `dsRandomTastes`; the panel no
-  longer lists them to pick from, the dice and Shuffle draw from them, and
-  the themes at the panel's top are the looks to choose between), which chooses one chip on each section's rail
-  (`character.scoped`): a palette in Colour (`DS_PALETTES`,
-  `dsPaletteDraw`), a kind of type in Typography (`DS_TYPE_STYLES`,
-  `dsTypeStyleFonts`) and a kind of button in Buttons (`DS_BUTTON_LOOKS`,
-  `dsButtonLookAt`; Outline and Text have no fill, `dsButtonLookStyle`, the
-  primary button's fill "none"; Chunky a thick edge; only Tactile has a
-  gradient); each can be picked by hand after, one at a time. A style's own
-  look is the first of each of its lists; › draws from the rest. Then the **Mood**, the personality, a slider from Serious to Playful
-  (on to Wacky at its end; its track a 1px line, no labels under it; `dsThemeWithMood`); under it Shuffle draws another version of the style and Previous and Next step through those seen, the dice beside Taste's Restore starts over, which changes the look inside the style:
-  the kind of type's four font pairs, the buttons' roundness, the colour's
-  saturation (`dsMoodSaturation`) and the button colour (`dsPaletteButton`),
-  and the voice (`dsTasteVoice`; words placed loose from Playful,
-  `dsTasteTilt`).
-  Parabola's own is Classic and Balanced, with Classic, Classic and Soft.
-  **Colour** is the palettes, then the background as three bars: hue,
-  temperature (ice or paper on a white, the hue leaned blue or orange on a
-  colour) and a true brightness (black, the colour, white), with the
-  colours themselves behind "Show advanced options"; a palette sets how much
-  colour and the contrast, which have no bar. **Typography** has a Contrast
-  bar for the type (`character.ink`, `DsColourOptions.ink`): turned down,
-  the text becomes an ink of the page's hue, not a grey. Roundness is with
-  the buttons. Fields is its outline, no rail. A `DsScrollRow` slides its
-  picked item into view when it changes, so a rail a style changed shows
-  its new chip; a picked text button (a chip) wears the default button's
-  grey. The list is meant to grow. `DsColourField` (a swatch and a hex, the picker in a tray) is
-  there for any colour a form asks for.
-
-- **Colours** (`colours.ts`, `DsThemeColours`), six, named for what they
-  colour: base (`theme`, the website's background; Parabola's is white,
-  its cards a warm off-white #F7F5F2), type: primary (`text`, the text and
-  borders; black or white, whichever reads on the base), type: secondary
-  (`muted`, the quieter text; the primary type toward the page by
-  default), button (`accent`: `ds-button`, `ds-on-button`, selected states
-  and the highlight; the primary type's by default), field (`field`, the
-  fields' background; the base's by default) and surface (`surface`, cards
-  and panels; a shade of the base by default). Each is Parabola's own (null) or a
-  hex, picked for light; in dark it's based on the light one unless a dark
-  colour is picked for it: the page and cards the same hue, about 87% dark
-  (`dsCounterpart`, not a flip), text, buttons and the accent moved just
-  far enough to read on it (`dsInkCounterpart`). A
-  colour based on another can be shifted lighter or darker (`lightShift`,
-  `darkShift`, `dsShift`). `dsColourTokens` turns the six into every
-  colour token; `DsColourWheel` shows them all as points on one wheel (hue
-  round it, a tick on the ring for the chosen one, dragged round to turn it, saturation out from the centre, saturation and brightness on
-  the arcs, and below it the chosen one's saturation, hue and brightness as
-  small fields; one size, the chosen one filled, the others a thin ring; choose one
-  and drag its point, Delete to restore it), and `DsColourPicker` picks a single colour inline, with
-  `DsColourBar` its hue and brightness bars.
-- **Font families** (`families`): Font (text, always there) and Heading
-  (headlines) to start, and any the theme adds, each a name and a font.
-- **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,
-  Instrument Serif, System), less any the theme took out (`hiddenFonts`;
-  never System), plus Google fonts it added (`customFonts`, from a name or a
-  link: `dsCustomFontFromInput`). Each font lists its weights.
-- **The type scale**: for each text style (`DS_TEXT_STYLES`) its name,
-  family, weight, size and line height. By default Display to H2 are in
-  Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
-  (Instrument Sans, Medium).
-- **Buttons** (`button-style.ts`): the solid buttons' fill, solid or a
-  gradient of the button colour (contrast -1 to 1, 0 flat, above it the
-  top lighter), an inset outline (1 to 8px, with an opacity; off by default), a label text shadow cast from a
-  light's angle (`DsAngleDial`; never on the icons), each `none` until on
-  (`--ds-button-image`, `--ds-button-ring`, `--ds-button-text-shadow`); and
-  their roundness, the radius below, with the pills the same or their own
-  (`pillRadius`, `--ds-radius-chip`, `rounded-ds-chip`). Fields have their
-  own outline (`fields`: on, 2px, solid by default; `--ds-field-border-width`;
-  an invalid field's red outline, `DS_FIELD_INVALID_CLASS`, is always 2px).
-- **Navigation** (`nav-style.ts`, `theme.nav`): its style (`DS_NAV_STYLES`),
-  Floating (`DsFloatingBar`, the default: buttons over the page, the title
-  in the middle as a button, a soft fade behind) or Bar (`DsTopBar`); and the
-  bar's background (`surface`, `DS_NAV_SURFACES`): None, Blur (the nav fade,
-  the default) or Solid (the page colour alone, hiding what scrolls under
-  it). A site passes it to its `DsTopBar` as `surface`.
-- **Radius** (`radius.ts`): None, Small (2px), Medium, Large (the default) or a
-  custom number of pixels (the cards' and pills' corner, the rest scaled),
-  for every corner (`rounded-ds-sm` … `rounded-ds-lg`) and the pill
-  (`rounded-ds-pill`: buttons, nav items, tooltips), which is fully round
-  only at Large. Switches, radios, progress bars and avatars stay round.
-- **Icons**: the library, Lucide for now.
-
-Themes are kept in a **library** (`DsThemeLibrary`): Parabola (the default)
-and any added, one of them in use. A style's weight snaps to the nearest one its family's
-font has (`dsNearestWeight`). The tokens a theme sets are `--ds-*` variables
-(`--ds-bg`… `--ds-highlight`, `--ds-family-<id>`, `--ds-font-<style>`,
-`--ds-text-<style>`, `--ds-text-<style>-leading`, `--ds-weight-<style>`,
-`--ds-radius-<sm|control|md|lg|pill>`), light
-on `:root` and dark on `.dark`, so a theme changes them at run time. Make
-themes on `/parabola`: Theme (the pieces in one 600px column, and the main
-choices in the panel on the right) and Typography (Font families, Type
-scale), with Undo, Redo, Publish and a ⋮ menu to restore defaults top right
-on every page. An app applies the theme in use once, on its website's
-pages (not its admin, which stays in Parabola's own), or on part of a page
-with `scope` (`DS_THEME_SCOPE`, as /parabola's canvas does):
+```sh
+npm install github:alexbeltechi/parabola#v0.5.4
+```
 
 ```tsx
-<DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its Google fonts */}
-<DsThemeStyle theme={…} hosted={["instrument-sans", "instrument-serif", "system"]} />  {/* the app hosts these */}
-<DsThemeStyle theme={…} scope={DS_THEME_SCOPE} />                              {/* only <div className="ds-theme"> */}
+import { DsButton } from "@beltechi/parabola";
+
+<DsButton variant="primary">Publish</DsButton>
 ```
 
-An app that hosts Parabola's fonts (the site does, with next/font) sets
-`--ds-font-<id>` to its family names; each stack tries it first. Pass the
-library and a saver to `DsProvider` (`themeLibrary`, `onThemeLibraryChange`)
-and `/parabola` publishes too.
+The setup (tokens, provider, theme) is in
+[the reference](docs/reference.md#installing). Parabola isn't on npm yet.
 
-## Sharing a theme
+## More
 
-**Export**, top right of every `/parabola` page, hands the open theme over
-as a **brand kit** (`brand-kit.ts`), one source with several ways out.
-Nothing goes anywhere on its own; the maker puts it where they work.
+- [The reference](docs/reference.md): tiers, themes, sharing, the command,
+  taking a newer version, the component contract. For developers and agents.
+- [What changed in each version](CHANGELOG.md).
+- Parabola is what [Darmio](https://github.com/alexbeltechi/darmio), an
+  open-source publishing platform for makers, is built on.
 
-- **The style in words** (`kit.style`), first in the dialog with one button
-  to copy it: the look in a sentence, the colours, fonts, sizes and shapes,
-  and how to use them, to paste at the end of any prompt ("make a website,
-  in this style"). It says what holds and what's open, Parabola's "fixed
-  below, free above", and ends "Created with parabolasystem.com". The
-  guide below says the same.
+## Licence
 
-- **Brand kit**: a zip (`zip.ts`, no dependency) with `README.md` (the brand
-  guide), `tokens.json`, `tokens.css` and `parabola-theme.json`.
-- **Design system**: one text (`dsBrandKitPrompt`) for Claude Design or any
-  agent to build the design system from: the guide and the tokens, in a
-  copy field with Show more. Its hint's "Claude Design" copies it and opens
-  Claude. `tokens.json` is in the shape Claude's Design System reads: each
-  family a list of `{ name, value, usage }`, colours with light and dark.
-- **Parabola code**: the theme as `dsThemeExport` writes it, in a textarea
-  with copy and Show more on. Paste one in to open it: Parabola code, a
-  kit's `tokens.json`, or the whole design-system text back from Claude
-  (`dsThemeFromPaste`). The kit's `tokens.json` carries the theme under
-  `meta.parabola`, so a design system made from Parabola comes back exactly.
-  One made elsewhere is refused: turning it into a theme is an agent's job.
-
-Every value in the kit comes from the theme (colours, fonts, type styles,
-spacing, corners, buttons, the voice from `dsTasteVoice`); the guide adds
-only the rules for using them.
-
-Copy inside a field is one button, `DsCopyButton`: DsCopyField always has
-it, a DsTextarea takes it with `copyable`. Over several lines it floats in
-the top right corner on the default button's grey, the text running under
-it. Both take `collapsible` (`show-more.tsx`): six lines fading out and
-Show more, then the whole text in the page. Never a scroll inside a scroll:
-it's hard to work on a phone.
-
-### Copying it with a command
-
-The third way out, besides the kit and the design-system text: a command, as
-shadcn's `add`, that copies Parabola into a project so the maker owns the
-files (`cli/`, bundled to `bin/parabola.mjs` by `npm run bundle`; the bundle
-is committed, so the command runs straight from this repo). Run it in the
-project's folder. Until Parabola is on npm, write
-`npx github:alexbeltechi/parabola` where these say `npx @beltechi/parabola`:
-
-```sh
-npx @beltechi/parabola add theme --from parabola-theme.json   # the kit's theme file
-npx @beltechi/parabola add theme --code <theme>               # pasted: Parabola code, or base64 of it
-npx @beltechi/parabola add button                             # a component, and the Parabola files it imports
-npx @beltechi/parabola list
-```
-
-`add theme` writes `tokens.css` (the `ds-*` utilities), `theme.css` (the
-theme's variables, light and dark, and its Google fonts) and
-`parabola-theme.json` into `parabola/` (`src/parabola/` where there's a
-`src/`; `--dir` changes it) and imports the first two from the project's
-`globals.css` under Tailwind's import. `add <component>` copies the component
-and what it imports in the folders it has here, so its imports hold, and
-prints the npm packages to install. `/parabola/theme` (Share) shows the
-command for the open theme. Nothing is fetched or published by it.
-
-Every `add` notes what it copied in `parabola.json` at the project's root:
-where Parabola came from, its version and commit, the folder, the files.
-
-### Taking a newer Parabola
-
-A project owns its copy, and nothing changes in it until someone asks:
-
-```sh
-npx @beltechi/parabola status             # which Parabola this project is on; what a newer one would change
-npx @beltechi/parabola update --dry-run   # the same, file by file, writing nothing
-npx @beltechi/parabola update             # take the latest version (--to v0.3.0 for another)
-```
-
-`update` (`cli/update.ts`) looks at each file three ways: as it was when
-copied (from `parabola.json`'s commit), as the project has it, and as
-Parabola has it now. A file the project never touched takes Parabola's. A
-file only the project changed stays. Where both changed it the two are
-merged as git would, and lines both sides changed get git's conflict markers
-(`<<<<<<< yours`) for a person or their agent to settle. It prints the
-changelog between the two versions, and it won't run over uncommitted work,
-so `git checkout` undoes it. Copier's `update` works this way for project
-templates; shadcn's `add --diff` shows the difference and leaves the merge
-to you.
-
-A project that carries the whole package rather than a few components (as
-Darmio does, in `packages/parabola`) says `"files": "*"` in `parabola.json`,
-with `exclude` for what it doesn't want (`bin/`, `scripts/`, `test/`).
-
-A change made in a project's copy stays that project's. To give it to every
-project, open a pull request here with it; the others get it the next time
-they update.
-
-### Releasing a version
-
-Change things here and add an entry under `## Unreleased` in `CHANGELOG.md`
-in plain words (say which files a project is likely to have edited). To
-release: raise `version` in `package.json`, turn `## Unreleased` into
-`## <version> — <date>` (a new empty `## Unreleased` above it), `npm run
-bundle`, `npm test`, `npm run check`, and merge to `main`. The tag
-`v<version>` is made for you when it lands
-(`.github/workflows/tag-release.yml`), so a release can't miss its tag.
-`update` takes the newest tag, so a project gets the release with plain
-`update`; work merged without a version stays on `main` until the next
-release. Nothing happens in any project until it runs `update`.
-
-Publishing a GitHub release for the tag puts that version on npm
-(`.github/workflows/publish.yml`; it needs the repo's `NPM_TOKEN` secret).
-parabolasystem.com rebuilds from `main` on every push, so the site always
-shows the latest Parabola.
-
-## Using it
-
-```tsx
-import { DsButton, DsField, DsInput } from "@beltechi/parabola";
-```
-
-Everything in the core comes from that barrel. Add-ons come from their own
-path (see above), and so do blocks (`@beltechi/parabola/blocks`). Those are
-the package's only entry points, besides `tokens.css` and the showcase's
-`showcase/ds-shell` and `showcase/registry`; a component's own file isn't
-importable from outside.
-
-Fields have one width, `--ds-field-width` (320px): a `DsField`, or a
-control on its own (input, select, date picker, search, textarea,
-multi-select), is that wide wherever it's dropped, and a control inside a
-`DsField` fills the field. Lay a form out with `DS_FIELDS_CLASS`: fields
-one under the other, left-aligned, never side by side and never stretched. Opt out deliberately:
-
-- `className="w-full"` on the `DsField` (or a control on its own) for one
-  that fills its row: long text, a list of files, a toolbar's search bar.
-- `ds-fields-fill` on a container one field wide, so fields fill it.
-  `DsDialog` and `DsSidePanel` already do.
-
-Don't size fields with `max-w-[…]` per screen. See `/parabola/fields/form`.
-
-A switch sits right after its label (`gap-ds-8`), never pushed to the far
-edge of the row. Rows in a nav are 4px apart (`ds-4`).
-
-Colours come from tokens only. No raw Tailwind palette (`bg-zinc-100`,
-`text-emerald-600`) and no hex values in components. Content that carries a
-colour (a category) stores the **accent's name** (`"red"`), never its value, so
-changing an accent reaches everything that wears it.
-
-ESLint enforces this outside Parabola: raw palette classes are flagged.
-
-## The component contract
-
-Every Parabola component:
-
-1. **Passes through what it doesn't use.** `className`, `ref`, `id`, `aria-*`,
-   `data-*` and event handlers reach the root element, or, for field-shaped
-   controls, the element that takes focus (`DsControlProps` in `field.tsx`).
-   A control that drops `aria-label` can't be named outside a `DsField`.
-2. **Draws only from tokens**, so both themes work without per-component dark
-   styles.
-3. **Exposes state as data attributes** (`data-slot`, `data-state`,
-   `data-variant`, `data-selected`), so parents can style children without new
-   props.
-4. **Has a page on `/parabola`** showing its variants and states: one entry in
-   `showcase/registry.ts` and a specimen in `showcase/specimens.tsx`.
-
-## The block contract
-
-Blocks follow the component contract, plus:
-
-1. **Props are data.** Every prop can be stored as JSON: strings, media
-   references, links and named variants. No functions, children or class
-   names. A page is an ordered list of `{ block, props }`, so the page builder
-   and an agent can both write it.
-2. **Few, deliberate variants.** A block offers a handful of named options
-   (a tone, a layout), never free-form styling. Taste lives in the constraints.
-3. **The page owns the rhythm.** A block never sets its own outer spacing or
-   page width; the page decides both, so any order of blocks stays even.
-
-## Adding things
-
-- **A token**: add it to `:root` (and `.dark` if it differs by theme) in
-  `tokens.css`, map it in `@theme inline` if it needs a Tailwind utility, and
-  list it in `showcase/colour-roles.ts` (or `accents.ts` for an accent).
-  Run `npm run check`: it fails if the showcase or accent list and
-  `tokens.css` disagree, or if a themed token isn't shown.
-- **A primitive or component**: a file in its tier's folder, a named export in
-  `index.ts`, a specimen and a registry entry under its tier. Follow the
-  contract above.
-- **A block**: a file in `blocks/`, exported from `blocks/index.ts`, with a
-  specimen and a registry entry. Follow the block contract.
-- **Changing a value**: change it in `tokens.css`, then the matching line in
-  `colour-roles.ts` / `accents.ts`; the check tells you if you missed one.
+MIT, see [LICENSE](LICENSE).
