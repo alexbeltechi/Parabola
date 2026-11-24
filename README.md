@@ -34,7 +34,7 @@ Or install the whole package (React 19, Tailwind CSS v4) from GitHub, at a
 version:
 
 ```sh
-npm install github:alexbeltechi/parabola#v0.5.4
+npm install github:alexbeltechi/parabola#v0.6.0
 ```
 
 ```tsx

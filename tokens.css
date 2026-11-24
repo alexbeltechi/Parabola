@@ -265,12 +265,12 @@
      Font (--ds-family-body) and Heading (--ds-family-heading) to start (a
      theme can add more: --ds-family-<id>), and for each text style its
      family, size, line height and weight. These are
-     the defaults: Display to H2 in Instrument Serif, Regular, everything
-     else (H3 included) in Instrument Sans, Medium; a theme overrides them on
+     the defaults: Display to H2 in Geist Serif, Regular, everything
+     else (H3 included) in Geist Sans, Medium; a theme overrides them on
      :root (DsThemeStyle). An app that hosts the font files sets
-     --ds-font-instrument-sans / -serif to its family names. */
-  --ds-family-body: var(--ds-font-instrument-sans, "Instrument Sans"), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --ds-family-heading: var(--ds-font-instrument-serif, "Instrument Serif"), Georgia, serif;
+     --ds-font-geist / --ds-font-geist-serif to its family names. */
+  --ds-family-body: var(--ds-font-geist, "Geist"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ds-family-heading: var(--ds-font-geist-serif, "Geist Serif"), Georgia, serif;
   --ds-font: var(--ds-family-body);
   --ds-font-display: var(--ds-family-heading);
   --ds-text-display: 60px;

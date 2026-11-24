@@ -16,6 +16,7 @@ import {
 import {
   DS_DEFAULT_FONT,
   DS_DEFAULT_HEADING_FONT,
+  DS_OLD_FONTS,
   DS_FONTS,
   dsCustomFont,
   dsSafeFontLabel,
@@ -94,7 +95,7 @@ export const DS_HEADING_FAMILY = "heading";
 /**
  * Each style's default name, family, weight, size and line height (px), as
  * tokens.css sets them (`npm run check` checks): Display to H2 in
- * the Heading family (Instrument Serif, which has one weight); H3, the small
+ * the Heading family (Geist Serif, which has one weight); H3, the small
  * heading, and the rest in Font at Medium.
  */
 export const DS_TEXT_STYLE_DEFAULTS: Record<
@@ -247,9 +248,16 @@ export function parseDsThemeConfig(value: unknown): DsThemeConfig {
           ? [{ id: font.id, label: dsSafeFontLabel(font.label), google: font.google }]
           : [];
       })
+        // The copy of an earlier Parabola's own font that a style's pair stored: it's Geist now.
+        .filter((font) => DS_OLD_FONTS[font.id]?.shadow !== font.google)
     : [];
   const allFonts = [...DS_FONTS.map((f) => f.id), ...customFonts.map((f) => f.id)];
-  const known = (id: unknown, fallback: string) => (typeof id === "string" && allFonts.includes(id) ? id : fallback);
+  // An earlier Parabola's own font is the one that took its place, unless the theme added a font of its own under that id.
+  const known = (id: unknown, fallback: string) => {
+    if (typeof id !== "string") return fallback;
+    if (allFonts.includes(id)) return id;
+    return DS_OLD_FONTS[id]?.now ?? fallback;
+  };
 
   const coloursRaw = (raw.colours ?? {}) as Record<string, unknown>;
   const hex = (value: unknown) => (dsIsHex(value) ? value.toUpperCase() : null);
@@ -450,6 +458,9 @@ export function dsThemeWithFonts(theme: DsThemeConfig, fonts: DsFontPair | null)
   const customFonts = [...theme.customFonts];
   const fontId = (face: { label: string; google: string } | undefined, fallback: string) => {
     if (!face) return fallback;
+    // One of Parabola's own, by its Google name: no copy of it is added.
+    const own_ = DS_FONTS.find((f) => f.google && f.google.split(":")[0] === face.google.split(":")[0]);
+    if (own_) return own_.id;
     const font = dsCustomFontFromInput(face.label);
     if (!font) return fallback;
     const own = { ...font, google: face.google };

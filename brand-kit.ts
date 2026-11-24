@@ -24,7 +24,8 @@ import { dsCompositionWords } from "./composition";
 import { dsSocialWords } from "./social";
 import { DS_SPACES } from "./spacing";
 import { DS_BUTTON_LOOKS, DS_PALETTES, DS_TYPE_STYLES, dsTasteNames, dsTasteVoice } from "./taste";
-import { dsThemeColourTokens, dsThemeCss, dsThemeExport, parseDsThemeConfig, type DsThemeConfig } from "./theme";
+import { dsFontFacesCss } from "./fonts";
+import { dsThemeColourTokens, dsThemeCss, dsThemeExport, dsThemeFont, parseDsThemeConfig, type DsThemeConfig } from "./theme";
 
 /** The colours a brand kit names, each with what it's for (the tokens tokens.css sets as `--ds-<name>`). */
 const KIT_COLOURS: [token: string, usage: string][] = [
@@ -150,8 +151,11 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
     },
   };
 
-  const googleFontsUrl = exported.typography.googleFonts;
-  const googleFonts = googleFontsUrl;
+  // Fonts Google doesn't carry (Geist Serif): their page for the words, their @font-face for the CSS.
+  const ownFonts = [...new Map(theme.families.map((f) => dsThemeFont(theme, f.font)).filter((f) => f.face).map((f) => [f.id, f])).values()];
+  const fontFaces = dsFontFacesCss(ownFonts);
+  const googleFontsUrl = [exported.typography.googleFonts, ...ownFonts.map((f) => `${f.label}: ${f.page ?? "in the kit's CSS"}`)].filter(Boolean).join(" · ") || null;
+  const googleFonts = exported.typography.googleFonts;
   const row = (cells: string[]) => `| ${cells.join(" | ")} |`;
   const describe = [
     tastes.length ? tastes.join(" and ") : "Parabola",
@@ -182,7 +186,7 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
     "",
     "## Type",
     "",
-    `Headings in **${heading}**, everything else in **${body}**.${exported.typography.googleFonts ? ` Fonts: ${exported.typography.googleFonts}` : ""}`,
+    `Headings in **${heading}**, everything else in **${body}**.${googleFontsUrl ? ` Fonts: ${googleFontsUrl}` : ""}`,
     "",
     row(["Style", "Font", "Size", "Line height", "Weight"]),
     row(["---", "---", "---", "---", "---"]),
@@ -269,7 +273,7 @@ export function dsBrandKit(theme: DsThemeConfig, name: string): DsBrandKit {
     MADE_WITH,
   ].join("\n");
 
-  const css = `${googleFonts ? `@import url("${googleFonts}");\n\n` : ""}/* ${name}, from Parabola. Light on :root, dark on .dark. */\n${themeCss
+  const css = `${googleFonts ? `@import url("${googleFonts}");\n\n` : ""}${fontFaces ? `${fontFaces}\n\n` : ""}/* ${name}, from Parabola. Light on :root, dark on .dark. */\n${themeCss
     .replace(/ \.dark/, "\n.dark")
     .replace(/; /g, ";\n  ")
     .replace(/\{ ?/g, "{\n  ")
