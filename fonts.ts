@@ -1,9 +1,10 @@
 /**
  * Parabola's fonts: the faces a theme's two families can be (theme.ts). Each
- * is a CSS font stack; a Google font also says how to load it. An app that
- * hosts the files itself (Darmio does, through next/font) sets `--ds-font-<id>`
- * to its own family name, which each stack tries first; anything else loads
- * them from Google.
+ * is a CSS font stack that also says how to load it: a Google font by its
+ * name there, a font Google doesn't carry (Geist Serif) by its own
+ * `@font-face` rules. An app that hosts the files itself (Darmio does,
+ * through next/font) sets `--ds-font-<id>` to its own family name, which
+ * each stack tries first; anything else loads them from where they say.
  *
  * A theme can add more (`customFonts`): any Google font, by its name or a
  * link to it (`dsCustomFontFromInput`), loaded from Google where it's used.
@@ -21,6 +22,10 @@ export type DsFont = {
   weights: number[];
   /** The `family=` value for Google Fonts' css2 API, when it's a Google font. */
   google?: string;
+  /** The `@font-face` rules that load it, for a face Google doesn't carry. */
+  face?: string;
+  /** Its own page, when that isn't on Google Fonts. */
+  page?: string;
   /** Added to a theme, not one of Parabola's. */
   custom?: boolean;
 };
@@ -30,29 +35,44 @@ export type DsCustomFont = { id: string; label: string; google: string };
 
 const SYSTEM_STACK = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 
+/** Geist Serif's file, from the `geist` package on jsDelivr (SIL Open Font License), pinned to a version. */
+const GEIST_SERIF_FILE = "https://cdn.jsdelivr.net/npm/geist@1.9.2/dist/fonts/geist-serif/GeistSerif-Regular.woff2";
+
 export const DS_FONTS: DsFont[] = [
   {
-    id: "instrument-sans",
-    label: "Instrument Sans",
-    family: `var(--ds-font-instrument-sans, "Instrument Sans"), ${SYSTEM_STACK}`,
+    id: "geist",
+    label: "Geist Sans",
+    family: `var(--ds-font-geist, "Geist"), ${SYSTEM_STACK}`,
     weights: [400, 500, 600, 700],
-    google: "Instrument+Sans:wght@400..700",
+    google: "Geist:wght@400..700",
   },
   {
-    id: "instrument-serif",
-    label: "Instrument Serif",
-    family: `var(--ds-font-instrument-serif, "Instrument Serif"), Georgia, serif`,
+    id: "geist-serif",
+    label: "Geist Serif",
+    family: `var(--ds-font-geist-serif, "Geist Serif"), Georgia, serif`,
     // One weight only: anything heavier would be faked.
     weights: [400],
-    google: "Instrument+Serif",
+    face: `@font-face { font-family: "Geist Serif"; font-style: normal; font-weight: 400; font-display: swap; src: url("${GEIST_SERIF_FILE}") format("woff2"); }`,
+    page: "https://vercel.com/font",
   },
   { id: "system", label: "System", family: SYSTEM_STACK, weights: [300, 400, 500, 600, 700] },
 ];
 
 /** The Font family's default face: tokens.css sets `--ds-family-body` to its stack (`npm run check` checks). */
-export const DS_DEFAULT_FONT = "instrument-sans";
+export const DS_DEFAULT_FONT = "geist";
 /** The Heading family's default face, for headlines (`--ds-family-heading`). */
-export const DS_DEFAULT_HEADING_FONT = "instrument-serif";
+export const DS_DEFAULT_HEADING_FONT = "geist-serif";
+
+/**
+ * Parabola's fonts before 0.6.0 (Instrument Sans and Instrument Serif), by the
+ * ids themes saved them under, and the font each is now. `shadow` is the
+ * Google value a style's font pair stored beside the old id, so that copy
+ * goes too; a font someone added themselves under the same name stays.
+ */
+export const DS_OLD_FONTS: Record<string, { now: string; shadow?: string }> = {
+  "instrument-sans": { now: "geist", shadow: "Instrument+Sans:wght@400..700" },
+  "instrument-serif": { now: "geist-serif" },
+};
 
 /** What each weight is called. */
 export const DS_WEIGHT_NAMES: Record<number, string> = {
@@ -101,7 +121,8 @@ export function dsGoogleWeights(google: string): number[] {
 }
 
 export function dsFont(id: string | undefined): DsFont {
-  return DS_FONTS.find((f) => f.id === id) ?? DS_FONTS.find((f) => f.id === DS_DEFAULT_FONT)!;
+  const now = (id && DS_OLD_FONTS[id]?.now) || id;
+  return DS_FONTS.find((f) => f.id === now) ?? DS_FONTS.find((f) => f.id === DS_DEFAULT_FONT)!;
 }
 
 /** What a font's name may hold: letters (accented too), digits, space, hyphen, underscore, period, apostrophe. It ends up inside CSS on every page. */
@@ -183,8 +204,9 @@ export function dsCustomFontFromInput(input: string): DsCustomFont | null {
   return id ? { id, label, google: safeGoogle } : null;
 }
 
-/** A Google font's page on fonts.google.com, to check it's the one meant; null for System. */
+/** A font's page (on fonts.google.com, or its own), to check it's the one meant; null for System. */
 export function dsGoogleFontsPage(font: DsFont): string | null {
+  if (font.page) return font.page;
   if (!font.google) return null;
   return `https://fonts.google.com/specimen/${font.google.split(":")[0]}`;
 }
@@ -193,4 +215,9 @@ export function dsGoogleFontsPage(font: DsFont): string | null {
 export function dsGoogleFontsUrl(fonts: DsFont[]): string | null {
   const families = [...new Map(fonts.filter((f) => f.google).map((f) => [f.id, `family=${f.google}`])).values()];
   return families.length > 0 ? `https://fonts.googleapis.com/css2?${families.join("&")}&display=swap` : null;
+}
+
+/** The `@font-face` rules for the fonts among these that Google doesn't carry, or "" when there are none. */
+export function dsFontFacesCss(fonts: DsFont[]): string {
+  return [...new Map(fonts.filter((f) => f.face).map((f) => [f.id, f.face as string])).values()].join("\n");
 }

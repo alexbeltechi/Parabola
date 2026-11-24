@@ -396,7 +396,7 @@ export const RESTORE: Record<RestoreScope, { item: string; title: string; descri
     item: "Restore the font families",
     title: "Restore the font families?",
     description:
-      "Font and Heading go back to Instrument Sans and Instrument Serif, families you added go, and Parabola's fonts come back to the list. Fonts you added stay.",
+      "Font and Heading go back to Geist Sans and Geist Serif, families you added go, and Parabola's fonts come back to the list. Fonts you added stay.",
     done: "Font families restored",
   },
   type: {

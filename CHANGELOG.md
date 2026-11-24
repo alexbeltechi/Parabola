@@ -4,6 +4,30 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## 0.6.0 — 2026-11-24
+
+- Changed: Parabola's own fonts are **Geist Sans and Geist Serif**, in place
+  of Instrument Sans and Instrument Serif. Classic, every theme that never
+  picked a font, and the admin of an app built on Parabola now come in the
+  Geist pairing: headings in Geist Serif (Regular), everything else in Geist
+  Sans. Touches `fonts.ts`, `tokens.css` (`--ds-family-body`,
+  `--ds-family-heading`), `theme.ts`, `theme-style.tsx`, `taste.ts`,
+  `brand-kit.ts`.
+- A saved theme keeps working: a family set in `instrument-sans` or
+  `instrument-serif` is read as `geist` or `geist-serif`. A font someone
+  added themselves by the name Instrument Sans or Instrument Serif stays
+  theirs, from Google.
+- Geist Serif isn't on Google Fonts, so a font can now say how it loads
+  with its own `@font-face` (`face` on `DsFont`): `DsThemeStyle` writes it
+  into its `<style>`, and the brand kit's CSS carries it. The file comes
+  from the `geist` package on jsDelivr (SIL Open Font License). Geist Sans
+  loads from Google as before.
+- **An app that hosts Parabola's fonts** (through next/font) hosts Geist
+  instead: set `--ds-font-geist` and `--ds-font-geist-serif` (they were
+  `--ds-font-instrument-sans` and `--ds-font-instrument-serif`), and pass
+  `hosted={["geist", "geist-serif", "system"]}` to `DsThemeStyle`. Until
+  it does, the fonts load from Google and jsDelivr.
+
 ## 0.5.5 — 2026-11-24
 
 - Fixed: a wrapped copy field (`wrap` or `collapsible`) reads cleanly. The

@@ -104,10 +104,10 @@ export const DS_TYPE_STYLES: readonly { id: string; label: string; fonts: readon
     id: "classic",
     label: "Classic",
     fonts: [
-      pair("Newsreader", AXES, "Instrument Sans", AXES),
+      pair("Newsreader", AXES, "Geist", AXES),
       null,
-      pair("Bricolage Grotesque", AXES, "Instrument Sans", AXES),
-      pair("Shrikhand", "", "Instrument Sans", AXES),
+      pair("Bricolage Grotesque", AXES, "Geist", AXES),
+      pair("Shrikhand", "", "Geist", AXES),
     ],
   },
   // Swiss: the grotesques of the International style, set tight. (Was Startup; Editorial, too near Classic, went.)

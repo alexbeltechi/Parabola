@@ -29,7 +29,7 @@ npm yet: install it from GitHub and pin a tag. Never copy the folder by hand
 newer version at run time: upgrading is a `package.json` change.
 
 ```sh
-npm install github:alexbeltechi/parabola#v0.5.4
+npm install github:alexbeltechi/parabola#v0.6.0
 ```
 
 Code imports it as `@beltechi/parabola` either way.
@@ -162,14 +162,14 @@ dice and Restore, and Restore all (any ⋮ menu) puts everything back.
   the pickers.
 - **Font families** (`families`): Font (text, always there) and Heading
   (headlines) to start, and any the theme adds, each a name and a font.
-- **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Instrument Sans,
-  Instrument Serif, System), less any the theme took out (`hiddenFonts`;
+- **Fonts**: Parabola's (`DS_FONTS` in `fonts.ts`: Geist Sans,
+  Geist Serif, System), less any the theme took out (`hiddenFonts`;
   never System), plus Google fonts it added (`customFonts`, from a name or a
   link: `dsCustomFontFromInput`). Each font lists its weights.
 - **The type scale**: for each text style (`DS_TEXT_STYLES`) its name,
   family, weight, size and line height. By default Display to H2 are in
-  Heading (Instrument Serif, Regular) and the rest, H3 included, in Font
-  (Instrument Sans, Medium).
+  Heading (Geist Serif, Regular) and the rest, H3 included, in Font
+  (Geist Sans, Medium).
 - **Buttons** (`button-style.ts`): the solid buttons' fill, solid or a
   gradient of the button colour (contrast -1 to 1, 0 flat, above it the
   top lighter), an inset outline (1 to 8px, with an opacity; off by default), a label text shadow cast from a
@@ -210,8 +210,8 @@ pages (not its admin, which stays in Parabola's own), or on part of a page
 with `scope` (`DS_THEME_SCOPE`, as /parabola's canvas does):
 
 ```tsx
-<DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its Google fonts */}
-<DsThemeStyle theme={…} hosted={["instrument-sans", "instrument-serif", "system"]} />  {/* the app hosts these */}
+<DsThemeStyle theme={dsActiveTheme(library).theme} />                          {/* loads its fonts */}
+<DsThemeStyle theme={…} hosted={["geist", "geist-serif", "system"]} />             {/* the app hosts these */}
 <DsThemeStyle theme={…} scope={DS_THEME_SCOPE} />                              {/* only <div className="ds-theme"> */}
 ```
 

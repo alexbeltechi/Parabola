@@ -851,10 +851,10 @@ var DS_TYPE_STYLES = [
     id: "classic",
     label: "Classic",
     fonts: [
-      pair2("Newsreader", AXES, "Instrument Sans", AXES),
+      pair2("Newsreader", AXES, "Geist", AXES),
       null,
-      pair2("Bricolage Grotesque", AXES, "Instrument Sans", AXES),
-      pair2("Shrikhand", "", "Instrument Sans", AXES)
+      pair2("Bricolage Grotesque", AXES, "Geist", AXES),
+      pair2("Shrikhand", "", "Geist", AXES)
     ]
   },
   // Swiss: the grotesques of the International style, set tight. (Was Startup; Editorial, too near Classic, went.)
@@ -1050,26 +1050,32 @@ function dsTasteVoice(ids, mood) {
 
 // fonts.ts
 var SYSTEM_STACK = 'system-ui, -apple-system, "Segoe UI", sans-serif';
+var GEIST_SERIF_FILE = "https://cdn.jsdelivr.net/npm/geist@1.9.2/dist/fonts/geist-serif/GeistSerif-Regular.woff2";
 var DS_FONTS = [
   {
-    id: "instrument-sans",
-    label: "Instrument Sans",
-    family: `var(--ds-font-instrument-sans, "Instrument Sans"), ${SYSTEM_STACK}`,
+    id: "geist",
+    label: "Geist Sans",
+    family: `var(--ds-font-geist, "Geist"), ${SYSTEM_STACK}`,
     weights: [400, 500, 600, 700],
-    google: "Instrument+Sans:wght@400..700"
+    google: "Geist:wght@400..700"
   },
   {
-    id: "instrument-serif",
-    label: "Instrument Serif",
-    family: `var(--ds-font-instrument-serif, "Instrument Serif"), Georgia, serif`,
+    id: "geist-serif",
+    label: "Geist Serif",
+    family: `var(--ds-font-geist-serif, "Geist Serif"), Georgia, serif`,
     // One weight only: anything heavier would be faked.
     weights: [400],
-    google: "Instrument+Serif"
+    face: `@font-face { font-family: "Geist Serif"; font-style: normal; font-weight: 400; font-display: swap; src: url("${GEIST_SERIF_FILE}") format("woff2"); }`,
+    page: "https://vercel.com/font"
   },
   { id: "system", label: "System", family: SYSTEM_STACK, weights: [300, 400, 500, 600, 700] }
 ];
-var DS_DEFAULT_FONT = "instrument-sans";
-var DS_DEFAULT_HEADING_FONT = "instrument-serif";
+var DS_DEFAULT_FONT = "geist";
+var DS_DEFAULT_HEADING_FONT = "geist-serif";
+var DS_OLD_FONTS = {
+  "instrument-sans": { now: "geist", shadow: "Instrument+Sans:wght@400..700" },
+  "instrument-serif": { now: "geist-serif" }
+};
 function dsNearestWeight(font, weight) {
   return font.weights.reduce((best, w) => Math.abs(w - weight) < Math.abs(best - weight) ? w : best, font.weights[0] ?? 400);
 }
@@ -1126,6 +1132,9 @@ function dsCustomFont(font) {
 function dsGoogleFontsUrl(fonts) {
   const families = [...new Map(fonts.filter((f) => f.google).map((f) => [f.id, `family=${f.google}`])).values()];
   return families.length > 0 ? `https://fonts.googleapis.com/css2?${families.join("&")}&display=swap` : null;
+}
+function dsFontFacesCss(fonts) {
+  return [...new Map(fonts.filter((f) => f.face).map((f) => [f.id, f.face])).values()].join("\n");
 }
 
 // radius.ts
@@ -1218,9 +1227,13 @@ function parseDsThemeConfig(value) {
   const customFonts = Array.isArray(raw.customFonts) ? raw.customFonts.flatMap((f) => {
     const font = f;
     return typeof font?.id === "string" && typeof font.label === "string" && typeof font.google === "string" && DS_CUSTOM_FONT_ID_RE.test(font.id) && DS_GOOGLE_FONT_RE.test(font.google) && dsGoogleWeightsValid(font.google) ? [{ id: font.id, label: dsSafeFontLabel(font.label), google: font.google }] : [];
-  }) : [];
+  }).filter((font) => DS_OLD_FONTS[font.id]?.shadow !== font.google) : [];
   const allFonts = [...DS_FONTS.map((f) => f.id), ...customFonts.map((f) => f.id)];
-  const known = (id, fallback) => typeof id === "string" && allFonts.includes(id) ? id : fallback;
+  const known = (id, fallback) => {
+    if (typeof id !== "string") return fallback;
+    if (allFonts.includes(id)) return id;
+    return DS_OLD_FONTS[id]?.now ?? fallback;
+  };
   const coloursRaw = raw.colours ?? {};
   const hex = (value2) => dsIsHex(value2) ? value2.toUpperCase() : null;
   const lightPick = (value2, presets, own) => hex(value2) ?? (typeof value2 === "string" && value2 !== own && presets.some((c) => c.id === value2) ? value2 : null);
@@ -1586,8 +1599,10 @@ function dsBrandKit(theme, name) {
       }))
     }
   };
-  const googleFontsUrl = exported.typography.googleFonts;
-  const googleFonts = googleFontsUrl;
+  const ownFonts = [...new Map(theme.families.map((f) => dsThemeFont(theme, f.font)).filter((f) => f.face).map((f) => [f.id, f])).values()];
+  const fontFaces = dsFontFacesCss(ownFonts);
+  const googleFontsUrl = [exported.typography.googleFonts, ...ownFonts.map((f) => `${f.label}: ${f.page ?? "in the kit's CSS"}`)].filter(Boolean).join(" \xB7 ") || null;
+  const googleFonts = exported.typography.googleFonts;
   const row = (cells) => `| ${cells.join(" | ")} |`;
   const describe = [
     tastes.length ? tastes.join(" and ") : "Parabola",
@@ -1618,7 +1633,7 @@ function dsBrandKit(theme, name) {
     "",
     "## Type",
     "",
-    `Headings in **${heading}**, everything else in **${body}**.${exported.typography.googleFonts ? ` Fonts: ${exported.typography.googleFonts}` : ""}`,
+    `Headings in **${heading}**, everything else in **${body}**.${googleFontsUrl ? ` Fonts: ${googleFontsUrl}` : ""}`,
     "",
     row(["Style", "Font", "Size", "Line height", "Weight"]),
     row(["---", "---", "---", "---", "---"]),
@@ -1700,6 +1715,8 @@ function dsBrandKit(theme, name) {
     MADE_WITH
   ].join("\n");
   const css = `${googleFonts ? `@import url("${googleFonts}");
+
+` : ""}${fontFaces ? `${fontFaces}
 
 ` : ""}/* ${name}, from Parabola. Light on :root, dark on .dark. */
 ${themeCss.replace(/ \.dark/, "\n.dark").replace(/; /g, ";\n  ").replace(/\{ ?/g, "{\n  ").replace(/ ?\}/g, "\n}")}
