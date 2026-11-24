@@ -6,6 +6,13 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.5.4 — 2026-11-24
+
+- Fixed: a button drawn by a server page crashed it ("useState only works in
+  Client Components"). The button learned renaming in 0.5.0, which needs the
+  browser, and its file (`primitives/button.tsx`) now says so with "use client".
+  A site's post pages failed to load with it.
+
 ## 0.5.3 — 2026-11-20
 
 - Fixed: the showcase opens with its sidebar and panel shown on every
