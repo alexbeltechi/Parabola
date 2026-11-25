@@ -138,6 +138,8 @@ export function DsPromptBox({
   };
 
   const buttonSize = small ? "small" : "default";
+  // Small buttons have the control's corner; inside the pill they stay round, as the default ones are.
+  const buttonRound = small ? "rounded-ds-pill" : undefined;
   const plus = allowFiles && !small && (
     <>
       <DsButton
@@ -170,6 +172,7 @@ export function DsPromptBox({
           type="button"
           variant="text"
           size={buttonSize}
+          className={buttonRound}
           iconLeft={Mic}
           aria-label={listening ? "Stop dictating" : "Dictate"}
           pressed={listening}
@@ -178,12 +181,13 @@ export function DsPromptBox({
         />
       )}
       {busy && onStop ? (
-        <DsButton type="button" variant="primary" size={buttonSize} iconLeft={Square} aria-label="Stop" onClick={onStop} />
+        <DsButton type="button" variant="primary" size={buttonSize} className={buttonRound} iconLeft={Square} aria-label="Stop" onClick={onStop} />
       ) : (
         <DsButton
           type="submit"
           variant="primary"
           size={buttonSize}
+          className={buttonRound}
           iconLeft={ArrowUp}
           aria-label="Send"
           loading={busy}
