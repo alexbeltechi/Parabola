@@ -33,6 +33,13 @@ export interface DsPromptBoxProps {
   disabled?: boolean;
   /** Label for the text area, read by screen readers. */
   "aria-label"?: string;
+  /**
+   * Small: one line, 36px tall, the height of a default button, with small
+   * text and small buttons inside, so it can sit in a row of buttons (a
+   * toolbar, a call's controls). It doesn't grow into two rows; files and
+   * the note are for the default size.
+   */
+  size?: "default" | "small";
   className?: string;
 }
 
@@ -71,8 +78,10 @@ export function DsPromptBox({
   note,
   disabled,
   "aria-label": ariaLabel = "Prompt",
+  size = "default",
   className,
 }: DsPromptBoxProps) {
+  const small = size === "small";
   const [inner, setInner] = React.useState(defaultValue);
   const controlled = valueProp !== undefined;
   const value = controlled ? valueProp : inner;
@@ -91,12 +100,16 @@ export function DsPromptBox({
   React.useLayoutEffect(() => {
     const el = textRef.current;
     if (!el) return;
+    if (small) {
+      el.style.height = "";
+      return;
+    }
     el.style.height = "auto";
     const height = el.scrollHeight;
     el.style.height = `${Math.min(height, MAX_TEXT_HEIGHT)}px`;
-    if (!value && attached.length === 0) setTall(false);
+    if (small || (!value && attached.length === 0)) setTall(false);
     else if (height > ONE_LINE || value.includes("\n") || attached.length > 0) setTall(true);
-  }, [value, attached.length, tall]);
+  }, [value, attached.length, tall, small]);
 
   const canSend = !disabled && !busy && (value.trim().length > 0 || attached.length > 0);
 
@@ -111,7 +124,8 @@ export function DsPromptBox({
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
     const mod = event.metaKey || event.ctrlKey;
-    if (mod || (enterSends && !event.shiftKey)) {
+    // Small is one line: Enter always sends.
+    if (mod || small || (enterSends && !event.shiftKey)) {
       event.preventDefault();
       send();
     }
@@ -123,7 +137,10 @@ export function DsPromptBox({
     textRef.current?.focus();
   };
 
-  const plus = allowFiles && (
+  const buttonSize = small ? "small" : "default";
+  // Small buttons have the control's corner; inside the pill they stay round, as the default ones are.
+  const buttonRound = small ? "rounded-ds-pill" : undefined;
+  const plus = allowFiles && !small && (
     <>
       <DsButton
         type="button"
@@ -154,6 +171,8 @@ export function DsPromptBox({
         <DsButton
           type="button"
           variant="text"
+          size={buttonSize}
+          className={buttonRound}
           iconLeft={Mic}
           aria-label={listening ? "Stop dictating" : "Dictate"}
           pressed={listening}
@@ -162,11 +181,13 @@ export function DsPromptBox({
         />
       )}
       {busy && onStop ? (
-        <DsButton type="button" variant="primary" iconLeft={Square} aria-label="Stop" onClick={onStop} />
+        <DsButton type="button" variant="primary" size={buttonSize} className={buttonRound} iconLeft={Square} aria-label="Stop" onClick={onStop} />
       ) : (
         <DsButton
           type="submit"
           variant="primary"
+          size={buttonSize}
+          className={buttonRound}
           iconLeft={ArrowUp}
           aria-label="Send"
           loading={busy}
@@ -188,8 +209,10 @@ export function DsPromptBox({
       disabled={disabled}
       className={cn(
         DS_FIELD_INPUT_CLASS,
-        "block min-h-[22px] resize-none overflow-y-auto py-[7px] text-p text-ds-fg",
-        tall ? "w-full px-2" : "w-full px-1"
+        small
+          ? "block h-6 resize-none overflow-hidden py-[3px] text-small leading-[18px] whitespace-nowrap text-ds-fg"
+          : "block min-h-[22px] resize-none overflow-y-auto py-[7px] text-p text-ds-fg",
+        tall ? "w-full px-2" : small ? "w-full px-2" : "w-full px-1"
       )}
     />
   );
@@ -219,7 +242,9 @@ export function DsPromptBox({
           // The pill's ends stay round on one line; two rows keep the same corner, capped.
           "rounded-[min(var(--ds-radius-pill),28px)]",
           // One grid in both layouts, so the text area is never remounted (it keeps focus and the cursor).
-          "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center p-ds-8",
+          "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center",
+          // Small: 36px with its 2px border, the send button 24px, so 4px around it.
+          small ? "h-9 p-1" : "p-ds-8",
           tall
             ? "gap-x-ds-4 gap-y-ds-8 pt-ds-12 [grid-template-areas:'files_files_files'_'text_text_text'_'plus_._actions']"
             : "gap-x-ds-4 [grid-template-areas:'plus_text_actions']",
@@ -243,7 +268,7 @@ export function DsPromptBox({
         <div className="flex min-w-0 [grid-area:text]">{text}</div>
         <div className="flex justify-end [grid-area:actions]">{actions}</div>
       </form>
-      {note && <p className="text-center text-small text-ds-fg-subtle">{note}</p>}
+      {note && !small && <p className="text-center text-small text-ds-fg-subtle">{note}</p>}
     </div>
   );
 }

@@ -4,6 +4,14 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## 0.6.2 — 2026-11-25
+
+- Added: a small prompt box (`DsPromptBox size="small"`): one line, 36px
+  tall, the height of a default button, with small text and small buttons
+  inside, so it sits in a row of buttons (Fireside's bottom bar). Enter
+  sends; no files and no note at this size. Touches
+  `components/prompt-box.tsx`.
+
 ## 0.6.1 — 2026-11-25
 
 - Added: `DsSlider` can stand up (`vertical`): 0 at the bottom, 1 at the
