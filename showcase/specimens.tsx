@@ -1245,15 +1245,16 @@ export function CopyField() {
   );
 }
 
-/** Components › Input › Prompt box: a chat prompt that grows into two rows, with files, a microphone and a note. */
+/** Components › Input › Prompt box: a chat prompt that grows into two rows, with files, a microphone and a note; or small, one line in a row of buttons. */
 export function PromptBox() {
-  const [o, setO] = useState({ files: true, voice: true, note: true, enterSends: false, busy: false });
+  const [o, setO] = useState({ small: false, files: true, voice: true, note: true, enterSends: false, busy: false });
   const [listening, setListening] = useState(false);
   return (
     <Specimen
       wide
       preview={
         <DsPromptBox
+          size={o.small ? "small" : "default"}
           files={o.files}
           onVoice={o.voice ? () => setListening((l) => !l) : undefined}
           listening={listening}
@@ -1266,7 +1267,7 @@ export function PromptBox() {
       controls={
         <Controls
           options={o}
-          labels={{ files: "Add files (+)", voice: "Microphone", note: "Note under", enterSends: "Enter sends", busy: "Waiting for reply" }}
+          labels={{ small: "Small", files: "Add files (+)", voice: "Microphone", note: "Note under", enterSends: "Enter sends", busy: "Waiting for reply" }}
           onChange={setO}
         />
       }
