@@ -46,6 +46,11 @@ export const DS_SLIDER_THUMB_RING = "inset 0 0 0 2px white, 0 0 0 1px black";
  * "Wacky"). Drag it, or use the arrow keys (Shift for bigger steps).
  * Controlled: `value` and `onChange`. The colour picker's hue and brightness
  * bars, a theme's dials and the taste bars are all this one.
+ *
+ * `vertical`: the bar stands up, 0 at the bottom and 1 at the top, as wide
+ * as the track and as tall as its `className` makes it (128px by default),
+ * e.g. a volume control that slides up from its button. Title, readout and
+ * ends are for the lying-down bar only. Its track gradient runs bottom to top.
  */
 export function DsSlider({
   value,
@@ -57,6 +62,7 @@ export function DsSlider({
   valueText,
   track = "linear-gradient(to right, var(--ds-border), var(--ds-fg))",
   thumb = "var(--ds-fg)",
+  vertical = false,
   className,
 }: {
   value: number;
@@ -75,9 +81,12 @@ export function DsSlider({
   track?: string;
   /** The thumb's colour. */
   thumb?: string;
+  /** Standing up: 0 at the bottom, 1 at the top. */
+  vertical?: boolean;
   className?: string;
 }) {
-  const drag = useDrag((x) => onChange(x));
+  const drag = useDrag((x, y) => onChange(vertical ? 1 - y : x));
+  const trackImage = vertical ? track.replace("to right", "to top") : track;
   const bar = (
     <div
       role="slider"
@@ -87,8 +96,9 @@ export function DsSlider({
       aria-valuemax={100}
       aria-valuenow={Math.round(value * 100)}
       aria-valuetext={valueText}
-      className="relative h-3 w-full cursor-pointer touch-none rounded-full ds-focus"
-      style={{ backgroundImage: track }}
+      aria-orientation={vertical ? "vertical" : undefined}
+      className={cn("relative cursor-pointer touch-none rounded-full ds-focus", vertical ? "h-full w-3" : "h-3 w-full")}
+      style={{ backgroundImage: trackImage }}
       onKeyDown={(event) => {
         const size = event.shiftKey ? 0.1 : 0.02;
         const delta =
@@ -99,9 +109,15 @@ export function DsSlider({
       }}
       {...drag}
     >
-      <span className={DS_SLIDER_THUMB} style={{ boxShadow: DS_SLIDER_THUMB_RING, left: `${value * 100}%`, top: "50%", backgroundColor: thumb }} />
+      <span className={DS_SLIDER_THUMB} style={{
+          boxShadow: DS_SLIDER_THUMB_RING,
+          left: vertical ? "50%" : `${value * 100}%`,
+          top: vertical ? `${(1 - value) * 100}%` : "50%",
+          backgroundColor: thumb,
+        }} />
     </div>
   );
+  if (vertical) return <div className={cn("flex h-32 justify-center", className)}>{bar}</div>;
   if (readout === undefined && !ends) return <div className={className}>{bar}</div>;
   return (
     <div data-slot="ds-slider" className={cn("flex flex-col gap-ds-8", className)}>

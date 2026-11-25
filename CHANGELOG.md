@@ -4,6 +4,13 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## 0.6.1 — 2026-11-25
+
+- Added: `DsSlider` can stand up (`vertical`): 0 at the bottom, 1 at the
+  top, 128px tall unless its `className` says otherwise. Made for a volume
+  control that slides up from its button (Fireside). Touches
+  `primitives/slider.tsx`.
+
 ## 0.6.0 — 2026-11-24
 
 - Changed: Parabola's own fonts are **Geist Sans and Geist Serif**, in place
