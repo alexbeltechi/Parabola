@@ -12,6 +12,10 @@ files a change touches when a project is likely to have edited them.
   agent hands over a theme it made.
 - Fixed: Undo takes a whole drag back (a slider, the colour wheel), not each
   value it passed through. `showcase/theme-editor.tsx`.
+- Added: `DsDisclosure` takes a `title`: a grey button across the width in
+  place of the quiet "Show…" line, for a fold too important to miss. The
+  Theme page's Colour section uses it ("Advanced colours"). Touches
+  `primitives/disclosure.tsx`.
 - Removed: the Board page (`/parabola/board`). Everything happens on the
   Theme page; the board surface it draws on stays (`showcase/board.tsx`).
   Starting points (`starting-points.ts`) are no longer shown on the site.

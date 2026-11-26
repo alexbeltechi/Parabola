@@ -16,14 +16,20 @@ import { DsButton } from "./button";
  *
  * `label` is what's folded, as a phrase that follows "Show" and "Hide"
  * ("advanced options", "AI instructions").
+ *
+ * `title` makes it a button instead, for a fold that matters too much to
+ * miss: a grey button across the whole width, its name on the left
+ * ("Advanced colours") and the arrow on the right, the same name open or closed.
  */
 export function DsDisclosure({
   label,
+  title,
   defaultOpen = false,
   className,
   children,
 }: {
   label: string;
+  title?: string;
   defaultOpen?: boolean;
   className?: string;
   children: React.ReactNode;
@@ -33,15 +39,15 @@ export function DsDisclosure({
   return (
     <div data-slot="ds-disclosure" className={cn("flex flex-col gap-ds-16", className)}>
       <DsButton
-        variant="text"
-        size="small"
+        variant={title ? "default" : "text"}
+        size={title ? "default" : "small"}
         iconRight={open ? ChevronUp : ChevronDown}
         aria-expanded={open}
         aria-controls={id}
-        className="-ml-2 self-start"
+        className={title ? "w-full justify-between" : "-ml-2 self-start"}
         onClick={() => setOpen((on) => !on)}
       >
-        {open ? `Hide ${label}` : `Show ${label}`}
+        {title ?? (open ? `Hide ${label}` : `Show ${label}`)}
       </DsButton>
       {open && (
         <div id={id} className="flex flex-col gap-ds-16">
