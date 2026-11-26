@@ -1098,6 +1098,7 @@ function dsGoogleWeights(google) {
   }
   return weights.size > 0 ? [...weights].sort((a, b) => a - b) : [400];
 }
+var DS_FONT_LABEL_RE = /^[\p{L}\p{N} ._'-]{1,60}$/u;
 var dsSafeFontLabel = (label) => label.replace(/[^\p{L}\p{N} ._'-]/gu, "").trim().slice(0, 60) || "Font";
 var DS_GOOGLE_FONT_RE = /^[A-Za-z0-9+]+(:[A-Za-z0-9,;@.:+-]*)?$/;
 var DS_CUSTOM_FONT_ID_RE = /^[a-z0-9][a-z0-9-]{0,40}$/;
@@ -1111,9 +1112,9 @@ function dsGoogleWeightsValid(google) {
     (tuple) => tuple.split(",").every((value, i) => {
       if (axes[i] === "ital") return value === "0" || value === "1";
       if (axes[i] !== "wght") return true;
-      const range = value.split("..");
-      if (range.length > 2) return false;
-      const nums = range.map((n) => /^\d{1,4}$/.test(n) ? Number(n) : NaN);
+      const range2 = value.split("..");
+      if (range2.length > 2) return false;
+      const nums = range2.map((n) => /^\d{1,4}$/.test(n) ? Number(n) : NaN);
       return nums.every((n) => n >= 1 && n <= DS_GOOGLE_WEIGHT_MAX) && (nums.length < 2 || nums[0] <= nums[1]);
     })
   );
@@ -1666,7 +1667,7 @@ function dsBrandKit(theme, name) {
     MADE_WITH,
     ""
   ].join("\n");
-  const chip = (list, id) => list.find((o) => o.id === id)?.label;
+  const chip = (list2, id) => list2.find((o) => o.id === id)?.label;
   const look = [
     [chip(DS_PALETTES, c.scoped.colour), "colour"],
     [chip(DS_TYPE_STYLES, c.scoped.type), "type"],
@@ -1747,6 +1748,284 @@ function dsThemeFromPaste(text) {
   const raw = value;
   const theme = raw.settings ?? raw.meta?.parabola ?? (raw.character ? raw : null);
   return theme ? parseDsThemeConfig(theme) : null;
+}
+
+// theme-file.ts
+var DS_THEME_FILE_FORMAT = "parabola-theme";
+var DS_THEME_FILE_LEGACY_FORMATS = ["darmio-theme"];
+var DS_THEME_FILE_VERSION = 1;
+var DS_THEME_FILE_MAX_BYTES = 2e5;
+var COLOUR_KEYS = ["theme", "surface", "text", "muted", "accent", "buttonSecondary", "field"];
+var COLOUR_PICK_KEYS = ["light", "dark", "lightShift", "darkShift"];
+var FAMILY_KEYS = ["id", "label", "font"];
+var STYLE_KEYS = ["label", "family", "weight", "size", "lineHeight"];
+var CUSTOM_FONT_KEYS = ["id", "label", "google"];
+var BUTTON_KEYS = ["fill", "contrast", "outline", "outlineWidth", "outlineOpacity", "shadow", "shadowAngle"];
+var FIELD_KEYS = ["outline", "outlineWidth", "outlineOpacity"];
+var NAV_KEYS = ["style", "surface"];
+var CHARACTER_KEYS = ["tastes", "scoped", "mood", ...DS_CHARACTER_DIALS.map((d) => d.id)];
+var THEME_KEYS = [
+  "character",
+  "colours",
+  "families",
+  "type",
+  "customFonts",
+  "hiddenFonts",
+  "radius",
+  "pillRadius",
+  "buttons",
+  "fields",
+  "nav",
+  "icons",
+  "composition",
+  "brief",
+  "social"
+];
+var FILE_KEYS = ["format", "version", "name", "description", "theme"];
+var DS_THEME_FILE_CONTRACT = {
+  file: FILE_KEYS,
+  theme: THEME_KEYS,
+  colours: COLOUR_KEYS,
+  colourPick: COLOUR_PICK_KEYS,
+  textStyles: DS_TEXT_STYLES,
+  textStyle: STYLE_KEYS,
+  family: FAMILY_KEYS,
+  customFont: CUSTOM_FONT_KEYS,
+  character: CHARACTER_KEYS,
+  buttons: BUTTON_KEYS,
+  fields: FIELD_KEYS,
+  nav: NAV_KEYS,
+  navStyles: DS_NAV_STYLES.map((s) => s.id),
+  navSurfaces: DS_NAV_SURFACES.map((s) => s.id),
+  radii: DS_RADII.map((r) => r.id),
+  radiusMaxPx: DS_RADIUS_MAX,
+  fonts: DS_FONTS.map((f) => f.id),
+  icons: DS_ICON_LIBRARIES.filter((l) => l.ready).map((l) => l.id)
+};
+var isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+var isNum = (v) => typeof v === "number" && Number.isFinite(v);
+var list = (values) => values.map((v) => `"${v}"`).join(", ");
+function unknownKeys(obj, allowed, at, errors) {
+  for (const key of Object.keys(obj)) {
+    if (!allowed.includes(key)) errors.push(`${at}: unknown key "${key}". Allowed: ${list(allowed)}`);
+  }
+}
+function range(value, min, max, at, errors) {
+  if (!isNum(value) || value < min || value > max) errors.push(`${at}: must be a number from ${min} to ${max}`);
+}
+function checkRadius(value, at, errors) {
+  if (value === null) return;
+  if (typeof value === "string" && DS_RADII.some((r) => r.id === value)) return;
+  if (isNum(value) && value >= 0 && value <= DS_RADIUS_MAX) return;
+  errors.push(`${at}: must be null, one of ${list(DS_RADII.map((r) => r.id))}, or pixels from 0 to ${DS_RADIUS_MAX}`);
+}
+function checkTheme(theme, errors) {
+  unknownKeys(theme, THEME_KEYS, "theme", errors);
+  if (theme.character !== void 0) {
+    if (!isObj(theme.character)) errors.push("theme.character: must be an object");
+    else {
+      unknownKeys(theme.character, CHARACTER_KEYS, "theme.character", errors);
+      for (const d of DS_CHARACTER_DIALS) {
+        const v = theme.character[d.id];
+        if (v !== void 0) range(v, d.min, d.max, `theme.character.${d.id}`, errors);
+      }
+      const { tastes, scoped } = theme.character;
+      if (tastes !== void 0 && (!Array.isArray(tastes) || tastes.length > 4 || tastes.some((t) => typeof t !== "string" || t.length > 40))) {
+        errors.push("theme.character.tastes: a short list of style names");
+      }
+      if (scoped !== void 0 && (!isObj(scoped) || Object.values(scoped).some((v) => typeof v !== "string" || v.length > 40))) {
+        errors.push("theme.character.scoped: an object of short names");
+      }
+      if (theme.character.mood !== void 0) range(theme.character.mood, 0, 1, "theme.character.mood", errors);
+    }
+  }
+  if (theme.colours !== void 0) {
+    if (!isObj(theme.colours)) errors.push("theme.colours: must be an object");
+    else {
+      unknownKeys(theme.colours, COLOUR_KEYS, "theme.colours", errors);
+      for (const key of COLOUR_KEYS) {
+        const pick = theme.colours[key];
+        if (pick === void 0) continue;
+        const at = `theme.colours.${key}`;
+        if (!isObj(pick)) {
+          errors.push(`${at}: must be an object like { "light": "#FFFFFF", "dark": null }`);
+          continue;
+        }
+        unknownKeys(pick, COLOUR_PICK_KEYS, at, errors);
+        for (const mode of ["light", "dark"]) {
+          const presets = key === "accent" ? DS_ACCENT_COLOURS : key === "text" ? DS_BASE_COLOURS : [];
+          const preset = mode === "light" && typeof pick.light === "string" && presets.some((c) => c.id === pick.light);
+          if (pick[mode] !== void 0 && pick[mode] !== null && !dsIsHex(pick[mode]) && !preset) {
+            errors.push(`${at}.${mode}: must be null (Auto) or a hex colour like "#1A2B3C"${mode === "light" && presets.length ? ` or a preset (${list(presets.map((c) => c.id))})` : ""}`);
+          }
+        }
+        for (const shift of ["lightShift", "darkShift"]) {
+          if (pick[shift] !== void 0) range(pick[shift], -DS_SHIFT_MAX, DS_SHIFT_MAX, `${at}.${shift}`, errors);
+        }
+      }
+    }
+  }
+  const customIds = [];
+  if (theme.customFonts !== void 0) {
+    if (!Array.isArray(theme.customFonts)) errors.push("theme.customFonts: must be a list");
+    else {
+      theme.customFonts.forEach((f, i) => {
+        const at = `theme.customFonts[${i}]`;
+        if (!isObj(f)) return void errors.push(`${at}: must be an object`);
+        unknownKeys(f, CUSTOM_FONT_KEYS, at, errors);
+        if (typeof f.id !== "string" || !DS_CUSTOM_FONT_ID_RE.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes, up to 41 characters`);
+        else customIds.push(f.id);
+        if (typeof f.label !== "string" || !f.label.trim() || !DS_FONT_LABEL_RE.test(f.label)) {
+          errors.push(`${at}.label: the font's name, up to 60 letters, digits, spaces, hyphens, underscores, periods or apostrophes`);
+        }
+        if (typeof f.google !== "string" || !DS_GOOGLE_FONT_RE.test(f.google) || !dsGoogleWeightsValid(f.google)) {
+          errors.push(`${at}.google: a Google font by name, like "Fraunces:wght@400;700", weights from 1 to 1000. No links`);
+        }
+      });
+    }
+  }
+  const fontIds = [...DS_FONTS.map((f) => f.id), ...customIds];
+  const familyIds = [];
+  if (theme.families !== void 0) {
+    if (!Array.isArray(theme.families)) errors.push("theme.families: must be a list");
+    else {
+      theme.families.forEach((f, i) => {
+        const at = `theme.families[${i}]`;
+        if (!isObj(f)) return void errors.push(`${at}: must be an object`);
+        unknownKeys(f, FAMILY_KEYS, at, errors);
+        if (typeof f.id !== "string" || !/^[a-z][a-z0-9-]{0,40}$/.test(f.id)) errors.push(`${at}.id: lowercase letters, digits and dashes`);
+        else familyIds.push(f.id);
+        if (f.label !== void 0 && (typeof f.label !== "string" || f.label.length > 40)) errors.push(`${at}.label: text of up to 40 characters`);
+        if (typeof f.font !== "string" || !fontIds.includes(f.font)) {
+          errors.push(`${at}.font: must be one of ${list(fontIds)}`);
+        }
+      });
+    }
+  }
+  if (theme.type !== void 0) {
+    if (!isObj(theme.type)) errors.push("theme.type: must be an object");
+    else {
+      unknownKeys(theme.type, DS_TEXT_STYLES, "theme.type", errors);
+      for (const style of DS_TEXT_STYLES) {
+        const s = theme.type[style];
+        if (s === void 0) continue;
+        const at = `theme.type.${style}`;
+        if (!isObj(s)) {
+          errors.push(`${at}: must be an object`);
+          continue;
+        }
+        unknownKeys(s, STYLE_KEYS, at, errors);
+        if (s.family !== void 0 && theme.families !== void 0 && (typeof s.family !== "string" || !familyIds.includes(s.family))) {
+          errors.push(`${at}.family: must be one of the theme's families ${list(familyIds)}`);
+        }
+        if (s.label !== void 0 && (typeof s.label !== "string" || s.label.length > 40)) errors.push(`${at}.label: text of up to 40 characters`);
+        if (s.weight !== void 0) range(s.weight, 100, 900, `${at}.weight`, errors);
+        if (s.size !== void 0) range(s.size, 10, 200, `${at}.size`, errors);
+        if (s.lineHeight !== void 0) range(s.lineHeight, 10, 240, `${at}.lineHeight`, errors);
+      }
+    }
+  }
+  if (theme.hiddenFonts !== void 0 && (!Array.isArray(theme.hiddenFonts) || theme.hiddenFonts.some((f) => typeof f !== "string"))) {
+    errors.push("theme.hiddenFonts: must be a list of font ids");
+  }
+  if (theme.radius !== void 0) checkRadius(theme.radius, "theme.radius", errors);
+  if (theme.pillRadius !== void 0) checkRadius(theme.pillRadius, "theme.pillRadius", errors);
+  if (theme.buttons !== void 0 && theme.buttons !== null) {
+    if (!isObj(theme.buttons)) errors.push("theme.buttons: must be null or an object");
+    else {
+      unknownKeys(theme.buttons, BUTTON_KEYS, "theme.buttons", errors);
+      const b = theme.buttons;
+      if (b.fill !== void 0 && !["solid", "gradient", "none"].includes(b.fill)) errors.push('theme.buttons.fill: must be "solid", "gradient" or "none"');
+      if (b.contrast !== void 0) range(b.contrast, -1, 1, "theme.buttons.contrast", errors);
+      if (b.outlineWidth !== void 0) range(b.outlineWidth, 1, DS_OUTLINE_MAX, "theme.buttons.outlineWidth", errors);
+      if (b.outlineOpacity !== void 0) range(b.outlineOpacity, 0, 1, "theme.buttons.outlineOpacity", errors);
+      if (b.shadowAngle !== void 0) range(b.shadowAngle, 0, 360, "theme.buttons.shadowAngle", errors);
+      for (const k of ["outline", "shadow"]) {
+        if (b[k] !== void 0 && typeof b[k] !== "boolean") errors.push(`theme.buttons.${k}: must be true or false`);
+      }
+    }
+  }
+  if (theme.fields !== void 0) {
+    if (!isObj(theme.fields)) errors.push("theme.fields: must be an object");
+    else {
+      unknownKeys(theme.fields, FIELD_KEYS, "theme.fields", errors);
+      if (theme.fields.outline !== void 0 && typeof theme.fields.outline !== "boolean") errors.push("theme.fields.outline: must be true or false");
+      if (theme.fields.outlineWidth !== void 0) range(theme.fields.outlineWidth, 1, DS_OUTLINE_MAX, "theme.fields.outlineWidth", errors);
+      if (theme.fields.outlineOpacity !== void 0) range(theme.fields.outlineOpacity, 0, 1, "theme.fields.outlineOpacity", errors);
+    }
+  }
+  if (theme.nav !== void 0) {
+    if (!isObj(theme.nav)) errors.push("theme.nav: must be an object");
+    else {
+      unknownKeys(theme.nav, NAV_KEYS, "theme.nav", errors);
+      const style = theme.nav.style;
+      if (style !== void 0 && !DS_THEME_FILE_CONTRACT.navStyles.some((s) => s === style)) {
+        errors.push(`theme.nav.style: must be one of ${list(DS_THEME_FILE_CONTRACT.navStyles)}`);
+      }
+      const surface = theme.nav.surface;
+      if (surface !== void 0 && !DS_THEME_FILE_CONTRACT.navSurfaces.some((s) => s === surface)) {
+        errors.push(`theme.nav.surface: must be one of ${list(DS_THEME_FILE_CONTRACT.navSurfaces)}`);
+      }
+    }
+  }
+  for (const key of ["composition", "brief", "social"]) {
+    if (theme[key] !== void 0 && !isObj(theme[key])) errors.push(`theme.${key}: must be an object`);
+  }
+  if (theme.icons !== void 0 && !DS_THEME_FILE_CONTRACT.icons.some((i) => i === theme.icons)) {
+    errors.push(`theme.icons: must be one of ${list(DS_THEME_FILE_CONTRACT.icons)}`);
+  }
+}
+function withColourShape(theme) {
+  const character = isObj(theme.character) ? { warmth: DS_DEFAULT_CHARACTER.warmth, ...theme.character } : theme.character;
+  const withCharacter = character === theme.character ? theme : { ...theme, character };
+  if (!isObj(withCharacter.colours)) return withCharacter;
+  return { ...withCharacter, colours: { theme: {}, text: {}, ...withCharacter.colours } };
+}
+function dsThemeFileParse(input) {
+  let value = input;
+  if (typeof input === "string") {
+    if (input.length > DS_THEME_FILE_MAX_BYTES) return { ok: false, errors: ["The file is too big to be a theme"] };
+    try {
+      value = JSON.parse(input);
+    } catch {
+      return { ok: false, errors: ["The file isn't valid JSON"] };
+    }
+  }
+  if (!isObj(value)) return { ok: false, errors: ["The file must be a JSON object"] };
+  const errors = [];
+  unknownKeys(value, FILE_KEYS, "file", errors);
+  if (value.format !== DS_THEME_FILE_FORMAT && !DS_THEME_FILE_LEGACY_FORMATS.includes(value.format)) errors.push(`format: must be "${DS_THEME_FILE_FORMAT}"`);
+  if (value.version !== DS_THEME_FILE_VERSION) errors.push(`version: must be ${DS_THEME_FILE_VERSION}`);
+  if (typeof value.name !== "string" || !value.name.trim() || value.name.length > 60) errors.push("name: a name of 1 to 60 characters");
+  if (value.description !== void 0 && (typeof value.description !== "string" || value.description.length > 300)) {
+    errors.push("description: text of up to 300 characters");
+  }
+  if (!isObj(value.theme)) errors.push("theme: must be an object (it may be empty to keep Parabola's defaults)");
+  else checkTheme(value.theme, errors);
+  if (errors.length) return { ok: false, errors };
+  return {
+    ok: true,
+    name: value.name.trim(),
+    description: typeof value.description === "string" ? value.description.trim() : "",
+    theme: parseDsThemeConfig(withColourShape(value.theme))
+  };
+}
+
+// theme-link.ts
+var DS_THEME_LINK_HOME = "https://parabolasystem.com";
+var DS_THEME_LINK_PATH = "/parabola/theme";
+var KEY = "theme";
+function toBase64Url(text) {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function dsThemeLink(file, home = DS_THEME_LINK_HOME) {
+  const value = typeof file === "string" ? JSON.parse(file) : file;
+  const checked = dsThemeFileParse(value);
+  if (!checked.ok) throw new Error(`Not a theme file:
+- ${checked.errors.join("\n- ")}`);
+  return `${home.replace(/\/+$/, "")}${DS_THEME_LINK_PATH}#${KEY}=${toBase64Url(JSON.stringify(value))}`;
 }
 
 // cli/files.ts
@@ -2020,9 +2299,10 @@ ${MANIFEST} now says ${toVersion}. To undo all of it: git checkout -- ${manifest
 // cli/core.ts
 var USAGE = `Parabola: copy a design system into your project.
 
-  add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
+  add theme [--from parabola-theme.json | --from name.theme.json | --code <theme>] [--name <name>]
   add <component> [<component>\u2026]      (button, pill, field\u2026)
   list                                the components you can add
+  link <name.theme.json>              a link that opens the theme on parabolasystem.com, as a new theme
 
 Options
   --dir <folder>      where to put it (default: parabola/, or src/parabola/ in a project with src/)
@@ -2050,6 +2330,8 @@ function parseArgs(argv) {
 }
 function themeFromText(text) {
   const trimmed = text.trim();
+  const file = dsThemeFileParse(trimmed);
+  if (file.ok) return file.theme;
   const direct = dsThemeFromPaste(trimmed);
   if (direct) return direct;
   if (/^[A-Za-z0-9+/=_-]+$/.test(trimmed)) {
@@ -2158,6 +2440,8 @@ function addTheme(opts, pkgRoot2, cwd, io) {
     const read = themeFromText(readFileSync3(file, "utf8"));
     if (!read) throw new Error(`${flags.from} isn't a Parabola theme (expected parabola-theme.json from the brand kit).`);
     theme = read;
+    const named = dsThemeFileParse(readFileSync3(file, "utf8"));
+    if (named.ok && typeof flags.name !== "string") flags.name = named.name;
   } else if (typeof flags.code === "string") {
     const read = themeFromText(flags.code);
     if (!read) throw new Error("That isn't Parabola code. Copy the command again from /parabola/theme.");
@@ -2223,6 +2507,11 @@ function run(argv, cwd, pkgRoot2, io) {
       return 0;
     }
     if (command === "update" || command === "status") return runUpdate(opts.flags, cwd, io, command === "status");
+    if (command === "link") {
+      if (!rest[0]) throw new Error("Link what? `link my-theme.theme.json`.");
+      io.log(dsThemeLink(readFileSync3(resolve2(cwd, rest[0]), "utf8")));
+      return 0;
+    }
     if (command !== "add") throw new Error(`Unknown command "${command}".
 
 ${USAGE}`);

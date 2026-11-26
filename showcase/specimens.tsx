@@ -790,6 +790,9 @@ export function Disclosure() {
           <DsDisclosure label="AI instructions">
             <p className="text-p text-ds-fg-muted">What a few need, now and then: folded until asked for.</p>
           </DsDisclosure>
+          <DsDisclosure label="advanced colours" title="Advanced colours">
+            <p className="text-p text-ds-fg-muted">A fold that matters too much to miss gets a button across the width.</p>
+          </DsDisclosure>
         </div>
       }
     />

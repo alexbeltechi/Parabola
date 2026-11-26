@@ -1457,9 +1457,13 @@ function ThemeRail() {
   );
 }
 
-/** A section's fine-tuning, folded: the pills come first, and "Show advanced options" opens the sliders and fields under them. */
-function AdvancedOptions({ children }: { children: React.ReactNode }) {
-  return <DsDisclosure label="advanced options">{children}</DsDisclosure>;
+/** A section's fine-tuning, folded: the pills come first, and "Show advanced options" opens the sliders and fields under them. Colour's is a grey button across the panel, "Advanced colours": it matters more there and was too easy to miss. */
+function AdvancedOptions({ title, children }: { title?: string; children: React.ReactNode }) {
+  return (
+    <DsDisclosure label="advanced options" title={title}>
+      {children}
+    </DsDisclosure>
+  );
 }
 
 /**
@@ -1598,7 +1602,7 @@ function ColourChoice({
         `linear-gradient(to right, ${at({ brightness: 0 })}, ${at({ brightness: 0.5 })}, ${at({ brightness: 1 })})`,
         base,
       )}
-      <AdvancedOptions>
+      <AdvancedOptions title="Advanced colours">
         <ColourWheelChoice
           colours={theme.colours}
           mode={mode}

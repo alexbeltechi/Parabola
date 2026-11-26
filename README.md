@@ -21,6 +21,13 @@ Press **Export**, top right on parabolasystem.com:
   design system from.
 - **Parabola code**, and a command that copies the theme into a project.
 
+## Make a theme with an agent
+
+Ask any agent for a theme and it can write a theme file and hand it to you as
+one link that opens it on parabolasystem.com, as a new theme in the Theme row:
+`npx github:alexbeltechi/parabola link my-theme.theme.json`. How, in
+[the reference](docs/reference.md#making-a-theme-with-an-agent-a-link).
+
 ## Use it in a project
 
 Copy the theme, or a component, into your project and own the files:

@@ -259,6 +259,26 @@ corner on the default button's grey. Both take `collapsible` (`show-more.tsx`): 
 Show more, then the whole text in the page. Never a scroll inside a scroll:
 it's hard to work on a phone.
 
+### Making a theme with an agent: a link
+
+An agent hands a theme to a person as a link that opens it on
+parabolasystem.com, as a new theme of its own in the Theme row, under its
+name (`theme-link.ts`). It writes a theme file (`name.theme.json`, the format
+`theme-file.ts` reads; `DS_THEME_FILE_CONTRACT` says what it may set, and an
+empty `theme` keeps Parabola's own), then makes the link:
+
+```sh
+npx github:alexbeltechi/parabola link firetalk.theme.json
+# https://parabolasystem.com/parabola/theme#theme=…
+```
+
+or in code, `dsThemeLink(file)`. The file is checked first, so a link never
+opens to an error. The theme travels after the `#`, which never reaches a
+server; the page reads it once the kept themes are loaded, adds it (the same
+theme twice isn't added twice), opens it, and takes it out of the address.
+From there the person tunes it, keeps it, and exports it like any other. An
+agent with a browser can open the link itself and keep going on the page.
+
 ### Copying it with a command
 
 One more way out, besides the style, the kit and the design-system text: a command, as
@@ -269,6 +289,7 @@ project's folder:
 
 ```sh
 npx github:alexbeltechi/parabola add theme --from parabola-theme.json   # the kit's theme file
+npx github:alexbeltechi/parabola add theme --from firetalk.theme.json   # or a theme file, as an agent writes
 npx github:alexbeltechi/parabola add theme --code <theme>               # pasted: Parabola code, or base64 of it
 npx github:alexbeltechi/parabola add button                             # a component, and the Parabola files it imports
 npx github:alexbeltechi/parabola list
