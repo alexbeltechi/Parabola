@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { dsBrandKit, dsThemeFromPaste } from "../brand-kit";
 import { DS_DEFAULT_THEME, type DsThemeConfig } from "../theme";
+import { dsThemeLink } from "../theme-link";
 import { closure, hasDependency, transform } from "./files";
 import { DEFAULT_SOURCE, commitOf, readManifest, runUpdate, writeManifest, type Manifest } from "./update";
 
@@ -29,6 +30,7 @@ const USAGE = `Parabola: copy a design system into your project.
   add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
   add <component> [<component>…]      (button, pill, field…)
   list                                the components you can add
+  link <name.theme.json>              a link that opens the theme on parabolasystem.com, as a new theme
 
 Options
   --dir <folder>      where to put it (default: parabola/, or src/parabola/ in a project with src/)
@@ -256,6 +258,12 @@ export function run(argv: string[], cwd: string, pkgRoot: string, io: RunIo): nu
       return 0;
     }
     if (command === "update" || command === "status") return runUpdate(opts.flags, cwd, io, command === "status");
+    if (command === "link") {
+      // A theme file made by hand or by an agent, as a link to open and look at (theme-link.ts).
+      if (!rest[0]) throw new Error("Link what? `link my-theme.theme.json`.");
+      io.log(dsThemeLink(readFileSync(resolve(cwd, rest[0]), "utf8")));
+      return 0;
+    }
     if (command !== "add") throw new Error(`Unknown command "${command}".\n\n${USAGE}`);
     if (!rest.length) throw new Error("Add what? `add theme`, or a component such as `add button`.");
     if (rest[0] === "theme") {

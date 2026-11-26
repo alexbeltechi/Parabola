@@ -4,6 +4,18 @@ What changed in each Parabola, newest first, in plain words. `update` prints
 the entries between a project's version and the one it's taking. Say which
 files a change touches when a project is likely to have edited them.
 
+## Unreleased
+
+- Added: a theme as a link (`theme-link.ts`, `dsThemeLink`,
+  `dsThemeFromLink`, and the command `link <name.theme.json>`). It opens on
+  parabolasystem.com as a new theme in the Theme row, under its name: how an
+  agent hands over a theme it made.
+- Fixed: Undo takes a whole drag back (a slider, the colour wheel), not each
+  value it passed through. `showcase/theme-editor.tsx`.
+- Removed: the Board page (`/parabola/board`). Everything happens on the
+  Theme page; the board surface it draws on stays (`showcase/board.tsx`).
+  Starting points (`starting-points.ts`) are no longer shown on the site.
+
 ## 0.6.2 — 2026-11-25
 
 - Added: a small prompt box (`DsPromptBox size="small"`): one line, 36px

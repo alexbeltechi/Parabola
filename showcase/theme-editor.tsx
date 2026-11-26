@@ -12,6 +12,7 @@ import { dsToast } from "../primitives/toast";
 import { ThemeExportDialog } from "./theme-export";
 import { useDsThemeLibrary } from "../provider";
 import { dsResetLooks } from "./custom-looks";
+import { dsThemeFromLink } from "../theme-link";
 import {
   DS_DEFAULT_LIBRARY,
   DS_DEFAULT_THEME,
@@ -38,7 +39,8 @@ import {
  * change instead. Without an app to save to (no `onThemeLibraryChange`), the
  * themes are kept in this browser (localStorage), so a refresh keeps them.
  * Every change goes on a
- * history, so Undo and Redo step through them one at a time. Save keeps the
+ * history, so Undo and Redo step through them one at a time; a drag (a
+ * slider, the colour wheel) is one change, from pressing to letting go. Save keeps the
  * themes (DsProvider `onThemeLibraryChange`) without touching the website;
  * Publish saves them and makes the open theme the website's.
  */
@@ -149,6 +151,27 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
   const selectedRef = React.useRef(selected);
   selectedRef.current = selected;
 
+  // One press, one step: everything a drag changes (a slider, the colour wheel) between pressing and letting go
+  // goes on the history as one change, so Undo takes the whole drag back, not each value it passed through.
+  const press = React.useRef({ down: false, count: 0, stepped: -1 });
+  React.useEffect(() => {
+    const down = () => {
+      press.current.down = true;
+      press.current.count += 1;
+    };
+    const up = () => {
+      press.current.down = false;
+    };
+    window.addEventListener("pointerdown", down, true);
+    window.addEventListener("pointerup", up, true);
+    window.addEventListener("pointercancel", up, true);
+    return () => {
+      window.removeEventListener("pointerdown", down, true);
+      window.removeEventListener("pointerup", up, true);
+      window.removeEventListener("pointercancel", up, true);
+    };
+  }, []);
+
   // A change goes into the open theme. The first one (DS_DEFAULT_THEME_ID) is where a style picked on the Theme rail
   // is worn, Custom while it's changed; + keeps it as a theme of its own (theme-section's ThemeRail). `into` opens
   // another theme first and puts the change there (a style picked while a kept theme is open).
@@ -161,9 +184,14 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       const lib = h.present;
       const open = lib.themes.find((t) => t.id === selectedRef.current) ?? lib.themes[0];
       if (JSON.stringify(theme) === JSON.stringify(open.theme)) return h;
+      const next = { ...lib, themes: lib.themes.map((t) => (t.id === open.id ? { ...t, theme } : t)) };
+      // Still the same press as the last change: it replaces that change rather than adding one.
+      const p = press.current;
+      if (p.down && p.stepped === p.count) return { ...h, present: next, future: [] };
+      p.stepped = p.down ? p.count : -1;
       return {
         past: [...h.past, lib].slice(-100),
-        present: { ...lib, themes: lib.themes.map((t) => (t.id === open.id ? { ...t, theme } : t)) },
+        present: next,
         future: [],
       };
     });
@@ -197,6 +225,27 @@ export function ThemeEditorProvider({ children }: { children: React.ReactNode })
       // Storage full or off: the themes last until the page closes.
     }
   }, [keepInBrowser, loaded, library, selected]);
+
+  // A theme link (theme-link.ts): once the kept themes are read, the theme in the address opens as a new theme of
+  // its own in the Theme row, under its name, and leaves the address. The same theme opened twice isn't added twice.
+  const linkRead = React.useRef(false);
+  React.useEffect(() => {
+    if (!loaded || linkRead.current) return;
+    linkRead.current = true;
+    const found = dsThemeFromLink(window.location.hash);
+    if (!found) return;
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (!found.ok) {
+      dsToast.error("This theme link didn't open", { description: found.errors[0] });
+      return;
+    }
+    const same = library.themes.find((t) => t.name === found.name && JSON.stringify(t.theme) === JSON.stringify(found.theme));
+    const id = same?.id ?? dsThemeEntryId(library, found.name);
+    if (!same) change({ ...library, themes: [...library.themes, { id, name: found.name, theme: found.theme }] });
+    selectedRef.current = id;
+    setSelected(id);
+    dsToast.success(`${found.name} is open`);
+  }, [loaded, library, change]);
 
   /** Save `next`; with `publish`, make that theme the website's too. */
   const store = React.useCallback(

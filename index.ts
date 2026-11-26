@@ -248,6 +248,7 @@ export {
   dsThemeToFile,
   type DsThemeFileResult,
 } from "./theme-file";
+export { DS_THEME_LINK_HOME, DS_THEME_LINK_PATH, dsThemeFromLink, dsThemeLink } from "./theme-link";
 export { dsBrandKit, dsBrandKitFiles, dsBrandKitPrompt, dsThemeFromPaste, type DsBrandKit } from "./brand-kit";
 export { dsZip } from "./zip";
 export {
