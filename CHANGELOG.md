@@ -6,6 +6,8 @@ files a change touches when a project is likely to have edited them.
 
 ## Unreleased
 
+## 0.7.0 — 2026-11-26
+
 - Added: a theme as a link (`theme-link.ts`, `dsThemeLink`,
   `dsThemeFromLink`, and the command `link <name.theme.json>`). It opens on
   parabolasystem.com as a new theme in the Theme row, under its name: how an
