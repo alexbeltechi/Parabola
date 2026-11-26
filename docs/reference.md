@@ -289,6 +289,7 @@ project's folder:
 
 ```sh
 npx github:alexbeltechi/parabola add theme --from parabola-theme.json   # the kit's theme file
+npx github:alexbeltechi/parabola add theme --from firetalk.theme.json   # or a theme file, as an agent writes
 npx github:alexbeltechi/parabola add theme --code <theme>               # pasted: Parabola code, or base64 of it
 npx github:alexbeltechi/parabola add button                             # a component, and the Parabola files it imports
 npx github:alexbeltechi/parabola list

@@ -21,13 +21,14 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative, resolve } from "node:path";
 import { dsBrandKit, dsThemeFromPaste } from "../brand-kit";
 import { DS_DEFAULT_THEME, type DsThemeConfig } from "../theme";
+import { dsThemeFileParse } from "../theme-file";
 import { dsThemeLink } from "../theme-link";
 import { closure, hasDependency, transform } from "./files";
 import { DEFAULT_SOURCE, commitOf, readManifest, runUpdate, writeManifest, type Manifest } from "./update";
 
 const USAGE = `Parabola: copy a design system into your project.
 
-  add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
+  add theme [--from parabola-theme.json | --from name.theme.json | --code <theme>] [--name <name>]
   add <component> [<component>…]      (button, pill, field…)
   list                                the components you can add
   link <name.theme.json>              a link that opens the theme on parabolasystem.com, as a new theme
@@ -66,6 +67,9 @@ export function parseArgs(argv: string[]): Options {
 /** A theme from pasted text: Parabola code, a kit's tokens.json, or either as base64. Null if it isn't one. */
 export function themeFromText(text: string): DsThemeConfig | null {
   const trimmed = text.trim();
+  // A theme file (name.theme.json, what an agent writes and `link` opens) is a theme too.
+  const file = dsThemeFileParse(trimmed);
+  if (file.ok) return file.theme;
   const direct = dsThemeFromPaste(trimmed);
   if (direct) return direct;
   if (/^[A-Za-z0-9+/=_-]+$/.test(trimmed)) {
@@ -195,6 +199,9 @@ function addTheme(opts: Options, pkgRoot: string, cwd: string, io: RunIo): numbe
     const read = themeFromText(readFileSync(file, "utf8"));
     if (!read) throw new Error(`${flags.from} isn't a Parabola theme (expected parabola-theme.json from the brand kit).`);
     theme = read;
+    // A theme file carries its name: it's the theme's unless --name says otherwise.
+    const named = dsThemeFileParse(readFileSync(file, "utf8"));
+    if (named.ok && typeof flags.name !== "string") flags.name = named.name;
   } else if (typeof flags.code === "string") {
     const read = themeFromText(flags.code);
     if (!read) throw new Error("That isn't Parabola code. Copy the command again from /parabola/theme.");

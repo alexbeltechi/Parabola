@@ -16,6 +16,8 @@ files a change touches when a project is likely to have edited them.
   place of the quiet "Show…" line, for a fold too important to miss. The
   Theme page's Colour section uses it ("Advanced colours"). Touches
   `primitives/disclosure.tsx`.
+- Added: `add theme --from` reads a theme file (`name.theme.json`) as well as
+  the kit's `parabola-theme.json`, and takes its name.
 - Removed: the Board page (`/parabola/board`). Everything happens on the
   Theme page; the board surface it draws on stays (`showcase/board.tsx`).
   Starting points (`starting-points.ts`) are no longer shown on the site.

@@ -2299,7 +2299,7 @@ ${MANIFEST} now says ${toVersion}. To undo all of it: git checkout -- ${manifest
 // cli/core.ts
 var USAGE = `Parabola: copy a design system into your project.
 
-  add theme [--from parabola-theme.json | --code <theme>] [--name <name>]
+  add theme [--from parabola-theme.json | --from name.theme.json | --code <theme>] [--name <name>]
   add <component> [<component>\u2026]      (button, pill, field\u2026)
   list                                the components you can add
   link <name.theme.json>              a link that opens the theme on parabolasystem.com, as a new theme
@@ -2330,6 +2330,8 @@ function parseArgs(argv) {
 }
 function themeFromText(text) {
   const trimmed = text.trim();
+  const file = dsThemeFileParse(trimmed);
+  if (file.ok) return file.theme;
   const direct = dsThemeFromPaste(trimmed);
   if (direct) return direct;
   if (/^[A-Za-z0-9+/=_-]+$/.test(trimmed)) {
@@ -2438,6 +2440,8 @@ function addTheme(opts, pkgRoot2, cwd, io) {
     const read = themeFromText(readFileSync3(file, "utf8"));
     if (!read) throw new Error(`${flags.from} isn't a Parabola theme (expected parabola-theme.json from the brand kit).`);
     theme = read;
+    const named = dsThemeFileParse(readFileSync3(file, "utf8"));
+    if (named.ok && typeof flags.name !== "string") flags.name = named.name;
   } else if (typeof flags.code === "string") {
     const read = themeFromText(flags.code);
     if (!read) throw new Error("That isn't Parabola code. Copy the command again from /parabola/theme.");
