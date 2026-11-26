@@ -67,6 +67,28 @@ function point(
   return { id, name, kind, theme };
 }
 
+/**
+ * Campfire: night first. Deep navy with ember orange in the dark theme; by day, amber with rust. One
+ * old-style serif for everything. The day and the night are both set, where the others leave the
+ * dark theme to follow.
+ */
+const campfire = point("campfire", "Campfire", "A place to gather, warm and nostalgic", {
+  page: "#DD9625",
+  button: "#9C2308",
+  fonts: { heading: face("Young Serif", ""), body: face("Young Serif", "") },
+  chips: { colour: "earthy", type: "classic", buttons: "soft" },
+  composition: { layout: "inline", align: "centre", scale: "loud", density: "airy", structure: "plain", labels: "none", numbered: false, hero: "poster" },
+  brief: {
+    reference: "A night by a campfire, printed like an old travel poster: a deep navy sky, ember orange, and a round, friendly serif.",
+    moves: ["One serif, Young Serif, for headings and text alike.", "Ember orange is the only bright thing: what you click, and the name.", "By day the page turns amber and the orange deepens to rust.", "Big centred words over a picture; little else on the page."],
+  },
+});
+campfire.theme.colours = {
+  ...campfire.theme.colours,
+  theme: { light: "#DD9625", dark: "#0A0E1D" },
+  accent: { light: "#9C2308", dark: "#E37602" },
+};
+
 export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
   point("parabola", "Parabola", "Editorial, a writer's site", {
     page: null,
@@ -145,4 +167,5 @@ export const DS_STARTING_POINTS: readonly DsStartingPoint[] = [
       moves: ["Type is small and stays out of the way.", "Images run edge to edge, with almost no gap.", "No boxes, no rules, no buttons that look like buttons."],
     },
   }),
+  campfire,
 ];
